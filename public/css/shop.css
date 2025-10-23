@@ -61,7 +61,7 @@
 .shop-page .shop-surface{
   position: relative;
   isolation: isolate;
-  padding: var(--shop-offset) 0 120px; /* mirrors .pdp-section padding */
+  padding: 4vh; /* mirrors .pdp-section padding */
 }
 
 /* Viewport-anchored translucent veils (always visible, behind everything) */
@@ -158,7 +158,7 @@
   border:1px solid var(--shop-border);
   border-radius:999px;
   background:#fff;
-  font-size:.95rem; font-weight:600;
+  font-size:1rem; font-weight:500;
 }
 .chip[aria-pressed="true"]{
   background:#fff; border-color: var(--shop-sky);

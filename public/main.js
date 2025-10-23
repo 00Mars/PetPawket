@@ -7,6 +7,7 @@ const cssFiles = [
   '/css/hero.css',
   '/css/pettypes.css',
   '/css/core.css',
+  '/css/footer.css'
 ];
 
 function toCanonicalPath(p) {
@@ -198,6 +199,18 @@ function ensureSearchOverlayStyles() {
   @keyframes sk { from{background-position:0% 0;} to{background-position:100% 0;} }
   `;
   document.head.appendChild(style);
+}
+
+/* ======================================================================== */
+/*                 NAV OFFSET MEASUREMENT (added)                           */
+/*   Measures real fixed navbar height and stores it in --nav-offset        */
+/* ======================================================================== */
+function setNavOffset() {
+  try {
+    const sticky = document.querySelector('#navbar-container .sticky-wrapper');
+    const h = Math.round((sticky?.getBoundingClientRect?.().height || 170));
+    document.documentElement.style.setProperty('--nav-offset', h + 'px');
+  } catch {}
 }
 
 /* ======================================================================== */
@@ -439,7 +452,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     footerMod,
     searchMod,
     heroMod,
-    pettypesMod,
+    shopByMod,
     missionMod,
     navOverlayMod,
     navAnimMod,
@@ -450,7 +463,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     tryImport('./footer.js'),
     tryImport('./searchLogic.js'),
     tryImport('./hero.js'),
-    tryImport('./pettypes.js'),
+    tryImport('./shopBy.js'),        // NEW shop-by injector
     tryImport('./mission.js'),
     tryImport('./navbarOverlay.js'),
     tryImport('./navbarAnimation.js'),
@@ -467,7 +480,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const injectFooter                = footerMod?.injectFooter;
   const setupSearchFunctionality    = searchMod?.setupSearchFunctionality;
   const injectHero                  = heroMod?.injectHero;
-  const injectShopBy                = pettypesMod?.injectPetTypes || pettypesMod?.injectShopBy;
+  const injectShopBy                = shopByMod?.injectShopBy; // use new injector only
   const injectMission               = missionMod?.injectMission;
   const injectNews                  = newsMod?.injectNews || newsMod?.initNews;
 
@@ -484,6 +497,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       const afterNavbar = async () => {
         console.log('[Navbar] Ready. Initializing features…');
         try {
+          // ADDED: measure actual navbar height for layout
+          setNavOffset();
+          window.addEventListener('resize', setNavOffset, { passive: true });
+
           setupNavbarOverlayHandlers?.();
           setupHueyAnimation?.();
 
@@ -555,7 +572,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // === SHOP BY ===
   try {
-    if (hasEl('#pettypes-container') && typeof injectShopBy === 'function') {
+    if (hasEl('#shop-by') && typeof injectShopBy === 'function') {
       console.log('[ShopBy] Injecting…');
       await injectShopBy();
     }
@@ -650,7 +667,7 @@ window.addEventListener('unhandledrejection', (e) => {
     const img = p.featuredImage?.url || '/assets/images/placeholder.png';
     const title = p.title || '';
     const handle = p.handle || '';
-    const id = p.id || '';
+       const id = p.id || '';
     const minp = p.priceRange?.minVariantPrice, maxp = p.priceRange?.maxVariantPrice;
     const price = minp
       ? (minp.amount === maxp?.amount

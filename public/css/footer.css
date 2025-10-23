@@ -1,0 +1,194 @@
+/* Footer (polished, snug, with stronger soft edge-bleed to hide corner cutoff) */
+:root{
+  --footer-bg: rgba(255 248 240 / 0.65);
+  --footer-bleed: rgba(255 248 240 / 0.48);  /* soft halo above corners */
+  --footer-text: #332D29;
+  --footer-accent: #FFA625;
+  --footer-stroke: rgba(0 0 0 / 8%);
+}
+
+/* Wrap */
+.footer-section {
+  position: relative;
+  isolation: isolate;                  /* new stacking context for pseudo-layers */
+  margin: 0;
+  margin-top: -1px;                    /* tuck under previous section by 1px */
+  height: auto;
+  padding: 14px 24px 40px;
+  border-radius: 24px 24px 0 0;
+  font-family: Fredoka, sans-serif;
+  background-color: var(--footer-bg);
+  border-top: 5px solid var(--footer-accent);
+  box-shadow: 0 -6px 25px rgba(0,0,0,.05);
+  overflow: visible;                   /* allow edge-bleed to render outside */
+}
+
+#footer-container {
+
+  border-radius: 24px 24px 0 0;
+
+}
+
+/* Stronger “bleed” above the rounded corners so the background never ends abruptly */
+.footer-section::before{
+  content:"";
+  position:absolute;
+  left:-32px; right:-32px;             /* extend beyond both sides */
+  top:-32px; height: 60px;             /* extend higher for a smoother blend */
+  background:
+    /* corner softening on both top corners, blended with a base fill */
+    radial-gradient(90px 70px at left top,  var(--footer-bleed) 0 60%, transparent 70%),
+    radial-gradient(90px 70px at right top, var(--footer-bleed) 0 60%, transparent 70%),
+    linear-gradient(to bottom, var(--footer-bleed), transparent);
+  filter: blur(14px);
+  border-top-left-radius: calc(24px + 32px);
+  border-top-right-radius: calc(24px + 32px);
+  pointer-events:none;
+  z-index: -1;                         /* behind footer content but above page */
+}
+
+/* Header title centered above content grid */
+.footer-header{
+  text-align:center;
+  margin: 6px 0 18px;
+}
+.footer-header h4{
+  margin-bottom: 4vh;
+  font-size: clamp(20px, 1.6vw, 24px);
+  font-weight: 900;
+  color: var(--footer-text);
+}
+
+/* Inner content row */
+.footer-content{
+  position: relative;
+  z-index: 1;
+  display:flex;
+  flex-wrap:wrap;
+  gap: clamp(20px, 3vw, 40px);
+  justify-content: space-between;
+  align-items:flex-start;
+  max-width: 1200px;
+  margin-inline:auto;
+}
+
+/* Column: logo */
+.footer-logo-col{
+  display:flex;
+  flex: 1 1 220px;
+  justify-content:center;
+  align-items:center;
+}
+.footer-logo-large{
+  max-width: 100%;
+  height: 200px;
+  filter: drop-shadow(2px 4px 10px rgba(0,0,0,.5));
+  object-fit: contain;
+}
+
+/* Column: brand text */
+.footer-brand{
+  flex: 1 1 220px;
+  color: var(--footer-text);
+  font-size: 16px;
+  line-height: 1.7;
+  min-width: 220px;
+}
+.footer-brand h4{
+  margin: 0 0 1.2rem;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--footer-text);
+}
+.footer-tagline{ margin: 0; }
+
+/* Column: links + socials */
+.footer-links,
+.footer-social{
+  flex: 1 1 180px;
+  min-width: 180px;
+}
+.footer-links h4,
+.footer-social h4{
+  margin: 0 0 1.2rem;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--footer-text);
+}
+.footer-links ul{
+  margin:0 0 12px;
+  padding:0;
+  list-style:none;
+}
+.footer-links li{ margin-bottom: 12px; }
+.footer-links a{
+  color: var(--footer-text);
+  text-decoration:none;
+  font-size: 16px;
+  font-weight: 600;
+  transition: color .2s ease, text-shadow .2s ease;
+}
+.footer-links a:hover{
+  color: var(--footer-accent);
+  text-shadow: 0 0 0 rgba(0,0,0,0);
+}
+
+/* Social list aligns horizontally, keeps icons crisp */
+.footer-social{
+  margin-top: 8px;
+}
+.footer-social[role="list"]{
+  display:flex;
+  gap: 14px;
+  align-items:center;
+}
+.footer-social .social-icons{
+  list-style:none;
+  margin:0; padding:0;
+}
+.social-icons a{
+  display:inline-block;
+  transition: transform .2s ease, filter .2s ease;
+}
+.social-icons img{
+  width: 30px; height: 30px;
+  display:block;
+  filter: drop-shadow(2px 4px 10px rgba(0,0,0,.2));
+}
+.social-icons a:hover{ transform: scale(1.1); filter:none; }
+
+/* Bottom bar with a softer separator */
+.footer-bottom{
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 38px auto 0;
+  padding-top: 20px;
+  font-size: 15px;
+  text-align: center;
+  color: #888;
+}
+.footer-bottom::before{
+  content:"";
+  display:block;
+  height:1px;
+  margin-bottom: 20px;
+  background: linear-gradient(90deg, rgba(0,0,0,.06), rgba(0,0,0,.12), rgba(0,0,0,.06));
+}
+
+/* Collapsible note */
+.footer-note{ color:#999; }
+.footer-note[open]{ padding: 8px 12px 0; }
+
+/* Responsive */
+@media (max-width: 992px){
+  .footer-logo-large{ height: 180px; }
+}
+@media (max-width: 768px){
+  .footer-content{
+    justify-content:center;
+    text-align:center;
+  }
+  .footer-links, .footer-brand, .footer-logo-col{ flex: 1 1 100%; }
+  .footer-social[role="list"]{ justify-content:center; }
+}

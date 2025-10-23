@@ -25,8 +25,16 @@
   background: var(--pp-glass-bg);
   border-top: 5px solid var(--pp-glass-accent);   /* tiny translucent blue */
   border-bottom: 1px solid var(--pp-glass-border);
-  -webkit-backdrop-filter: blur(12px) saturate(120%);
-  backdrop-filter: blur(12px) saturate(120%);
+  -webkit-backdrop-filter: blur(6px) saturate(120%);
+  backdrop-filter: blur(6px) saturate(120%);
+
+  /* enable container queries for better, local responsiveness */
+  container-type: inline-size;
+}
+
+/* Optional inner width cap if used with a .container wrapper */
+.pp-featured > .container {
+  max-width: min(1200px, 92vw);
 }
 
 /* Controls */
@@ -48,6 +56,7 @@
   display: flex;
   gap: .5rem;
   align-items: center;
+  min-width: 0;
 }
 
 .pp-field label {
@@ -63,6 +72,13 @@
   border-radius: 10px;
   font-size: .95rem;
   background: #fff;
+  outline: none;
+  transition: box-shadow .15s ease, border-color .15s ease;
+}
+
+.pp-input:focus, .pp-select:focus {
+  border-color: var(--pp-glass-accent);
+  box-shadow: 0 0 0 3px var(--pp-glass-accent);
 }
 
 /* Grid */
@@ -72,10 +88,32 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(var(--min), 1fr));
   gap: var(--pp-gap);
+  align-items: stretch;
 }
+
+/* Local responsiveness via container queries */
+@container (max-width: 480px) {
+  .pp-grid { --min: 150px; }
+}
+@container (min-width: 481px) and (max-width: 720px) {
+  .pp-grid { --min: 170px; }
+}
+@container (min-width: 721px) and (max-width: 1024px) {
+  .pp-grid { --min: 190px; }
+}
+@container (min-width: 1025px) {
+  .pp-grid { --min: 220px; }
+}
+
+/* Fallback media queries for browsers without container queries */
+@media (max-width: 480px)  { .pp-grid { --min: 150px; } }
+@media (min-width: 481px) and (max-width: 720px)  { .pp-grid { --min: 170px; } }
+@media (min-width: 721px) and (max-width: 1024px) { .pp-grid { --min: 190px; } }
+@media (min-width: 1025px) { .pp-grid { --min: 220px; } }
 
 /* Card */
 .pp-card {
+  position: relative;
   display: flex;
   overflow: hidden;
   flex-direction: column;
@@ -83,7 +121,10 @@
   border-radius: var(--pp-card-radius);
   background: #fff;
   box-shadow: var(--pp-card-shadow);
+  transition: transform .18s ease;
 }
+
+.pp-card:hover { transform: translateY(-2px); }
 
 .pp-thumb {
   position: relative;
@@ -97,19 +138,28 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transform: scale(1);
+  transition: transform .25s ease;
 }
+.pp-card:hover .pp-thumb img { transform: scale(1.03); }
 
 .pp-body {
   display: flex;
   flex-direction: column;
   gap: .5rem;
   padding: .8rem .9rem 1rem;
+  min-height: 0;
 }
 
 .pp-title {
   font-size: .98rem;
   font-weight: 600;
   line-height: 1.2;
+  /* clamp to 2 lines where supported */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 
 .pp-price {
@@ -130,6 +180,18 @@
   color: inherit;
 }
 
+/* Optional stretched link pattern:
+   add class="pp-link stretched-link" to the title anchor to make the whole card clickable */
+.pp-card .stretched-link {
+  position: static;
+}
+.pp-card .stretched-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+/* Wish button */
 .pp-wish {
   display: inline-flex;
   gap: .35rem;
@@ -140,6 +202,14 @@
   font-size: .85rem;
   background: #fff;
   cursor: pointer;
+  transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease, background-color .12s ease;
+}
+
+.pp-wish:hover { transform: translateY(-1px); }
+
+.pp-wish:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--pp-glass-accent);
 }
 
 .pp-wish.active {
@@ -181,6 +251,12 @@
 @keyframes pp-shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
+}
+
+/* Motion-reduced: disable hover zoom and shimmer */
+@media (prefers-reduced-motion: reduce) {
+  .pp-card, .pp-thumb img, .pp-wish { transition: none !important; }
+  .pp-skel-thumb, .pp-bar { animation: none !important; }
 }
 
 /* Empty state */

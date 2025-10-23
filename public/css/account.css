@@ -27,7 +27,7 @@ body::before{
 }
 
 /* keep account below the nav */
-main.container.py-5{ padding-top: calc(var(--nav-h) + 40px) !important; padding-bottom:80px; }
+main.container.py-5{ padding-top: 5vh !important; padding-bottom:80px; }
 main.container .row.g-4{ align-items:start; }
 
 /* =========================================================
