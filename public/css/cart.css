@@ -75,6 +75,14 @@
   margin: 0 0 2rem;
 }
 
+.container .card-header, .container .card-header #wishlistHeading {
+
+  padding-left: 1vw;
+  padding-right: 0;
+  --bs-gutter-x: 0rem;
+
+}
+
 .table>:not(caption)>*>* {
 
   padding: 0.5rem 1rem;

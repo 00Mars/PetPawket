@@ -4,30 +4,72 @@
 
 // ====== MODULAR CSS INJECTION ======
 const cssFiles = [
+  'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css',
+  'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css',
+  'https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;700&display=swap',
+  '/css/core.css',
   '/css/hero.css',
   '/css/pettypes.css',
-  '/css/core.css',
+  '/css/pets-traits.css',
+  '/css/wishlist.css',
+  '/css/fonts.css',
   '/css/footer.css'
 ];
 
+function isAbsoluteUrl(u) {
+  return /^https?:\/\/|^\/\//i.test(String(u || ''));
+}
 function toCanonicalPath(p) {
   const s = String(p || '').replace(/^[./]+/, '').replace(/^\/+/, '');
   return '/' + s;
 }
-function addCssIfMissing(file) {
-  const want = toCanonicalPath(file);
-  const links = document.querySelectorAll('link[rel="stylesheet"]');
-  for (const lnk of links) {
-    try {
-      const existing = new URL(lnk.href, location.href).pathname;
-      if (toCanonicalPath(existing) === want) return;
-    } catch { /* ignore */ }
+function normalizeHref(href) {
+  try {
+    const u = new URL(href, location.href);
+    // include origin + path + search so we dedupe Google Fonts correctly
+    return u.origin + u.pathname + (u.search || '');
+  } catch {
+    return String(href || '');
   }
+}
+function preconnect(href) {
+  try {
+    const u = new URL(href, location.href);
+    const origins = new Set([u.origin]);
+    // Google Fonts CSS pulls from fonts.gstatic.com
+    if (u.hostname.includes('fonts.googleapis.com')) {
+      origins.add('https://fonts.gstatic.com');
+    }
+    origins.forEach(origin => {
+      if (document.querySelector(`link[rel="preconnect"][href="${origin}"]`)) return;
+      const l = document.createElement('link');
+      l.rel = 'preconnect';
+      l.href = origin;
+      l.crossOrigin = '';
+      document.head.appendChild(l);
+    });
+  } catch {}
+}
+function addCssIfMissing(file) {
+  const wantHref = isAbsoluteUrl(file) ? file : toCanonicalPath(file);
+  const wantKey = normalizeHref(wantHref);
+
+  // If an identical stylesheet is already present, skip
+  const links = document.querySelectorAll('link[rel="stylesheet"], link[data-pp-css]');
+  for (const lnk of links) {
+    const key = normalizeHref(lnk.href);
+    if (key === wantKey) return;
+  }
+
+  // Add preconnect for known CDNs (reduces FOUT)
+  if (isAbsoluteUrl(wantHref)) preconnect(wantHref);
+
   const link = document.createElement('link');
   link.rel = 'stylesheet';
-  link.href = want;
-  link.onload = () => console.debug('[CSS] loaded', want);
-  link.onerror = () => console.warn('[CSS] failed to load', want);
+  link.href = wantHref;
+  link.setAttribute('data-pp-css', '1');
+  link.onload = () => console.debug('[CSS] loaded', wantHref);
+  link.onerror = () => console.warn('[CSS] failed to load', wantHref);
   document.head.appendChild(link);
 }
 cssFiles.forEach(addCssIfMissing);

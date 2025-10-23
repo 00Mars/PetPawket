@@ -1,0 +1,47 @@
+/* Fonts setup: Rubik (headings) + Inter (body/UI), keep Fredoka for brand
+   Loads after core.css to override its global Fredoka rule safely. */
+
+@import url("https://fonts.googleapis.com/css2?family=Rubik:wght@500;700&family=Inter:wght@400;500;600;700&display=swap");
+
+:root{
+  --pp-heading-font: "Rubik", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+  --pp-body-font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+  --pp-brand-font: "Fredoka", "Rubik", system-ui, sans-serif;
+}
+
+/* Body/UI text defaults (paragraphs, links, forms, buttons, tables, footer text) */
+:where(body, p, a, li, span, small, label, input, select, textarea, button, .btn, .form-control, .table, .dropdown-menu, .modal-content, .card-text, .cart-table, .footer-bottom, .footer-links a, .footer-note){
+  font-family: var(--pp-body-font) !important;
+}
+
+/* Headings and prominent labels */
+:where(h1, h2, h3, h4, h5, h6, .section-title, .card-title, .news-title){
+  font-family: var(--pp-heading-font) !important;
+}
+
+/* Navigation links (keep friendly headings tone) */
+.nav-links .nav-item > a{
+  font-family: var(--pp-heading-font) !important;
+}
+
+/* Brand wordmark and explicitly branded headers remain Fredoka */
+:where(.brand-logo, .footer-header h4, .footer-brand-title){
+  font-family: var(--pp-brand-font) !important;
+}
+
+/* Buttons: ensure Inter and tiny letter-spacing for crisp small sizes */
+:where(.btn, button){
+  font-family: var(--pp-body-font) !important;
+  letter-spacing: 0.01em;
+}
+
+/* Footer fine-tune */
+.footer-bottom, .footer-bottom p, .footer-links a, .footer-note{
+  font-family: var(--pp-body-font) !important;
+}
+
+/* Improve rendering on most platforms */
+html, body{
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
