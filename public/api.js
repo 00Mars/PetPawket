@@ -97,56 +97,57 @@ const send = (url, method, data) =>
   // ---------- Pane Prefs (server if present; else localStorage) ----------
   const LS_PANE = 'pp.myPetsPane.on';
 
-  // If the server route 404s once, cache caps.prefs=false to avoid future calls.
-  async function prefsGetForMyPets() {
-    if (caps.prefs === false) {
-      const raw = localStorage.getItem(LS_PANE);
-      return { ok: true, on: raw === null ? false : raw === '1' };
-    }
-    const r = await get('/api/prefs/forMyPets'); // may 404 → fallback
-    if (r.ok) { caps.prefs = true; return { ok: true, on: !!r.body?.on }; }
-    if (r.status === 404) caps.prefs = false;
+async function prefsGetForMyPets() {
+  if (caps.prefs === false) {
     const raw = localStorage.getItem(LS_PANE);
     return { ok: true, on: raw === null ? false : raw === '1' };
   }
+  const r = await get('/api/prefs/forMyPets'); // may 404 → fallback
+  if (r.ok) { caps.prefs = true; return { ok: true, on: !!r.body?.on }; }
+  if (r.status === 404) caps.prefs = false;
+  const raw = localStorage.getItem(LS_PANE);
+  return { ok: true, on: raw === null ? false : raw === '1' };
+}
 
-  async function prefsSetForMyPets(on) {
-    if (caps.prefs === false) {
-      localStorage.setItem(LS_PANE, on ? '1' : '0');
-      return { ok: true };
-    }
-    const r = await send('/api/prefs/forMyPets', 'POST', { on });
-    if (r.ok) { caps.prefs = true; return { ok: true }; }
-    if (r.status === 404) caps.prefs = false;
+async function prefsSetForMyPets(on) {
+  if (caps.prefs === false) {
     localStorage.setItem(LS_PANE, on ? '1' : '0');
     return { ok: true };
   }
+  const r = await send('/api/prefs/forMyPets', 'POST', { on });
+  if (r.ok) { caps.prefs = true; return { ok: true }; }
+  if (r.status === 404) caps.prefs = false;
+  localStorage.setItem(LS_PANE, on ? '1' : '0');
+  return { ok: true };
+}
 
   // ---------- Subscriptions (optional) ----------
   // Try the two known endpoints; on first double-404, cache caps.subs=false.
   async function subsSuggest(petId) {
-    if (caps.subs === false) return { ok: false, suggestions: [] };
-    const urls = [
-      `/api/subscriptions/suggest?pet=${encodeURIComponent(petId || '')}`,
-      `/api/subs/suggest?pet=${encodeURIComponent(petId || '')}`, // compat
-    ];
-    let anyOk = false;
-    for (const u of urls) {
-      const r = await get(u);
-      if (r.ok) {
-        anyOk = true;
-        const suggestions = r.body?.suggestions || r.body?.items || [];
-        caps.subs = true;
-        return { ok: true, suggestions };
-      }
-      if (r.status !== 404 && r.status !== 0) {
-        // Endpoint exists but returned an error; don’t mark as unsupported.
-        return { ok: false, suggestions: [] };
-      }
+  if (caps.subs === false) return { ok: false, suggestions: [] };
+
+  const urls = [
+    `/api/subscriptions/suggest?pet=${encodeURIComponent(petId || '')}`,
+    `/api/subs/suggest?pet=${encodeURIComponent(petId || '')}`, // compat
+  ];
+
+  let anyOk = false;
+  for (const u of urls) {
+    const r = await get(u);
+    if (r.ok) {
+      anyOk = true;
+      const suggestions = r.body?.suggestions || r.body?.items || [];
+      caps.subs = true;
+      return { ok: true, suggestions };
     }
-    if (!anyOk) caps.subs = false; // both ~404/0 → mark unsupported
-    return { ok: false, suggestions: [] };
+    if (r.status !== 404 && r.status !== 0) {
+      // Endpoint exists but returned an error; don’t mark as unsupported.
+      return { ok: false, suggestions: [] };
+    }
   }
+  if (!anyOk) caps.subs = false; // both endpoints ~404/0 → mark unsupported
+  return { ok: false, suggestions: [] };
+}
 
   return {
     // Pets
