@@ -158,21 +158,37 @@
   </nav>
 </div>
 
-<section id="shop-by" aria-label="Shop by">
   <div class="sb-ribbon">
-    <div class="container sb-wrap">
-      <nav class="sb-rail" id="sb-rail" role="tablist" aria-label="Shop by chips">
-        <a class="sb-chip" role="tab" data-key="all" href="/shop" aria-current="true"><i class="bi bi-stars" aria-hidden="true"></i><span>All</span></a>
-        <a class="sb-chip" role="tab" data-key="dog"  href="/shop?pet=dog"><i class="bi bi-bone" aria-hidden="true"></i><span>Dogs</span></a>
-        <a class="sb-chip" role="tab" data-key="cat"  href="/shop?pet=cat"><i class="bi bi-emoji-smile" aria-hidden="true"></i><span>Cats</span></a>
-        <a class="sb-chip" role="tab" data-key="bird" href="/shop?pet=bird"><i class="bi bi-feather" aria-hidden="true"></i><span>Birds</span></a>
-        <a class="sb-chip" role="tab" data-key="fish" href="/shop?pet=fish"><i class="bi bi-droplet" aria-hidden="true"></i><span>Fish</span></a>
-        <a class="sb-chip" role="tab" data-key="rept" href="/shop?pet=rept"><i class="bi bi-eye" aria-hidden="true"></i><span>Reptiles</span></a>
-        <a class="sb-chip" role="tab" data-key="small" href="/shop?pet=small"><i class="bi bi-heart" aria-hidden="true"></i><span>Small Pets</span></a>
-        <a class="sb-chip" role="tab" data-key="acc"  href="/shop?pet=accessories"><i class="bi bi-bag" aria-hidden="true"></i><span>Accessories</span></a>
-        <a class="sb-chip" role="tab" data-key="treat" href="/shop?pet=treat"><i class="bi bi-cookie" aria-hidden="true"></i><span>Treats</span></a>
-        <a class="sb-chip" role="tab" data-key="toy"  href="/shop?pet=toy"><i class="bi bi-emoji-laughing" aria-hidden="true"></i><span>Toys</span></a>
-      </nav>
+    <div class="container">
+      <div class="sb-wrap">
+        <div class="sb-head">
+          <div class="sb-title">Shop:</div>
+
+        </div>
+        <nav class="sb-rail" aria-label="Secondary navigation">
+          <!-- Site links -->
+          <a class="sb-chip" href="/about.html">About</a>
+          <a class="sb-chip" href="/community.html">Community</a>
+          <a class="sb-chip" href="/events.html">Events</a>
+          <a class="sb-chip" href="/charm.html">CHARM Foundation</a>
+          <a class="sb-chip" href="/contact.html">Contact</a>
+          <a class="sb-chip" href="/privacy.html">Privacy &amp; Terms</a>
+
+          <!-- Shop categories -->
+          <a class="sb-chip" href="/shop.html" data-shop-cat="" data-key="all">All</a>
+          <a class="sb-chip" href="/shop.html" data-shop-cat="dog">Dogs</a>
+          <a class="sb-chip" href="/shop.html" data-shop-cat="cat">Cats</a>
+          <a class="sb-chip" href="/shop.html" data-shop-cat="bird">Birds</a>
+          <a class="sb-chip" href="/shop.html" data-shop-cat="fish">Fish</a>
+          <a class="sb-chip" href="/shop.html" data-shop-cat="reptiles">Reptiles</a>
+          <a class="sb-chip" href="/shop.html" data-shop-cat="small-pet">Small Pets</a>
+          <a class="sb-chip" href="/shop.html" data-shop-cat="accessories">Accessories</a>
+          <a class="sb-chip" href="/shop.html" data-shop-cat="treats">Treats</a>
+          <a class="sb-chip" href="/shop.html" data-shop-cat="toys">Toys</a>
+          <a class="sb-chip" href="/shop.html?subscribe=1" data-subscribe="1">Subscribe &amp; Save</a>
+          <a class="sb-chip" href="/shop.html?mypets=1" data-my="1">For My Pets</a>
+        </nav>
+      </div>
     </div>
   </div>
 </section>

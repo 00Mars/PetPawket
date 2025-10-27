@@ -841,7 +841,7 @@ export function injectNavbar(callback){
         try { setupPriorityNav(document); } catch (e) { console.warn('[nav overflow]', e); }
 
         // Sub-navbar: styles + canonical injection (inline "Shop by", centered, consistent everywhere)
-        try { injectSubnavStyles(); await injectSubnav(container); } catch (e) { console.warn('[subnav]', e); }
+        // try { injectSubnavStyles(); await injectSubnav(container); } catch (e) { console.warn('[subnav]', e); }
 
         // Apply requested desktop layout changes
         try { injectDesktopNavbarRules(); rearrangeIcons(container); } catch (e) { console.warn('[navbar desktop]', e); }

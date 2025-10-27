@@ -522,7 +522,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const injectFooter                = footerMod?.injectFooter;
   const setupSearchFunctionality    = searchMod?.setupSearchFunctionality;
   const injectHero                  = heroMod?.injectHero;
-  const injectShopBy                = shopByMod?.injectShopBy; // use new injector only
   const injectMission               = missionMod?.injectMission;
   const injectNews                  = newsMod?.injectNews || newsMod?.initNews;
 
