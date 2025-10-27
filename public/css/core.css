@@ -960,6 +960,7 @@ picture { display: contents; }
 
 /* Limit and center the inner width just for this section */
 #shop-by .container {
+  /* Constrain the ribbon to a reasonable width and center it within the page */
   max-width: min(1100px, 96vw);
   margin-inline: auto;
   padding-inline: clamp(8px, 2vw, 16px);
@@ -968,9 +969,11 @@ picture { display: contents; }
 /* Layout: label + tray (stacks on smaller widths) */
 #shop-by .sb-wrap {
   display: grid;
-  grid-template-columns: minmax(180px, auto) 1fr;
+  /* Give the label column only the space it needs so the tray comes closer */
+  grid-template-columns: auto 1fr;
   align-items: center;
-  gap: 12px;
+  /* Reduce the gap between label and tray to tighten the layout */
+  gap: 8px;
 }
 
 /* Label — darker and more legible on the off‑white bar */
@@ -982,14 +985,16 @@ picture { display: contents; }
   white-space: nowrap;
   letter-spacing: .015em;
 }
-#shop-by .sb-sub   { font-size: .92rem; color: #3f5963; }
+#shop-by .sb-sub { font-size: .92rem; color: #3f5963; }
 
 /* TRAY: centered, width-capped, single rounded background for all links */
 #shop-by .sb-rail {
   position: relative;
-  justify-self: center;                 /* center the tray inside its grid cell */
+  /* Let the ribbon stretch across the full width of its grid cell */
+  justify-self: stretch;
+  width: 100%;
   max-width: 100%;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: clamp(10px, 1.6vw, 14px);
 
@@ -1054,7 +1059,7 @@ picture { display: contents; }
   scroll-snap-align: start;
 }
 
-#shop-by .sb-chip[data-key="all"] {text-transform: none; letter-spacing: .05em; font-weight: 500;}
+#shop-by .sb-chip[data-key="all"] { text-transform: none; letter-spacing: .05em; font-weight: 500; }
 
 #shop-by .sb-chip i,
 #shop-by .sb-chip svg,
@@ -1067,7 +1072,7 @@ picture { display: contents; }
 #shop-by .sb-chip[aria-current="true"] {
   color: #ffffff;
   background: #408ade;
-  padding: 8px 12px;                    
+  padding: 8px 12px;
   border-radius: 9999px;
   box-shadow: 0 4px 14px rgba(10,106,216,.28);
 }
