@@ -16,41 +16,46 @@
           <i class="bi bi-list" aria-hidden="true"></i>
         </div>
 
+        <!-- Expanded primary navigation (mirrors “Shop by” on index and adds site pages) -->
         <ul class="nav-links">
           <li class="nav-item dropdown">
-            <a href="#" aria-expanded="false">Shop</a>
+            <a href="/shop.html" class="nav-link" aria-expanded="false">Shop</a>
             <ul class="dropdown-menu">
-              <li><a href="/shop.html" data-shop-cat="">All</a></li>
-              <li><a href="/shop.html" data-shop-cat="dog">Dog</a></li>
-              <li><a href="/shop.html" data-shop-cat="cat">Cat</a></li>
-              <li><a href="/shop.html" data-subscribe="1">Subscribe &amp; Save</a></li>
+              <!-- Shop by pet -->
+              <li><a href="/shop.html" class="dropdown-item" data-shop-cat="">All</a></li>
+              <li><a href="/shop.html" class="dropdown-item" data-shop-cat="dog">Dogs</a></li>
+              <li><a href="/shop.html" class="dropdown-item" data-shop-cat="cat">Cats</a></li>
+              <li><a href="/shop.html" class="dropdown-item" data-shop-cat="bird">Birds</a></li>
+              <li><a href="/shop.html" class="dropdown-item" data-shop-cat="fish">Fish</a></li>
+              <li><a href="/shop.html" class="dropdown-item" data-shop-cat="reptiles">Reptiles</a></li>
+              <li><a href="/shop.html" class="dropdown-item" data-shop-cat="small-pet">Small Pets</a></li>
+
               <li><hr class="dropdown-divider" /></li>
-              <li><a href="/shop.html" data-shop-sort="price-asc">Price: Low → High</a></li>
-              <li><a href="/shop.html" data-shop-per="48">Show 48</a></li>
+
+              <!-- Shop by product type -->
+              <li><a href="/shop.html" class="dropdown-item" data-shop-cat="toys">Toys</a></li>
+              <li><a href="/shop.html" class="dropdown-item" data-shop-cat="treats">Treats</a></li>
+              <li><a href="/shop.html" class="dropdown-item" data-shop-cat="accessories">Accessories</a></li>
+
+              <li><hr class="dropdown-divider" /></li>
+
+              <!-- Special filters -->
+              <li><a href="/shop.html?subscribe=1" class="dropdown-item" data-subscribe="1">Subscribe &amp; Save</a></li>
+              <li><a href="/shop.html?mypets=1" class="dropdown-item" data-my="1">For My Pets</a></li>
+
+              <li><hr class="dropdown-divider" /></li>
+
+              <!-- Fallback to full catalog -->
+              <li><a href="/shop.html" class="dropdown-item">View all</a></li>
             </ul>
           </li>
 
-          <li class="nav-item dropdown">
-            <a href="#" aria-expanded="false">About</a>
-            <ul class="dropdown-menu">
-              <li><a href="#mission">Our Mission</a></li>
-              <li><a href="#team">Meet the Team</a></li>
-              <li><a href="#partners">Our Partners</a></li>
-            </ul>
-          </li>
-
-          <li class="nav-item dropdown">
-            <a href="#" aria-expanded="false">Community</a>
-            <ul class="dropdown-menu">
-              <li><a href="#events">Events</a></li>
-              <li><a href="#forum">Forum</a></li>
-              <li><a href="./charm.html">CHARM Foundation</a></li>
-            </ul>
-          </li>
-
-          <li class="nav-item">
-            <a href="./contact.html">Contact</a>
-          </li>
+          <li class="nav-item"><a class="nav-link" href="/about.html">About</a></li>
+          <li class="nav-item"><a class="nav-link" href="/community.html">Community</a></li>
+          <li class="nav-item"><a class="nav-link" href="/events.html">Events</a></li>
+          <li class="nav-item"><a class="nav-link" href="/charm.html">CHARM Foundation</a></li>
+          <li class="nav-item"><a class="nav-link" href="/contact.html">Contact</a></li>
+          <li class="nav-item"><a class="nav-link" href="/privacy.html">Privacy &amp; Terms</a></li>
         </ul>
       </div>
 
@@ -71,7 +76,6 @@
         </div>
       </div>
 
-      <!-- Right: Icons -->
       <!-- Right: Icons -->
       <div class="nav-right">
         <div class="icon-area">
@@ -154,6 +158,25 @@
   </nav>
 </div>
 
+<section id="shop-by" aria-label="Shop by">
+  <div class="sb-ribbon">
+    <div class="container sb-wrap">
+      <nav class="sb-rail" id="sb-rail" role="tablist" aria-label="Shop by chips">
+        <a class="sb-chip" role="tab" data-key="all" href="/shop" aria-current="true"><i class="bi bi-stars" aria-hidden="true"></i><span>All</span></a>
+        <a class="sb-chip" role="tab" data-key="dog"  href="/shop?pet=dog"><i class="bi bi-bone" aria-hidden="true"></i><span>Dogs</span></a>
+        <a class="sb-chip" role="tab" data-key="cat"  href="/shop?pet=cat"><i class="bi bi-emoji-smile" aria-hidden="true"></i><span>Cats</span></a>
+        <a class="sb-chip" role="tab" data-key="bird" href="/shop?pet=bird"><i class="bi bi-feather" aria-hidden="true"></i><span>Birds</span></a>
+        <a class="sb-chip" role="tab" data-key="fish" href="/shop?pet=fish"><i class="bi bi-droplet" aria-hidden="true"></i><span>Fish</span></a>
+        <a class="sb-chip" role="tab" data-key="rept" href="/shop?pet=rept"><i class="bi bi-eye" aria-hidden="true"></i><span>Reptiles</span></a>
+        <a class="sb-chip" role="tab" data-key="small" href="/shop?pet=small"><i class="bi bi-heart" aria-hidden="true"></i><span>Small Pets</span></a>
+        <a class="sb-chip" role="tab" data-key="acc"  href="/shop?pet=accessories"><i class="bi bi-bag" aria-hidden="true"></i><span>Accessories</span></a>
+        <a class="sb-chip" role="tab" data-key="treat" href="/shop?pet=treat"><i class="bi bi-cookie" aria-hidden="true"></i><span>Treats</span></a>
+        <a class="sb-chip" role="tab" data-key="toy"  href="/shop?pet=toy"><i class="bi bi-emoji-laughing" aria-hidden="true"></i><span>Toys</span></a>
+      </nav>
+    </div>
+  </div>
+</section>
+
 <!-- Mobile Menu Shell -->
 <div class="mobile-menu" id="mobile-menu">
   <div class="mobile-content"></div>
@@ -185,9 +208,24 @@
 <div id="loginModal" class="custom-modal hidden" role="dialog" aria-modal="true" aria-labelledby="loginHeading">
   <div class="modal-content">
     <h3 id="loginHeading">Log In</h3>
-    <form id="login-form" data-auth="login-form">
-      <input id="login-email" type="email" name="email" placeholder="Email" required />
-      <input id="login-password" type="password" name="password" placeholder="Password" required />
+    <form id="login-form" data-auth="login-form" autocomplete="on">
+      <input
+        id="login-email"
+        type="email"
+        name="email"
+        placeholder="Email"
+        required
+        autocomplete="username"
+        spellcheck="false"
+      />
+      <input
+        id="login-password"
+        type="password"
+        name="password"
+        placeholder="Password"
+        required
+        autocomplete="current-password"
+      />
       <small class="text-muted d-block mt-2" data-login-msg></small>
       <button type="submit" class="btn btn-primary" data-action="login-continue">Continue</button>
     </form>
@@ -199,17 +237,17 @@
 <div id="signupModal" class="custom-modal hidden" role="dialog" aria-modal="true" aria-labelledby="signupHeading">
   <div class="modal-content">
     <h3 id="signupHeading">Create an Account</h3>
-    <form id="signupForm">
-      <input type="text" name="firstName" placeholder="First Name" required />
-      <input type="text" name="lastName" placeholder="Last Name" required />
-      <input type="email" name="email" placeholder="Email" required />
+    <form id="signupForm" autocomplete="on">
+    <form id="signupForm" autocomplete="on">
+      <input type="text"  name="firstName"       placeholder="First Name"        required autocomplete="given-name" />
+      <input type="text"  name="lastName"        placeholder="Last Name"         required autocomplete="family-name" />
+      <input type="email" name="email"           placeholder="Email"             required autocomplete="email" spellcheck="false" />
       <div class="password-wrapper">
-        <input type="password" name="password" placeholder="Password" required />
-        <input type="password" name="confirmPassword" placeholder="Confirm Password" required />
+        <input type="password" name="password"        placeholder="Password"         required autocomplete="new-password" />
+        <input type="password" name="confirmPassword" placeholder="Confirm Password" required autocomplete="new-password" />
       </div>
       <button type="submit" class="btn btn-primary">Sign Up</button>
     </form>
-    <button class="close-btn" data-close="signupModal" aria-label="Close signup modal">×</button>
   </div>
 </div>
 
@@ -217,9 +255,9 @@
 <div id="orderTrackerModal" class="custom-modal hidden" role="dialog" aria-modal="true" aria-labelledby="orderTrackHeading">
   <div class="modal-content">
     <h3 id="orderTrackHeading">Track Your Order</h3>
-    <form id="orderTrackerForm">
-      <input type="email" placeholder="Your Email" required />
-      <input type="text" placeholder="Order Number" required />
+    <form id="orderTrackerForm" autocomplete="on">
+      <input type="email" placeholder="Your Email" required autocomplete="email" spellcheck="false" aria-label="Your Email" />
+      <input type="text"  placeholder="Order Number" required autocomplete="off" />
       <button type="submit" class="btn btn-primary">Track</button>
     </form>
     <button class="close-btn" data-close="orderTrackerModal" aria-label="Close order tracking modal">×</button>

@@ -1,0 +1,23 @@
+/* Floating Shapes — visuals and layering (scoped to the background layer) */
+#shapes-container,
+.shapes-container {
+  position: fixed;
+  inset: 0;
+  z-index: 0;              /* behind foreground content, above page bg */
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.pp-floater {
+  position: absolute;
+  left: 0;
+  top: 0;
+  will-change: transform, opacity;
+  opacity: 0;              /* fade-in handled by JS (opacity -> 1) */
+  transition: opacity 500ms ease;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,.10)); /* gentle depth */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #shapes-container, .shapes-container { display: none !important; }
+}

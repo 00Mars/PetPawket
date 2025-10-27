@@ -60,7 +60,7 @@ console.log('[mount] /api/search');
 
 // --- Cart API (PG-backed) -----------------------------------------------------
 app.use('/api/cart', cartRoutes);
-console.log('[mount] /api/cart]');
+console.log('[mount] /api/cart');
 
 // --- Shopify helpers ----------------------------------------------------------
 const SF_ENDPOINT = `https://${SHOPIFY_DOMAIN}/api/2024-07/graphql.json`;
@@ -273,6 +273,61 @@ app.get('/api/orders', requireAuth, async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch orders' });
   }
 });
+
+/* -------------------------------------------------------------------------- */
+/*                FIX: Persisted “For My Pets” prefs (server-side)            */
+/* -------------------------------------------------------------------------- */
+// Shape used by frontend: GET → { on: boolean }, POST { on:boolean } → 200
+app.get('/api/prefs/forMyPets', requireAuth, async (req, res) => {
+  try {
+    const email = String(req.customer?.email || '').trim().toLowerCase();
+    if (!email) return res.status(401).json({ error: 'No session' });
+
+    const u = await getUserByEmail(email);
+    const on = !!(u?.preferences?.forMyPets?.on);
+    return res.json({ on });
+  } catch (e) {
+    console.error('[prefs] GET /api/prefs/forMyPets error:', e);
+    return res.status(500).json({ error: 'Failed to load preference' });
+  }
+});
+
+app.post('/api/prefs/forMyPets', requireAuth, async (req, res) => {
+  try {
+    const email = String(req.customer?.email || '').trim().toLowerCase();
+    if (!email) return res.status(401).json({ error: 'No session' });
+
+    const on = req?.body?.on === true;
+
+    // Ensure user + merge preferences JSON
+    const u = await ensureUser(email, '', '');
+    const prev = u?.preferences || {};
+    const next = { ...prev, forMyPets: { ...(prev.forMyPets || {}), on } };
+
+    await updateUser(u.id, { preferences: next });
+    return res.status(200).json({ ok: true });
+  } catch (e) {
+    console.error('[prefs] POST /api/prefs/forMyPets error:', e);
+    return res.status(500).json({ error: 'Failed to save preference' });
+  }
+});
+
+/* -------------------------------------------------------------------------- */
+/*             FIX: Suggestions probe endpoints (stop 404 noise)              */
+/*             Returns empty list for now; wire real logic later              */
+/* -------------------------------------------------------------------------- */
+const subsSuggestHandler = async (req, res) => {
+  try {
+    // If you want gating, add requireAuth to the route registrations below.
+    const petId = String(req.query.pet || '').trim();
+    return res.json({ ok: true, petId, suggestions: [] });
+  } catch (e) {
+    console.error('[subs] GET suggest error:', e);
+    return res.status(500).json({ ok: false, suggestions: [] });
+  }
+};
+app.get('/api/subscriptions/suggest', subsSuggestHandler);
+app.get('/api/subs/suggest', subsSuggestHandler);
 
 // ---------- Shop listing HTML entry (moved from /products to /shop) -----------
 app.get('/shop', (_req, res) => {

@@ -12,6 +12,7 @@ const cssFiles = [
   '/css/pettypes.css',
   '/css/pets-traits.css',
   '/css/wishlist.css',
+  '/css/ambient-mesh.css',
   '/css/fonts.css',
   '/css/footer.css'
 ];
@@ -505,7 +506,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     tryImport('./footer.js'),
     tryImport('./searchLogic.js'),
     tryImport('./hero.js'),
-    tryImport('./shopBy.js'),        // NEW shop-by injector
     tryImport('./mission.js'),
     tryImport('./navbarOverlay.js'),
     tryImport('./navbarAnimation.js'),
@@ -612,16 +612,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.warn('[Mission] warning:', e);
   }
 
-  // === SHOP BY ===
-  try {
-    if (hasEl('#shop-by') && typeof injectShopBy === 'function') {
-      console.log('[ShopBy] Injecting…');
-      await injectShopBy();
-    }
-  } catch (e) {
-    console.warn('[ShopBy] warning:', e);
-  }
-
   // === PRODUCTS ===
   try {
     if (hasEl('#featured-products') || hasEl('#featuredProducts')) {
@@ -662,12 +652,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   } catch (e) {
     console.warn('[Footer] warning:', e);
   }
-
-  // === OPTIONAL FX ===
-  try {
-    const fx = await tryImport('./floatingShapes.js');
-    fx?.initializeFloatingShapes?.();
-  } catch { /* no-op */ }
 
   console.log('[BOOT] main.js complete.');
 });

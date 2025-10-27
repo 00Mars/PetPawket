@@ -2,10 +2,14 @@
 
 /* Theme tokens (tweak as needed) */
 :root {
-  --pp-gap: 1rem;
-  --pp-card-radius: 14px;
-  --pp-card-shadow: 0 12px 30px rgb(0 0 0 / 8%);
+  /* spacing and density */
+  --pp-gap: 1.25rem; /* was 1rem → adds breathing room between cards */
+
+  /* card feel (lighter, less bulky) */
+  --pp-card-radius: 12px;                         /* was 14px */
+  --pp-card-shadow: 0 6px 18px rgb(0 0 0 / 6%);   /* was 0 12px 30px / 8% */
   --pp-card-border: 1px solid rgb(0 0 0 / 6%);
+
   --pp-muted: #6b7280;
   --pp-soft: #f6f7fb;
   --pp-like: #e11d48;
@@ -20,6 +24,10 @@
 .pp-featured {
   position: relative;
   z-index: 20;
+
+  /* IMPORTANT: no global top margin (prevents gap under Mission on homepage) */
+  margin-top: 0;
+
   padding-top: 3rem;
   padding-bottom: 3rem;
   background: var(--pp-glass-bg);
@@ -32,6 +40,11 @@
   container-type: inline-size;
 }
 
+/* Shop page only: add modest separation from the tray/filters above */
+.shop-page .pp-featured {
+  margin-top: clamp(8px, 2vh, 16px);
+}
+
 /* Optional inner width cap if used with a .container wrapper */
 .pp-featured > .container {
   max-width: min(1200px, 92vw);
@@ -42,7 +55,7 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: var(--pp-gap);
-  margin-bottom: 1.25rem;
+  margin-bottom: 2rem; /* was 1.25rem → more space above the grid */
 }
 
 @media (width >= 768px) {
@@ -83,7 +96,7 @@
 
 /* Grid */
 .pp-grid {
-  --min: 190px;
+  --min: 180px; /* was 190px → slightly smaller columns so cards feel less massive */
 
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(var(--min), 1fr));
@@ -121,10 +134,13 @@
   border-radius: var(--pp-card-radius);
   background: #fff;
   box-shadow: var(--pp-card-shadow);
-  transition: transform .18s ease;
+  transition: transform .18s ease, box-shadow .12s ease;
 }
 
-.pp-card:hover { transform: translateY(-2px); }
+.pp-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(0,0,0,.08);
+}
 
 .pp-thumb {
   position: relative;
@@ -147,12 +163,12 @@
   display: flex;
   flex-direction: column;
   gap: .5rem;
-  padding: .8rem .9rem 1rem;
+  padding: .8rem .9rem 1rem; /* tighter than default */
   min-height: 0;
 }
 
 .pp-title {
-  font-size: .98rem;
+  font-size: .98rem;   /* slightly smaller so titles don’t dominate */
   font-weight: 600;
   line-height: 1.2;
   /* clamp to 2 lines where supported */

@@ -1,19 +1,16 @@
 // petpawket/public/mobileRelocation.js
 import { throttleLog } from './throttleLog.js';
 
-// Setup responsive mobile menu relocation. This function relocates
-// navigation links and icon areas into the mobile drawer when the
-// viewport width is within tablet or mobile sizes, and moves them back
-// into the desktop navbar when wider. Renamed to camelCase for proper
-// exports.
+const NAV_COLLAPSE = 1280; // single source of truth for collapse width
+
 export function setupResponsiveMobileMenu() {
   const logLayoutState = throttleLog("LayoutState", () => {
     const navLinks = document.querySelector('.nav-links');
     const iconArea = document.querySelector('.icon-area');
     if (!navLinks || !iconArea) return;
     console.table({
-      'navLinks parent': navLinks.parentElement.className || navLinks.parentElement.id,
-      'iconArea parent': iconArea.parentElement.className || iconArea.parentElement.id
+      'navLinks parent': navLinks.parentElement?.className || navLinks.parentElement?.id,
+      'iconArea parent': iconArea.parentElement?.className || iconArea.parentElement?.id
     });
   });
 
@@ -26,8 +23,7 @@ export function setupResponsiveMobileMenu() {
     const navRight = document.querySelector('.nav-right');
     if (!navLinks || !iconArea || !mobileContent || !navLeft || !navRight) return;
 
-    const isTabletOrBelow = window.innerWidth <= 1024;
-    const isMobile = window.innerWidth < 769;
+    const isCollapsed = window.innerWidth <= NAV_COLLAPSE;
 
     const safeAppend = (parent, child) => {
       if (child && parent && parent !== child.parentElement && !child.contains(parent)) {
@@ -35,41 +31,44 @@ export function setupResponsiveMobileMenu() {
       }
     };
 
-    if (isTabletOrBelow && !navLinks.classList.contains('nav-links-mobile')) {
-      safeAppend(mobileContent, navLinks);
-      navLinks.classList.add('nav-links-mobile');
-    }
-
-    if (isMobile && !iconArea.classList.contains('icon-area-mobile')) {
-      safeAppend(mobileContent, iconArea);
-      iconArea.classList.add('icon-area-mobile');
-    }
-
-    if (!isTabletOrBelow && navLinks.classList.contains('nav-links-mobile')) {
-      safeAppend(navLeft, navLinks);
-      navLinks.classList.remove('nav-links-mobile');
-      navLinks.removeAttribute('style');
-    }
-
-    if (!isMobile && iconArea.classList.contains('icon-area-mobile')) {
-      safeAppend(navRight, iconArea);
-      iconArea.classList.remove('icon-area-mobile');
-      iconArea.removeAttribute('style');
+    // Move both links and icon row into the drawer at/below collapse width
+    if (isCollapsed) {
+      if (!navLinks.classList.contains('nav-links-mobile')) {
+        safeAppend(mobileContent, navLinks);
+        navLinks.classList.add('nav-links-mobile');
+      }
+      if (!iconArea.classList.contains('icon-area-mobile')) {
+        safeAppend(mobileContent, iconArea);
+        iconArea.classList.add('icon-area-mobile');
+      }
+    } else {
+      // Restore to desktop positions when wider
+      if (navLinks.classList.contains('nav-links-mobile')) {
+        safeAppend(navLeft, navLinks);
+        navLinks.classList.remove('nav-links-mobile');
+        navLinks.removeAttribute('style');
+      }
+      if (iconArea.classList.contains('icon-area-mobile')) {
+        safeAppend(navRight, iconArea);
+        iconArea.classList.remove('icon-area-mobile');
+        iconArea.removeAttribute('style');
+      }
     }
 
     logLayoutState();
   };
 
-  let lastViewportIsMobile = null;
+  let lastIsCollapsed = null;
   let resizeTimer;
 
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
-      const isMobileNow = window.innerWidth <= 1024;
+      const isCollapsedNow = window.innerWidth <= NAV_COLLAPSE;
       const mobileMenu = document.getElementById('mobile-menu');
 
-      if (!isMobileNow && mobileMenu?.classList.contains('active')) {
+      // If returning to desktop while drawer is open, close + restore positions
+      if (!isCollapsedNow && mobileMenu?.classList.contains('active')) {
         mobileMenu.classList.remove('active');
         mobileMenu.classList.add('closing');
         document.body.style.overflow = '';
@@ -79,20 +78,19 @@ export function setupResponsiveMobileMenu() {
         const navRight = document.querySelector('.nav-right');
         navLeft?.appendChild(navLinks);
         navRight?.appendChild(iconArea);
-        iconArea.classList.remove('icon-area-mobile');
+        iconArea?.classList.remove('icon-area-mobile');
         setTimeout(() => mobileMenu.classList.remove('closing'), 400);
       }
 
-      if (isMobileNow !== lastViewportIsMobile) {
-        lastViewportIsMobile = isMobileNow;
+      if (isCollapsedNow !== lastIsCollapsed) {
+        lastIsCollapsed = isCollapsedNow;
         requestAnimationFrame(() => {
           requestAnimationFrame(() => relocateToMobile());
         });
       }
-    }, 150);
+    }, 120);
   });
 
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => relocateToMobile());
-  });
+  // Initial placement
+  relocateToMobile();
 }

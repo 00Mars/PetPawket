@@ -111,6 +111,67 @@ main.container .row.g-4 > .col-lg-3 > * > :is(h1,h2,h3,h4,h5,h6):first-child{
   font-size: clamp(1.1rem, 1rem + .3vw, 1.25rem) !important;
 }
 
+/* Tunables (scoped per wrapper) */
+.pp-unified-surface {
+  /* panel sizing tokens: adjust per page if needed */
+  --pp-unified-max: 1280px;   /* matches Bootstrap container feel at xl */
+  --pp-unified-gutter: 16px;  /* side breathing room on small screens */
+  margin-top: 5vh;
+  position: relative;
+  z-index: 0;                           /* establish stacking context above bg */
+  padding-block: clamp(16px, 2vh, 28px); /* vertical breathing room */
+}
+
+.pp-unified-surface .py-5{
+  /* panel sizing tokens: adjust per page if needed */
+  padding-top: 1rem !important;
+  padding-right: 2rem !important;
+  padding-left: 2rem !important;
+}
+
+/* On very large viewports, align to Bootstrap xxl container (≈1320px) */
+@media (width >= 1400px) {
+  .pp-unified-surface { --pp-unified-max: 1320px; }
+}
+
+.account-page #wishlistPane .card-body > .row {
+  margin-top: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* The actual panel */
+.pp-unified-surface::before {
+  content: "";
+  position: absolute;
+  z-index: -1;                /* sit behind the content within the wrapper */
+  inset: 0;                   /* match the wrapper’s height */
+  left: 50%;                  /* center the panel */
+  transform: translateX(-50%);
+
+  /* Wider panel to cover both columns; keep mobile gutters tight */
+  width: min(var(--pp-unified-max), calc(100% - var(--pp-unified-gutter) * 2));
+
+  /* Glassy surface */
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 22px;
+  box-shadow:
+    0 10px 26px rgba(0, 0, 0, 0.10),
+    0 2px 8px rgba(0, 0, 0, 0.04);
+  -webkit-backdrop-filter: blur(6px) saturate(120%);
+  backdrop-filter: blur(6px) saturate(120%);
+  pointer-events: none;       /* never intercept clicks */
+  margin-bottom: 4vh;
+}
+
+/* Stronger wash on very large viewports */
+@media (width >= 1440px) {
+  .pp-unified-surface::before {
+    background: rgba(255, 255, 255, 0.65);
+  }
+}
+
 .card-header {
 
   background: var(--card-head-bg);

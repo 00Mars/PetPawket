@@ -17,11 +17,10 @@
 <body>
 
   <!-- Shapes Container-->
-  <div id="shapes-container" class="shapes-container"></div>
+  <div id="shapes-container" class="shapes-container ambient-mesh"></div>
   <!-- Navbar Placeholder -->
   <div id="navbar-container"></div>
-  <!-- Shop by Category -->
-  <div id="shop-by"></div>
+
   <!-- Hero Placeholder -->
   <div id="hero-container"></div>
   <!-- Mission Placeholder-->
@@ -45,9 +44,6 @@
   <!-- Main bootstrapper (unchanged) -->
   <script type="module" src="main.js"></script>
 
-  <!-- Featured products rendering -->
-  <script type="module" src="home.js"></script>
-
   <script>
     function togglesearchOverlay() {
       const overlay = document.getElementById('searchOverlay');
@@ -60,10 +56,7 @@
 
   <script type="module" src="news.js"></script>
 
-  <script type="module">
-    import { initializeFloatingShapes } from './floatingShapes.js';
-    initializeFloatingShapes();
-  </script>
+
   
   <script type="module">
   import { initFeaturedGrid } from './featuredGrid.js';

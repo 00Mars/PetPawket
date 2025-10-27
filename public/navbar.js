@@ -1,6 +1,8 @@
 // public/navbar.js — navbar injection + search overlay + small UX polish
 // - Overlay now has a client-side fallback if /api/search fails or returns no items.
 // - Pets in overlay now show thumbnails when any plausible image URL is present (supports extensionless/signed URLs).
+// - Priority+ nav overflow is built-in: long left-rail link lists auto-collapse into a "More" dropdown on desktop,
+//   restore when space allows, and fully defer to the mobile drawer ≤1280px (no duplicate nav items).
 
 import { attachNavbarModals } from './navbarModals.js';
 import { updateAuthDisplay, logout, login, onAuthChange } from './auth.js';
@@ -65,6 +67,86 @@ function wireLoginForm(root=document){
     try { await login(email, password); await updateAuthDisplay(); }
     catch (err) { console.error('[login] error:', err); }
   });
+}
+
+/* ========================================================================
+   Priority+ overflow controller for the left nav rail (desktop only)
+======================================================================== */
+function setupPriorityNav(root = document) {
+  const container = root.getElementById ? root.getElementById('navbar-container') : document.getElementById('navbar-container');
+  const navLeft = container?.querySelector('.nav-left');
+  const nav = navLeft?.querySelector('.nav-links');
+  if (!container || !navLeft || !nav) return;
+
+  if (nav.dataset.priorityNavWired === '1') return;
+  nav.dataset.priorityNavWired = '1';
+
+  const initialItems = Array.from(nav.children).filter(li => li.tagName === 'LI');
+
+  let moreLi = nav.querySelector('li.nav-item.more');
+  if (!moreLi) {
+    moreLi = document.createElement('li');
+    moreLi.className = 'nav-item dropdown more';
+    moreLi.innerHTML = `
+      <a href="#" class="nav-link" aria-expanded="false">More</a>
+      <ul class="dropdown-menu" data-more-menu></ul>
+    `;
+    nav.appendChild(moreLi);
+  }
+  const moreMenu = moreLi.querySelector('[data-more-menu]');
+
+  function sortToOriginal(listEl) {
+    const kids = Array.from(listEl.children);
+    kids.sort((a, b) => initialItems.indexOf(a) - initialItems.indexOf(b));
+    kids.forEach(k => listEl.appendChild(k));
+  }
+
+  function restoreAll() {
+    sortToOriginal(moreMenu);
+    Array.from(moreMenu.children).forEach((li) => nav.insertBefore(li, moreLi));
+  }
+
+  function visibleItems() {
+    return Array.from(nav.children).filter(li => li !== moreLi);
+  }
+
+  function fits(railWidth) {
+    const buffer = 6;
+    return (nav.scrollWidth + buffer) <= railWidth;
+  }
+
+  function redistribute() {
+    const desktop = window.matchMedia('(min-width: 1281px)').matches;
+    if (!desktop) {
+      restoreAll();
+      moreLi.style.display = 'none';
+      return;
+    }
+
+    restoreAll();
+    moreLi.style.display = 'none';
+
+    const railWidthFresh = navLeft.clientWidth;
+    if (fits(railWidthFresh)) return;
+
+    moreLi.style.display = '';
+
+    let guard = 100;
+    while (!fits(navLeft.clientWidth) && visibleItems().length > 1 && guard-- > 0) {
+      const items = visibleItems();
+      const move = items[items.length - 1];
+      if (!move) break;
+      moreMenu.insertBefore(move, moreMenu.firstChild);
+    }
+
+    if (moreMenu.children.length === 0) moreLi.style.display = 'none';
+  }
+
+  const ro = new ResizeObserver(() => redistribute());
+  try { ro.observe(navLeft); } catch {}
+  window.addEventListener('resize', redistribute, { passive: true });
+  window.addEventListener('load', () => setTimeout(redistribute, 0), { once: true });
+  requestAnimationFrame(redistribute);
 }
 
 /* ========================================================================
@@ -134,7 +216,6 @@ function wireSearchIconMicroUX(root=document){
 
 /* ========================================================================
    Search Overlay — polished UI (glass), thumbnails, keyboard nav
-   Now with client-side fallback when /api/search is unavailable.
 ======================================================================== */
 function injectSearchOverlayStyles(){
   if (document.getElementById('search-overlayStyles')) return;
@@ -174,7 +255,6 @@ function injectSearchOverlayStyles(){
   .result-item + .result-item{ margin-top:8px; }
   .result-item:hover{ transform:translateY(-1px); box-shadow:0 6px 18px rgba(0,0,0,.08); background:#fff; }
   .result-thumb{ width:56px; height:56px; border-radius:10px; object-fit:cover; background:#f4f5f7; border:1px solid var(--pp-stroke); display:flex; align-items:center; justify-content:center; font-weight:700; color:#444; }
-  /* Ensure <img class="result-thumb"> renders as a proper thumbnail */
   img.result-thumb{ display:block; width:56px; height:56px; border-radius:10px; object-fit:cover; background:#f4f5f7; border:1px solid var(--pp-stroke); }
   .result-body .title{ font-weight:700; line-height:1.2; }
   .result-body .meta{ font-size:12px; color:var(--pp-muted); }
@@ -264,7 +344,7 @@ async function clientFallbackSearch(q, catVal, results) {
       const t = (p.title || '').toLowerCase();
       const type = (p.type || p.productType || '').toLowerCase();
       const matchQ = !qq || t.includes(qq) || type.includes(qq);
-      const matchCat = (catVal === 'all' || catVal === 'products'); // overlay categories: only products supported in fallback
+      const matchCat = (catVal === 'all' || catVal === 'products'); // overlay fallback supports products
       return matchQ && matchCat;
     });
 
@@ -376,10 +456,8 @@ function keyImpliesImage(key = '') {
 }
 function looksLikeImageUrlLoose(s) {
   if (!isHttpish(s)) return false;
-  // Strong hints
   if (/^data:image\//i.test(s)) return true;
   if (/\.(png|jpe?g|webp|gif|bmp|svg)(\?|#|$)/i.test(s)) return true;
-  // Allow extensionless/signed HTTP(S) if it passed isHttpish
   return true;
 }
 function firstImageLike(val, depth = 0) {
@@ -395,7 +473,6 @@ function firstImageLike(val, depth = 0) {
   }
 
   if (typeof val === 'object') {
-    // Common short-circuits
     const direct =
       val.url || val.src || val.href ||
       val.imageUrl || val.avatarUrl || val.pictureUrl || val.thumbnailUrl || val.thumbUrl ||
@@ -408,7 +485,7 @@ function firstImageLike(val, depth = 0) {
     for (const k of Object.keys(val)) {
       const v = val[k];
       if (typeof v === 'string') {
-        if (keyImpliesImage(k) && isHttpish(v)) return v;           // accept extensionless by key hint
+        if (keyImpliesImage(k) && isHttpish(v)) return v;
         if (looksLikeImageUrlLoose(v)) return v;
       }
       const f = firstImageLike(v, depth + 1);
@@ -435,7 +512,7 @@ function getPetPhoto(p) {
 }
 /* ========================================================================================= */
 
-function renderResults(container, payload, { q, cat='all' }){
+function renderResults(container, payload, { q, cat='all'}){
   if (!container) return;
   const pets = payload?.pets || [];
   const journal = payload?.journal || [];
@@ -518,16 +595,13 @@ function wireKeyboardNav(container){
   if (!container) return;
   const items = [...container.querySelectorAll('.result-item')];
   if (!items.length) return;
-
   let idx = 0;
   const focusItem = (i) => {
     idx = (i + items.length) % items.length;
     items[idx].focus();
     items[idx].scrollIntoView({ block:'nearest', inline:'nearest' });
   };
-
   items[0].setAttribute('tabindex','0');
-
   container.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowDown'){ e.preventDefault(); focusItem(idx+1); }
     else if (e.key === 'ArrowUp'){ e.preventDefault(); focusItem(idx-1); }
@@ -545,6 +619,173 @@ document.addEventListener('click', (e) => {
   e.preventDefault();
   openSearchOverlay();
 });
+
+/* ========================================================================
+   Sub-navbar canonical markup & injection
+   - Always replace any existing #shop-by with one canonical section
+   - Observe and remove other injectors that try to add a different #shop-by
+======================================================================== */
+function canonicalSubnavMarkup() {
+  return `
+<section id="shop-by" aria-label="Secondary navigation" data-injected-by="pp-subnav">
+  <div class="sb-ribbon">
+    <div class="container">
+      <div class="sb-wrap">
+        <nav class="sb-rail" aria-label="Browse site and categories">
+          <span class="sb-label">Shop by</span>
+
+          <!-- Site links -->
+          <a class="sb-chip" href="/about.html">About</a>
+          <a class="sb-chip" href="/community.html">Community</a>
+          <a class="sb-chip" href="/events.html">Events</a>
+          <a class="sb-chip" href="/charm.html">CHARM Foundation</a>
+          <a class="sb-chip" href="/contact.html">Contact</a>
+          <a class="sb-chip" href="/privacy.html">Privacy &amp; Terms</a>
+
+          <!-- Shop categories -->
+          <a class="sb-chip" href="/shop.html" data-shop-cat="" data-key="all">All</a>
+          <a class="sb-chip" href="/shop.html" data-shop-cat="dog">Dogs</a>
+          <a class="sb-chip" href="/shop.html" data-shop-cat="cat">Cats</a>
+          <a class="sb-chip" href="/shop.html" data-shop-cat="bird">Birds</a>
+          <a class="sb-chip" href="/shop.html" data-shop-cat="fish">Fish</a>
+          <a class="sb-chip" href="/shop.html" data-shop-cat="reptiles">Reptiles</a>
+          <a class="sb-chip" href="/shop.html" data-shop-cat="small-pet">Small Pets</a>
+          <a class="sb-chip" href="/shop.html" data-shop-cat="accessories">Accessories</a>
+          <a class="sb-chip" href="/shop.html" data-shop-cat="treats">Treats</a>
+          <a class="sb-chip" href="/shop.html" data-shop-cat="toys">Toys</a>
+          <a class="sb-chip" href="/shop.html?subscribe=1" data-subscribe="1">Subscribe &amp; Save</a>
+          <a class="sb-chip" href="/shop.html?mypets=1" data-my="1">For My Pets</a>
+        </nav>
+      </div>
+    </div>
+  </div>
+</section>`;
+}
+
+function injectSubnavStyles(){
+  if (document.getElementById('pp-subnav-styles')) return;
+  const style = document.createElement('style');
+  style.id = 'pp-subnav-styles';
+  style.textContent = `
+    /* Small, high-specificity rules to keep the tray visible and centered */
+    #shop-by { position: relative; z-index: 1200; }
+    #shop-by .sb-ribbon { margin-top: 0; padding: 6px 0; }
+    #shop-by .sb-head, #shop-by .sb-sub { display: none !important; }
+    #shop-by .sb-wrap { display: grid !important; grid-template-columns: 1fr; justify-items: center; }
+    #shop-by .sb-rail { display: inline-flex !important; align-items: center; gap: 12px; padding: 8px 12px; background: transparent; border-radius: 24px; box-shadow: 0 6px 18px rgba(0,0,0,.06); }
+    #shop-by .sb-label { display: inline-block !important; font-weight: 900; font-size: 0.95rem; color: #0b2530; white-space: nowrap; margin-right: 8px; user-select: none; z-index: 2; }
+    #shop-by .sb-chip { padding: 8px 10px; background: transparent; border-radius: 999px; text-decoration: none; color: inherit; }
+  `;
+  document.head.appendChild(style);
+}
+
+function observeAndRemoveForeignSubnavs() {
+  if (window.__ppSubnavObserver) return;
+  const observer = new MutationObserver((records) => {
+    for (const r of records) {
+      for (const n of r.addedNodes) {
+        if (!(n instanceof HTMLElement)) continue;
+        if (n.id === 'shop-by' && n.dataset.injectedBy !== 'pp-subnav') {
+          // A foreign injector added a shop-by — remove it to keep canonical content
+          try { n.remove(); } catch (e) { /* best-effort */ }
+        }
+      }
+    }
+  });
+  observer.observe(document.documentElement || document.body, { childList: true, subtree: true });
+  window.__ppSubnavObserver = observer;
+}
+
+async function injectSubnav(container) {
+  // Ensure canonical styles first
+  injectSubnavStyles();
+
+  // Remove any existing shop-by nodes (foreign or previous)
+  try {
+    document.querySelectorAll('#shop-by')?.forEach(n => n.remove());
+  } catch (e) {}
+
+  // Insert canonical markup immediately after the navbar container (if provided),
+  // otherwise prepend to body
+  const html = canonicalSubnavMarkup();
+  if (container) container.insertAdjacentHTML('afterend', html);
+  else document.body.insertAdjacentHTML('afterbegin', html);
+
+  // Hook an observer to remove any future foreign injects
+  observeAndRemoveForeignSubnavs();
+}
+
+/* ========================================================================
+   Desktop layout tweaks requested:
+   - Hide top-bar nav links on desktop
+   - Move Search, Account, Wishlist to the left; keep Cart, Orders, Counter on right
+   - Make icons slightly larger on desktop
+   - Nudge logo/frame upward to re-center vertically
+======================================================================== */
+function injectDesktopNavbarRules(){
+  if (document.getElementById('pp-navbar-desktop-rules')) return;
+  const style = document.createElement('style');
+  style.id = 'pp-navbar-desktop-rules';
+  style.textContent = `
+    @media (min-width:1281px){
+      /* Hide horizontal links on the top bar */
+      nav .nav-left .nav-links,
+      .custom-navbar .nav-left .nav-links,
+      #navbar-container .nav-links { display: none !important; }
+
+      /* Left icon rail container (new) */
+      .nav-left .icon-area-left { display: inline-flex; align-items: center; gap: 16px; }
+
+      /* Slightly larger icons on desktop */
+      .nav-left .icon-area-left .icon,
+      .nav-right .icon-area .icon { font-size: 2.1rem; }
+
+      /* Nudge the brand frame up to look vertically centered */
+      .custom-navbar .charlie-frame-wrapper { position: relative; top: -6px; }
+      .custom-navbar .brand-icon { top: 8px; } /* was ~13px originally */
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+function rearrangeIcons(container){
+  const navLeft = container.querySelector('.nav-left');
+  const navRightArea = container.querySelector('.nav-right .icon-area');
+  if (!navLeft || !navRightArea) return;
+
+  // Only rearrange on desktop to avoid fighting the mobile drawer
+  if (!window.matchMedia('(min-width:1281px)').matches) return;
+
+  // Ensure a left icon rail exists (insert before any nav-links so it occupies their spot)
+  let leftArea = navLeft.querySelector('.icon-area-left');
+  const navLinks = navLeft.querySelector('.nav-links');
+  if (!leftArea) {
+    leftArea = document.createElement('div');
+    leftArea.className = 'icon-area icon-area-left';
+    if (navLinks) navLeft.insertBefore(leftArea, navLinks);
+    else navLeft.appendChild(leftArea);
+  }
+
+  // Move Search, Account, Wishlist (be forgiving with selectors)
+  const searchBtn = container.querySelector('[data-action="open-search"], .nav-search-btn');
+  const accountDD = container.querySelector('#nav-account-toggle')?.closest('.icon-dropdown') ||
+                    container.querySelector('[data-icon="account"]')?.closest('.icon-dropdown') ||
+                    container.querySelector('.icon-account, [href*="account"]')?.closest('.icon-dropdown') || null;
+  const wishDD    = container.querySelector('#nav-wish-toggle')?.closest('.icon-dropdown') ||
+                    container.querySelector('[data-icon="wishlist"]')?.closest('.icon-dropdown') ||
+                    container.querySelector('.icon-wishlist, [href*="wishlist"]')?.closest('.icon-dropdown') || null;
+
+  const move = (node) => {
+    if (!node) return;
+    if (node.dataset.movedLeft === '1') return;
+    leftArea.appendChild(node);
+    node.dataset.movedLeft = '1';
+  };
+
+  move(searchBtn);
+  move(accountDD);
+  move(wishDD);
+}
 
 // -------------------------------
 // Exported: injectNavbar
@@ -584,7 +825,7 @@ export function injectNavbar(callback){
         injectSearchOverlayStyles();
       })();
 
-      requestAnimationFrame(() => {
+      requestAnimationFrame(async () => {
         attachNavbarModals?.();
         onAuthChange?.(updateAuthDisplay);
         updateAuthDisplay?.();
@@ -592,15 +833,25 @@ export function injectNavbar(callback){
         wireLoginForm(container);
         ensureCartBadge(container);
 
+        // Mobile menu wiring (relocates links and icons into the drawer at ≤1280px)
+        setupResponsiveMobileMenu?.();
+        setupDropdownToggles?.();
+
+        // Desktop-only Priority+ overflow for the left nav rail (kept)
+        try { setupPriorityNav(document); } catch (e) { console.warn('[nav overflow]', e); }
+
+        // Sub-navbar: styles + canonical injection (inline "Shop by", centered, consistent everywhere)
+        try { injectSubnavStyles(); await injectSubnav(container); } catch (e) { console.warn('[subnav]', e); }
+
+        // Apply requested desktop layout changes
+        try { injectDesktopNavbarRules(); rearrangeIcons(container); } catch (e) { console.warn('[navbar desktop]', e); }
+
         try { callback?.(); } catch (e) { console.warn('[injectNavbar] callback warn:', e); }
 
         if ('ontouchstart' in window || navigator.maxTouchPoints > 0) document.body.classList.add('touch-device');
 
         const toggles = container.querySelectorAll('.mobile-menu-toggle');
         toggles.forEach((t) => t.addEventListener('click', toggleMobileMenu));
-
-        setupResponsiveMobileMenu?.();
-        setupDropdownToggles?.();
 
         // Signal that the navbar is ready
         try { document.dispatchEvent(new CustomEvent('pp:navbar:ready')); } catch {}

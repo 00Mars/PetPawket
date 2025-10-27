@@ -1,9 +1,7 @@
 // petpawket/public/mobileToggle.js
-// Toggle the mobile menu drawer open or closed. When the menu opens we
-// migrate the navigation links and icon area into the drawer. When the
-// menu closes (on wider viewports) we return those elements back to
-// their desktop containers. This function name uses camelCase so it
-// can be imported correctly from other modules.
+// Toggle the mobile menu drawer open or closed and relocate elements accordingly.
+const NAV_COLLAPSE = 1280; // keep in sync with mobileRelocation.js
+
 export function toggleMobileMenu() {
   const menu = document.getElementById('mobile-menu');
   const mobileContent = menu?.querySelector('.mobile-content');
@@ -20,10 +18,15 @@ export function toggleMobileMenu() {
   if (isActive) {
     if (!mobileContent.contains(navLinks)) mobileContent.appendChild(navLinks);
     if (!mobileContent.contains(iconArea)) mobileContent.appendChild(iconArea);
+    navLinks.classList.add('nav-links-mobile');
     iconArea.classList.add('icon-area-mobile');
-  } else if (!isActive && window.innerWidth > 768) {
+  } else if (!isActive && window.innerWidth > NAV_COLLAPSE) {
+    // Restore to desktop when closing on wide viewports
+    navLeft.appendChild(navLinks);
     navRight.appendChild(iconArea);
+    navLinks.classList.remove('nav-links-mobile');
     iconArea.classList.remove('icon-area-mobile');
+    navLinks.removeAttribute('style');
     iconArea.removeAttribute('style');
   }
 }

@@ -2,6 +2,7 @@
    - Keeps the working navbar/layout from core.css (height, positions, sizes, flex layout)
    - Adds new tokens, typography scale, grids, mission/news/shapes, and unified overlay from core.merged.css
    - Removes/avoids duplicate or conflicting redefinitions (e.g., navbar height/structure, featured padding, search overlay duplicates)
+   - Fonts and font-family declarations removed here (handled in fonts.css)
 */
 
 /* ========================================================================== */
@@ -14,7 +15,6 @@
   --bs-highlight: #ff9b2a;
   --bs-dark: #333;
   --bs-light: #fff;
-  --bs-body-font-family: 'Fredoka', sans-serif;
 
   --pp-surface: rgba(255,255,255,.78);
   --pp-stroke: rgba(0,0,0,.08);
@@ -49,8 +49,7 @@
 /* 2) Global text & background                                                */
 /* ========================================================================== */
 
-body, h1, h2, h3, h4, h5, h6, p, a, .btn {
-  font-family: Fredoka, sans-serif !important;
+body, h1, h2, h3, h4, h5, h6, p, a {
   color: #333;
 }
 
@@ -101,10 +100,10 @@ h3 { font-size: var(--step-1); line-height: 1.25; }
 
 
 /* ========================================================================== */
-/* 3) Navbar (keeps the proven layout/values from core.css)                   */
+/* 3) Navbar (grid layout, no absolute positioning)                           */
 /* ========================================================================== */
 
-/* NEW: avoid stray line that creates a gap under navbar */
+/* Hide stray status line that could add a gap */
 #auth-status { display: none !important; }
 
 #navbar-container .sticky-wrapper {
@@ -124,109 +123,118 @@ h3 { font-size: var(--step-1); line-height: 1.25; }
   position: relative; display: block; width: 100%;
   height: 170px;
   background: linear-gradient(120deg, rgb(0 130 179 / 75%), rgb(0 198 215 / 75%));
-  filter: drop-shadow(0 6px 10px rgb(101 68 30 / 40%));
+  filter: drop-shadow(0 6px 10px rgba(35, 27, 18, 0.6));
   -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
   border-top: 2px solid rgb(255 255 255 / 5%);
   border-bottom: 2px solid rgb(0 0 0 / 5%);
 }
 
-/* ===== Nav right icon row + dropdown anchoring (kept, consolidated) ===== */
-.custom-navbar .icon-area{
-  display:flex; align-items:center; gap:16px;
-}
-.custom-navbar .icon-area .icon-dropdown{ position:relative; }
-.custom-navbar .dropdown-menu{ z-index:1070; }
-.custom-navbar .icon-area .icon-dropdown > a,
-.custom-navbar .icon-area > a.nav-search-btn{
-  display:inline-flex; align-items:center; justify-content:center; line-height:1;
-}
-.custom-navbar .icon-area .cart-count-link{
-  display:inline-flex; align-items:center; text-decoration:none;
-}
-.custom-navbar .icon-area .cart-count{
-  position:static !important; transform:none !important;
-  display:inline-flex; align-items:center; justify-content:center;
-  min-width:28px; height:35px; padding:0 6px; border-radius:9999px;
-  font-size:16px; font-weight:600; color:#fff; background:#1f6fff; box-shadow:0 2px 6px rgba(0,0,0,.2);
-}
-
-@media (max-width:576px){
-  .custom-navbar .icon-area{ gap:12px; }
-  .custom-navbar .icon-area .cart-count{ min-width:22px; height:22px; padding:0 6px; font-size:12px; }
-}
-
+/* Navbar container as a grid keeps the brand centered without overlap */
 .navbar-container {
   position: relative;
-  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
-  width: 100%; max-width: 1600px; height: 100%; margin: 0 auto; padding: 0 1rem;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr; /* left rail, brand, right rail */
+  align-items: center;
+  gap: clamp(8px, 2vw, 24px);
+  width: 100%;
+  max-width: 1600px;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 1rem;
+  container-type: inline-size; /* used by container queries below */
 }
 
-.nav-left {
-  position: absolute; top: 50%; left: 1rem; transform: translateY(-50%);
+/* Rails now live in the grid cells — no absolute positioning */
+.nav-left, .nav-center, .nav-right {
+  position: static; top: auto; left: auto; right: auto; transform: none;
+  min-width: 0; /* allow contents to shrink sensibly */
 }
-.nav-center {
-  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;
-}
-.nav-right {
-  position: absolute; top: 50%; right: 1rem; transform: translateY(-50%); display: flex; gap: 1rem;
+.nav-left  { justify-self: start; }
+.nav-center{ justify-self: center; text-align: center; }
+.nav-right { justify-self: end; display: flex; gap: 1rem; align-items: center; }
+
+/* Left rail: horizontal link list */
+.nav-links {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: clamp(0.4rem, 1vw, 1.2rem);
+  margin: 0; padding: 0; list-style: none;
+  filter: drop-shadow(2px 4px 4px rgb(101 68 30 / 40%));
 }
 
-/* ====== BRAND AREA ====== */
+/* To prevent the left rail from encroaching too far towards center,
+   bound its effective width relative to the navbar container. */
+.nav-left { max-width: 46cqi; overflow: visible; } /* cqi = container inline size unit */
+
+/* Top-level link look (keep as before) */
+.nav-item > a {
+  padding: 0.5rem 0;
+  font-weight: 600;
+  text-decoration: none;
+  color: white;
+  white-space: nowrap;
+}
+
+/* Dropdowns */
+.nav-item.dropdown { position: relative; }
+.nav-links .dropdown-menu {
+  position: absolute; top: 100%;
+  display: none; margin-top: 0; padding: 8px;
+  border-radius: 10px;
+  background: rgb(255 255 255 / 95%);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+  min-width: 220px;
+  max-height: min(70vh, 600px);
+  overflow-y: auto;
+}
+body:not(.dropdown-active) .nav-links .nav-item.dropdown:hover .dropdown-menu { display: block; }
+.nav-links .dropdown-menu .dropdown-item {
+  display: block; margin: 2px 0; padding: 0.5rem 0.75rem;
+  border-radius: 8px; background: transparent; color: #0f172a; font-weight: 600; text-decoration: none;
+}
+.nav-links .dropdown-menu .dropdown-item:hover, .nav-links .dropdown-menu .dropdown-item:focus {
+  background: rgba(13,110,253,0.08); color: #0f172a;
+}
+.nav-links .dropdown-menu .dropdown-divider {
+  margin: 6px 0; border-color: rgba(0, 0, 0, 0.08);
+}
+
+/* Brand */
 .brand-area {
-  display: inline-flex; gap: clamp(4px, 1vw, 10px); align-items:center; white-space: nowrap;
+  display: inline-flex; gap: clamp(4px, 1vw, 10px); align-items: center; white-space: nowrap;
   filter: drop-shadow(2px 4px 6px rgb(0 0 0 / 50%));
 }
 .brand-logo {
-  font-size: clamp(2.5rem, 3vw, 2.7rem); font-weight: 700; letter-spacing: 0.03em; text-decoration: none; color: white;
+  font-size: clamp(2.5rem, 3vw, 2.7rem);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-decoration: none;
+  color: white;
   filter: drop-shadow(2px 4px 6px rgb(101 68 30 / 40%));
 }
 
-/* ====== NAV LINKS ====== */
-.nav-links {
-  display: flex; gap: clamp(0.2rem, 0.8vw, 3rem); align-items: center;
-  margin: 0; padding: 0; list-style:none;
-  filter: drop-shadow(2px 4px 4px rgb(101 68 30 / 40%));
+/* Right icon rail (unchanged behavior, just lives in grid now) */
+.custom-navbar .icon-area { display: flex; align-items: center; gap: 16px; }
+.custom-navbar .icon-area .icon-dropdown { position: relative; }
+.custom-navbar .dropdown-menu { z-index: 1070; }
+.custom-navbar .icon-area .icon-dropdown > a,
+.custom-navbar .icon-area > a.nav-search-btn {
+  display: inline-flex; align-items: center; justify-content: center; line-height: 1;
 }
-.nav-item a { padding: 0.5rem 0; font-weight: 600; text-decoration: none; color: white; }
-
-.dropdown-menu {
-  position: absolute; display: none; margin-top: 0; padding: 10px; border-radius: 6px; background: rgb(255 255 255 / 95%);
+.custom-navbar .icon-area .cart-count-link { display: inline-flex; align-items: center; text-decoration: none; }
+.custom-navbar .icon-area .cart-count {
+  position: static !important; transform: none !important;
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 28px; height: 35px; padding: 0 6px; border-radius: 9999px;
+  font-size: 16px; font-weight: 600; color: #fff; background: #1f6fff; box-shadow: 0 2px 6px rgba(0,0,0,.2);
 }
-.nav-item:hover .dropdown-menu { display: block; }
-.dropdown-menu a { display:block; padding: 8px; color: #333; }
-
-/* ====== ICONS ====== */
-.icon {
-  font-size: 1.8rem; color: white; filter: drop-shadow(2px 4px 8px rgb(101 68 30 / 40%));
-  transition: transform 0.3s ease; cursor: pointer;
-}
-.nav-search-btn .icon{
-  transition: transform 160ms cubic-bezier(.2,.8,.2,1); will-change: transform; transform-origin: 50% 50%;
-}
-@media (hover:hover) and (pointer:fine){
-  .nav-search-btn:hover .icon{ transform: scale(1.12); }
-  .nav-search-btn:active .icon{ transform: scale(.95); transition-duration: 90ms; }
-}
-@media (hover:none){
-  .nav-search-btn:active .icon{ transform: scale(.95); transition-duration: 90ms; }
+@media (max-width: 576px){
+  .custom-navbar .icon-area { gap: 12px; }
+  .custom-navbar .icon-area .cart-count { min-width: 22px; height: 22px; padding: 0 6px; font-size: 12px; }
 }
 
-.cart-count {
-  padding: 0.5rem; border-radius: 12px; font-weight: 700; color: white;
-  background: #007acc; filter: drop-shadow(2px 4px 6px rgb(101 68 30 / 40%));
-}
-
-/* ====== ICON DROPDOWN ====== */
-.icon-dropdown { position: relative; display: inline-block; }
-.icon-dropdown-menu {
-  position: absolute; top: 100%; right: 0; z-index: 100; display: none;
-  padding: 10px; border-radius: 6px; background: rgb(255 255 255 / 95%); box-shadow: 0 2px 8px rgb(0 0 0 / 15%);
-}
-.icon-dropdown:hover .icon-dropdown-menu { display: block; }
-.icon-dropdown-menu a { display:block; padding: 8px; font-weight: 500; text-decoration: none; color: #333; }
-.icon-dropdown-menu a:hover { background: rgb(0 130 179 / 10%); }
-
-/* ====== BRAND ICON ====== */
+/* Brand emblem */
 .brand-icon {
   position: relative; top: 13px; z-index: 2;
   width: 100%; height: auto;
@@ -245,6 +253,31 @@ h3 { font-size: var(--step-1); line-height: 1.25; }
   position: absolute; top: 2px; left: 0; z-index: 1; width: 100%; height: 100%; pointer-events: none;
 }
 
+/* Icons */
+.icon {
+  font-size: 1.8rem; color: white; filter: drop-shadow(2px 4px 8px rgb(101 68 30 / 40%));
+  transition: transform 0.3s ease; cursor: pointer;
+}
+.nav-search-btn .icon{
+  transition: transform 160ms cubic-bezier(.2,.8,.2,1); will-change: transform; transform-origin: 50% 50%;
+}
+@media (hover:hover) and (pointer:fine){
+  .nav-search-btn:hover .icon{ transform: scale(1.12); }
+  .nav-search-btn:active .icon{ transform: scale(.95); transition-duration: 90ms; }
+}
+@media (hover:none){
+  .nav-search-btn:active .icon{ transform: scale(.95); transition-duration: 90ms; }
+}
+
+/* Icon dropdowns */
+.icon-dropdown { position: relative; display: inline-block; }
+.icon-dropdown-menu {
+  position: absolute; top: 100%; right: 0; z-index: 100; display: none;
+  padding: 10px; border-radius: 6px; background: rgb(255 255 255 / 95%); box-shadow: 0 2px 8px rgb(0 0 0 / 15%);
+}
+.icon-dropdown:hover .icon-dropdown-menu { display: block; }
+.icon-dropdown-menu a { display:block; padding: 8px; font-weight: 500; text-decoration: none; color: #333; }
+.icon-dropdown-menu a:hover { background: rgb(0 130 179 / 10%); }
 
 /* ========================================================================== */
 /* 4) Animations, modals, and common UI                                       */
@@ -277,7 +310,7 @@ h3 { font-size: var(--step-1); line-height: 1.25; }
 }
 .modal-content {
   position: relative; width: 90%; max-width: 400px; padding: 2rem; border-radius: 14px;
-  font-family: Inter, sans-serif; background: #fff; box-shadow: 0 12px 28px rgb(0 0 0 / 25%);
+  background: #fff; box-shadow: 0 12px 28px rgb(0 0 0 / 25%);
   animation: fade-in 0.2s ease-in-out;
 }
 .modal-content h3 { margin-bottom: 1rem; font-size: 1.5rem; color: #222; }
@@ -403,7 +436,7 @@ h3 { font-size: var(--step-1); line-height: 1.25; }
 /* Footer component styles */
 .footer-section {
   height: auto; padding: 10px 30px 40px; border-radius: 24px 24px 0 0;
-  font-family: Fredoka, sans-serif; background-color: rgb(255 248 240 / 65%);
+  background-color: rgb(255 248 240 / 65%);
   box-shadow: 0 -6px 25px rgb(0 0 0 / 5%); border-top: 5px solid #FFA625;
 }
 .footer-content {
@@ -414,7 +447,7 @@ h3 { font-size: var(--step-1); line-height: 1.25; }
 .footer-logo-large { max-width: 100%; height: 200px; filter: drop-shadow(2px 4px 10px rgb(0 0 0 / 50%)); }
 .footer-brand { flex: 1 1 220px; font-size: 16px; line-height: 1.7; color: #332D29; }
 .footer-brand-title {                      
-  color:#00b2c6; font-family:'Fredoka',sans-serif; font-size:2.2rem; font-weight:700; }
+  color:#00b2c6; font-size:2.2rem; font-weight:700; }
 .footer-brand h4 { margin-bottom: 12px; font-size: 20px; font-weight: 700; color: #332D29; }
 .footer-links, .footer-social { flex: 1 1 180px; }
 .footer-links h4, .footer-social h4 { margin-bottom: 14px; font-size: 18px; font-weight: 700; color: #332D29; }
@@ -605,69 +638,49 @@ body.touch-device .nav-item.dropdown:hover .dropdown-menu { display: none; }
 
 
 /* ========================================================================== */
-/* 9) Responsive navbar restores                                              */
+/* 9) Responsive navbar (collapse logic unchanged; works with grid rails)      */
 /* ========================================================================== */
 
-@media (width >= 1125px) {
-  .nav-right {
-    position: absolute; top: 50%; right: 1rem; transform: translateY(-50%);
-    display: flex !important; gap: 1rem; align-items: center;
-  }
-  .icon-area { display: flex !important; flex-direction: row; gap: 1rem; justify-content: flex-end; align-items: center; }
-  .nav-right > .icon-area { display: flex !important; }
-  .nav-right .icon-area { position: relative; display: flex !important; gap: 1rem; justify-content: flex-end; align-items: center; }
-
-  nav .nav-links {
-    display: flex !important; flex-flow: row wrap; gap: clamp(0.2rem, 0.8vw, 3rem); align-items: center;
-    max-width: 60vw; list-style: none;
-  }
-  .nav-links .nav-item { width: auto; text-align: left; }
-  .nav-links .nav-item > a { display: inline-block; padding: 0.5rem 0.75rem; white-space: nowrap; }
-
-  .nav-links .dropdown-menu {
-    position: absolute; display: none; margin-top: 0; padding: 6px; border-radius: 6px;
-    background: rgb(255 255 255 / 95%); box-shadow: 0 2px 8px rgb(0 0 0 / 15%);
-  }
-  body:not(.dropdown-active) .nav-links .nav-item.dropdown:hover .dropdown-menu { display: block; }
-  .nav-item.dropdown { position: relative; }
-  .dropdown-menu { top: 100%; margin-top: 0; padding-top: 6px; }
-
-  .brand-logo { font-size: clamp(2.5rem, 3vw, 2.7rem); }
+/* Desktop and up: show rails */
+@media (width >= 1281px) {
+  .nav-links { display: flex !important; }
 }
 
-@media (width <= 1124px) {
+/* Tablet/medium and below: collapse to mobile drawer (your JS relocates) */
+@media (width <= 1280px) {
   nav .nav-links { display: none; }
   .mobile-menu-toggle { display: block; font-size: 2rem; color: white; }
   #mobile-toggle-left { display: block; }
   .brand-area { gap: 8px; }
-  .nav-left { left: 4rem; }
-  .nav-right { right: 2rem; }
-  .nav-right > .icon-area { display: flex !important; }
+
+  /* Hide right icon rail so it doesn’t duplicate what’s moved into drawer */
+  .nav-right > .icon-area { display: none !important; }
+
   .brand-logo { font-size: 2.7rem; }
   .brand-icon { height: 85px; }
   .icon-area { gap: clamp(0.5rem, 1vw, 1rem); }
+
+  /* Drawer icons hidden by default until menu is opened */
   .icon-area-mobile { display: none !important; }
+  .mobile-menu.active .icon-area-mobile { display: flex !important; }
 }
 
+/* Mid range (kept) */
 @media (width >= 769px) and (width <= 1024px) {
   .mobile-menu.active .icon-area-mobile { display: flex !important; }
   .icon-area-mobile { display: none; }
 }
 
+/* Phone layout (kept) */
 @media (width <= 768px) {
-  .nav-right > .icon-area { display: none !important; }
   #mobile-menu .icon-area { display: flex !important; }
   #mobile-toggle-left { display: none !important; }
   #mobile-toggle-center {
     position: absolute; top: 55%; left: 70%; transform: translateX(-50%);
     display: flex; justify-content: center; align-items: center; width: 100%; margin-top: 0.4rem; font-size: 2.4rem; color: white;
   }
-  .nav-left { right: auto; left: auto; padding-left: clamp(0.5rem, 2vw, 1rem); }
-  .charlie-frame-wrapper { top: -3px; }
-  #mobile-menu .icon-area { display: flex !important; }
-  .nav-center { position: absolute; top: 50%; right: 0; left: 0; transform: translateY(-50%); display: flex; justify-content: center; }
+  .nav-center { position: relative; right: auto; left: auto; transform: none; display: flex; justify-content: center; }
   .icon-area-mobile { display: flex !important; }
-  .nav-left, .nav-center, .nav-right { top: 50%; transform: translateY(-50%); }
   .brand-area { display: flex; justify-content: flex-start; align-items: center; padding: 0; }
   .charlie-frame-wrapper { margin-right: 0.5rem; margin-left: 0 !important; }
   .brand-icon { margin-right: clamp(0.5rem, 2vw, 1rem); }
@@ -675,12 +688,27 @@ body.touch-device .nav-item.dropdown:hover .dropdown-menu { display: none; }
     flex-grow: 1; margin-bottom: 40px; font-size: clamp(3rem, 8vw, 4rem); line-height: 1.1; text-align: center; white-space: pre-line;
   }
 }
-@media (width <= 500px) { .nav-right { right: 0.5rem; } }
+@media (width <= 500px) { .nav-right { justify-self: end; } }
 @media (width <= 400px) {
   .brand-logo { font-size: 1.5rem; }
-  .nav-left { left: 0.5rem; }
 }
 
+/* Container-based tightening as the navbar itself narrows */
+@container (max-width: 1320px) {
+  .nav-left .nav-links { gap: clamp(.35rem, 1.0vw, 1.1rem); }
+  .nav-left .nav-links > .nav-item > a { padding: .4rem .55rem; font-size: 0.98rem; }
+  .nav-left .nav-links a[href="/charm.html"] { font-size: 0.96rem; }
+}
+@container (max-width: 1200px) {
+  .nav-left .nav-links { gap: clamp(.25rem, 0.9vw, .9rem); }
+  .nav-left .nav-links > .nav-item > a { padding: .36rem .5rem; font-size: 0.95rem; }
+  .nav-left .nav-links a[href="/charm.html"] { font-size: 0.93rem; }
+}
+@container (max-width: 1100px) {
+  .nav-left .nav-links { gap: clamp(.2rem, 0.8vw, .7rem); }
+  .nav-left .nav-links > .nav-item > a { padding: .32rem .45rem; font-size: 0.92rem; }
+  .nav-left .nav-links a[href="/charm.html"] { font-size: 0.90rem; }
+}
 
 /* ========================================================================== */
 /* 10) News section, shapes/effects                                           */
@@ -692,8 +720,10 @@ body.touch-device .nav-item.dropdown:hover .dropdown-menu { display: none; }
   background: linear-gradient(120deg, rgb(0 130 179 / 80%), rgb(0 198 215 / 80%));
   -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
   border-top: 10px solid rgb(255 194 124 / 85%);
+  border-bottom-left-radius: 10px; /* Rounds the bottom-left corner */
+  border-bottom-right-radius: 10px;
 }
-.latest-news-section .container { max-width: 1200px; margin: 0 auto; text-align: center; }
+.latest-news-section .container { max-width: 1200px; margin: 0 auto; text-align: center;  }
 .news-title {
   margin-bottom: 40px; font-size: 38px; font-weight: 700; color: #fff;
   filter: drop-shadow(2px 2px 6px rgb(0 0 0 / 60%));
@@ -899,12 +929,12 @@ picture { display: contents; }
 .contact-wrapper select,
 .contact-wrapper textarea{
   width:100%; padding:12px; margin-top:10px;
-  border:1px solid #ccc; border-radius:14px; font-size:1rem; font-family:'Fredoka', sans-serif;
+  border:1px solid #ccc; border-radius:14px; font-size:1rem;
 }
 .contact-wrapper button{
   width:100%; padding:12px; margin-top:20px;
   background-color:#00b2c6; color:#fff; border:none; border-radius:14px;
-  font-weight:bold; font-size:1rem; font-family:'Fredoka', sans-serif;
+  font-weight:bold; font-size:1rem;
   cursor:pointer; transition:background .2s;
 }
 .contact-wrapper button:hover{ background-color:#008ca1; }
@@ -923,7 +953,7 @@ picture { display: contents; }
   z-index: 30;
   margin: 0;
   padding: 10px 0;
-  background: rgba(255,255,255,.85);
+  background: rgba(255,255,255,.70);
   border: 0;
   border-bottom: 1px solid var(--pp-stroke);
 }
