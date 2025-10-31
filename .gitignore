@@ -29,3 +29,4 @@ coverage/
 # IDE
 .idea/
 .vscode/
+*.zip
