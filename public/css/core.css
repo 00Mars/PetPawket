@@ -44,7 +44,6 @@
 /* Normalize box-sizing across the board (from globals) */
 *, *::before, *::after { box-sizing: border-box; }
 
-
 /* ========================================================================== */
 /* 2) Global text & background                                                */
 /* ========================================================================== */
@@ -180,7 +179,7 @@ h3 { font-size: var(--step-1); line-height: 1.25; }
 .nav-item.dropdown { position: relative; }
 .nav-links .dropdown-menu {
   position: absolute; top: 100%;
-  display: none; margin-top: 0; padding: 8px;
+  display: false; margin-top: 0; padding: 8px;
   border-radius: 10px;
   background: rgb(255 255 255 / 95%);
   box-shadow: 0 6px 24px rgba(0,0,0,0.18);
@@ -216,7 +215,7 @@ body:not(.dropdown-active) .nav-links .nav-item.dropdown:hover .dropdown-menu { 
 
 /* Right icon rail (unchanged behavior, just lives in grid now) */
 .custom-navbar .icon-area { display: flex; align-items: center; gap: 16px; }
-.custom-navbar .icon-area .icon-dropdown { position: relative; }
+.custom-navbar .icon-dropdown { position: relative; }
 .custom-navbar .dropdown-menu { z-index: 1070; }
 .custom-navbar .icon-area .icon-dropdown > a,
 .custom-navbar .icon-area > a.nav-search-btn {
@@ -942,172 +941,165 @@ picture { display: contents; }
 
 
 /* ========================================================================== */
-/* 14) Shop-by ribbon — centered tray, distinct active state, mobile-safe     */
+/* 14) Shop-by — Glass pill subnav (dropdown-safe + portal styling)           */
 /* ========================================================================== */
 
-#shop-by { margin: 0; padding: 0; line-height: 1; }
+#shop-by { position: relative; }
 
-/* Off‑white bar directly under navbar */
-#shop-by .sb-ribbon {
+/* Pill skin */
+#shop-by .sb-rail{
   position: relative;
-  z-index: 30;
-  margin: 0;
-  padding: 10px 0;
-  background: rgba(255,255,255,.70);
-  border: 0;
-  border-bottom: 1px solid var(--pp-stroke);
+  width: 100%;
+  border-radius: 9999px;
+  background: rgba(255,255,255,0.9);
+  border: 1px solid rgba(0,0,0,.06);
+  box-shadow: 0 10px 24px rgba(0,0,0,.10), inset 0 1px 0 rgba(255,255,255,.6);
+  padding-block: clamp(10px, 1.4vw, 12px);
+  overflow-y: visible; /* allow menus below */
+  --sb-arrow-w: 40px;
+  --edge-left: 6px;
+  --edge-right: 8px;
 }
 
-/* Limit and center the inner width just for this section */
-#shop-by .container {
-  /* Constrain the ribbon to a reasonable width and center it within the page */
-  max-width: min(1100px, 96vw);
-  margin-inline: auto;
-  padding-inline: clamp(8px, 2vw, 16px);
-}
-
-/* Layout: label + tray (stacks on smaller widths) */
-#shop-by .sb-wrap {
-  display: grid;
-  /* Give the label column only the space it needs so the tray comes closer */
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  /* Reduce the gap between label and tray to tighten the layout */
-  gap: 8px;
-}
-
-/* Label — darker and more legible on the off‑white bar */
-#shop-by .sb-head { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
-#shop-by .sb-title {
-  font-weight: 900;
-  color: #0b2530;
-  font-size: 1rem;
-  white-space: nowrap;
-  letter-spacing: .015em;
-}
-#shop-by .sb-sub { font-size: .92rem; color: #3f5963; }
-
-/* TRAY: centered, width-capped, single rounded background for all links */
-#shop-by .sb-rail {
+/* Inner frame defines left/right edges via padding. */
+#shop-by .sb-frame{
   position: relative;
-  /* Let the ribbon stretch across the full width of its grid cell */
-  justify-self: stretch;
+  width: 100%;
+  box-sizing: border-box;
+  padding-left:  calc(var(--sb-arrow-left,  var(--sb-arrow-w)) + var(--edge-left));
+  padding-right: calc(var(--sb-arrow-right, var(--sb-arrow-w)) + var(--edge-right));
+  overflow-y: visible;
+}
+
+/* Scroll track */
+#shop-by .sb-track{
+  position: relative;
   width: 100%;
   max-width: 100%;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: clamp(10px, 1.6vw, 14px);
-
-  background: linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.85));
-  border: 1px solid rgba(0, 0, 0, .06);
-  border-radius: 9999px;
-  box-shadow: 0 10px 24px rgba(0,0,0,.10), inset 0 1px 0 rgba(255,255,255,.6);
-
-  padding: clamp(6px, 1vw, 9px) clamp(10px, 1.8vw, 14px);
+  gap: clamp(10px, 2.2vw, 14px);
+  white-space: nowrap;
+  padding-inline: 0;
   overflow-x: auto;
-  overflow-y: hidden;
-  white-space: nowrap;                  /* single-row scroller */
+  overflow-y: visible;
+  scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   scroll-snap-type: x proximity;
-  scroll-padding-inline: 12px;          /* nicer edge alignment */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  touch-action: pan-x;
+}
+#shop-by .sb-track::-webkit-scrollbar{ width:0; height:0; display:none; }
+#shop-by .sb-track > *{ flex: 0 0 auto; }
 
-  /* hide native scrollbar everywhere */
-  scrollbar-width: none;                /* Firefox */
-  -ms-overflow-style: none;             /* IE/Edge legacy */
-}
-#shop-by .sb-rail::-webkit-scrollbar { width: 0; height: 0; display: none; }
-
-/* Edge fades to hint overflow inside the tray */
-#shop-by .sb-rail::before,
-#shop-by .sb-rail::after {
-  content: "";
-  position: sticky;
-  top: 0;
-  width: 20px;
-  height: 100%;
-  z-index: 2;
-  pointer-events: none;
-}
-#shop-by .sb-rail::before {
-  left: 0;
-  border-top-left-radius: 9999px;
-  border-bottom-left-radius: 9999px;
-  background: linear-gradient(90deg, rgba(255,255,255,.96), rgba(255,255,255,0));
-}
-#shop-by .sb-rail::after {
-  right: 0;
-  border-top-right-radius: 9999px;
-  border-bottom-right-radius: 9999px;
-  background: linear-gradient(270deg, rgba(255,255,255,.96), rgba(255,255,255,0));
-}
-
-/* Chips — compact tabs; ACTIVE is a filled pill to avoid hover confusion */
-#shop-by .sb-chip {
-  all: unset;                           /* wipe any inherited .btn/.pill styles */
+/* Chips */
+#shop-by .sb-chip{
+  all: unset;
   display: inline-flex;
   align-items: center;
   gap: .25rem;
-  padding: 6px 4px;                     /* base padding (active adds x-padding) */
+  padding: 10px 8px;
   color: #0b2530;
   font-weight: 650;
-  font-size: clamp(.92rem, .88rem + .2vw, 1rem);
+  font-size: clamp(.92rem, .88rem + .3vw, 1rem);
   letter-spacing: .02em;
-  text-transform: Capitalize;
+  text-transform: capitalize;
   text-decoration: none;
   cursor: pointer;
   line-height: 1;
   scroll-snap-align: start;
 }
+#shop-by .sb-chip:hover{ color:#0a6ad8; }
+#shop-by .sb-chip[aria-current="true"], #shop-by .sb-chip-all{
+  color:#fff; background:#008eb0; padding:10px 14px; border-radius:9999px;
+  box-shadow:0 4px 12px rgba(0,0,0,.18);
+}
+#shop-by .sb-chip:focus-visible{ outline:none; box-shadow:0 0 0 3px rgba(13,110,253,.25); border-radius:8px; }
 
-#shop-by .sb-chip[data-key="all"] { text-transform: none; letter-spacing: .05em; font-weight: 500; }
+/* details-based dropdowns (when not portaled) */
+#shop-by details.sb-phase{ position: relative; }
+#shop-by details.sb-phase[open] > .sb-menu{ display:block; }
 
-#shop-by .sb-chip i,
-#shop-by .sb-chip svg,
-#shop-by .sb-chip [class^="bi"] { display: none !important; }
+/* Menu panel — default (in-tree) */
+#shop-by .sb-menu{
+  display:none;
+  position:absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  min-width:220px;
+  max-width:min(360px,92vw);
+  padding:10px;
+  border-radius:12px;
+  border:1px solid rgba(0,0,0,.08);
+  background: rgba(255,255,255,.98);
+  box-shadow: 0 12px 32px rgba(0,0,0,.18);
+  z-index: 9999;
+  white-space: normal;
+}
+#shop-by .sb-menu .sb-chip{
+  display:block; padding:10px 10px; border-radius:8px; color:#0b2530; font-weight:600;
+}
+#shop-by .sb-menu .sb-chip:hover{ background: rgba(13,110,253,0.10); }
 
-/* Hover = color only (no fill) */
-#shop-by .sb-chip:hover { color:#0a6ad8; }
+/* Menu panel — when portaled to <body>, keep identical look */
+.sb-menu[data-ported="1"]{
+  display:block;                  /* JS controls visibility */
+  position: fixed !important;     /* positioned by JS under the summary */
+  min-width:220px;
+  max-width:min(360px,92vw);
+  padding:10px;
+  border-radius:12px;
+  border:1px solid rgba(0,0,0,.08);
+  background: rgba(255,255,255,.98);
+  box-shadow: 0 12px 32px rgba(0,0,0,.18);
+  z-index: 9999;
+  white-space: normal;
+}
+.sb-menu[data-ported="1"] .sb-chip{
+  display:block; padding:10px 10px; border-radius:8px; color:#0b2530; font-weight:600;
+}
+.sb-menu[data-ported="1"] .sb-chip:hover{ background: rgba(13,110,253,0.10); }
 
-/* Active = filled pill (so “ALL” won’t look like a hover) */
-#shop-by .sb-chip[aria-current="true"] {
-  color: #ffffff;
-  background: #408ade;
-  padding: 8px 12px;
-  border-radius: 9999px;
-  box-shadow: 0 4px 14px rgba(10,106,216,.28);
+/* Arrows */
+#shop-by .sb-nav{
+  position: absolute;
+  top: 0; bottom: 0;
+  display: none;
+  width: var(--sb-arrow-w);
+  border: 0; background: transparent; border-radius: 0;
+  color: #0b2530; cursor: pointer; z-index: 21;
+  -webkit-appearance: none; appearance: none;
+}
+#shop-by .sb-nav[disabled]{ opacity:.35; cursor: default; }
+#shop-by .sb-prev{ left: 0; }
+#shop-by .sb-next{ right: 0; }
+#shop-by .sb-nav i{
+  position: absolute; top: 50%; transform: translateY(-50%);
+  display: inline-block; font-style: normal; font-weight: 800;
+  font-size: 18px; line-height: 1; opacity: .78;
+}
+#shop-by .sb-prev i{ left: 10px; }
+#shop-by .sb-next i{ right: 10px; transform: translateY(-50%) scaleX(-1); }
+
+/* inner separators */
+#shop-by .sb-prev::after, #shop-by .sb-next::before{
+  content:""; position:absolute; top:22%; bottom:22%; width:1px; background: rgba(0,0,0,.08); z-index: 22;
+}
+#shop-by .sb-prev::after{ right:  var(--edge-left); }
+#shop-by .sb-next::before{ left:   var(--edge-right); }
+
+#shop-by .sb-track.is-dragging{ cursor: grabbing; -webkit-user-select: none; user-select: none; }
+
+/* Optional dark-scheme */
+@media (prefers-color-scheme: dark){
+  #shop-by .sb-rail{ background: rgba(30,36,42,0.9); border-color: rgba(255,255,255,.08);
+    box-shadow: 0 10px 24px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05); }
+  #shop-by .sb-chip{ color:#e8f1f5; } #shop-by .sb-chip:hover{ color:#7fc9ff; }
+  #shop-by .sb-chip[aria-current="true"], #shop-by .sb-chip-all{ background:#0b8db1; color:#fff; }
+  #shop-by .sb-menu,
+  .sb-menu[data-ported="1"]{
+    background: rgba(26,30,36,.98); border-color: rgba(255,255,255,.08); box-shadow: 0 12px 32px rgba(0,0,0,.6);
+  }
 }
 
-/* Remove underline indicator from older variant */
-#shop-by .sb-chip::after { display:none; }
-
-/* Keyboard focus */
-#shop-by .sb-chip:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(13,110,253,.25);
-  border-radius: 6px;
-}
-
-/* -------------------------- Responsiveness ------------------------------- */
-
-/* md: stack label above tray; keep tray centered & comfortable */
-@media (max-width: 992px) {
-  #shop-by .sb-wrap { grid-template-columns: 1fr; gap: 10px; }
-  #shop-by .sb-head { padding-left: 4px; }
-  #shop-by .sb-rail { gap: 8px; padding: 8px 12px; }
-  #shop-by .sb-chip { padding: 8px 4px; letter-spacing: .01em; }
-  #shop-by .sb-chip[aria-current="true"] { padding: 8px 12px; }
-}
-
-/* sm: hide sublabel, reduce font and gaps so nothing gets cut on small screens */
-@media (max-width: 768px) {
-  #shop-by .sb-sub { display:none; }
-  #shop-by .sb-rail { gap: 12px; padding: 8px 10px; }
-  #shop-by .sb-chip { font-size: .94rem; }
-}
-
-/* xs: hide the title to maximize room; single-line scroller with touch scroll */
-@media (max-width: 520px) {
-  #shop-by .sb-head { display: flex; }
-  #shop-by .sb-rail { gap: 10px; padding: 8px 10px; }
-  #shop-by .sb-chip { font-size: .9rem; letter-spacing: .005em; }
-}

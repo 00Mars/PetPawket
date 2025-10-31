@@ -89,7 +89,7 @@
           </a>
 
           <!-- Account -->
-          <div class="icon-dropdown dropdown"><!-- added .dropdown -->
+          <div class="icon-dropdown dropdown">
             <a href="#" id="nav-account-toggle" aria-haspopup="true" aria-expanded="false"
                data-bs-toggle="dropdown" aria-label="Account">
               <i class="icon bi bi-person-circle" aria-hidden="true"></i>
@@ -110,7 +110,7 @@
           </div>
 
           <!-- Wishlist (❤) — between Account and Cart -->
-          <div class="icon-dropdown dropdown" data-pp="pp-wish"><!-- added .dropdown -->
+          <div class="icon-dropdown dropdown" data-pp="pp-wish">
             <a href="#" id="nav-wish-toggle" role="button" aria-label="Wishlist"
                aria-haspopup="true" aria-expanded="false"
                aria-controls="pp-wish-menu" data-bs-toggle="dropdown">
@@ -124,7 +124,7 @@
           </div>
 
           <!-- Cart -->
-          <div class="icon-dropdown dropdown" data-pp="pp-wish" id="nav-cart"><!-- added .dropdown -->
+          <div class="icon-dropdown dropdown" data-pp="pp-wish" id="nav-cart">
             <a href="#" id="nav-cart-toggle" aria-label="Cart" aria-haspopup="true" aria-expanded="false"
                aria-controls="cart-menu" data-bs-toggle="dropdown">
               <i class="icon bi bi-cart3" aria-hidden="true"></i>
@@ -135,7 +135,7 @@
           </div>
 
           <!-- Orders -->
-          <div class="icon-dropdown dropdown" id="nav-orders"><!-- added .dropdown -->
+          <div class="icon-dropdown dropdown" id="nav-orders">
             <a href="#" id="nav-orders-toggle" aria-haspopup="true" aria-expanded="false"
                data-bs-toggle="dropdown" aria-label="Orders">
               <i class="icon bi bi-truck" aria-hidden="true"></i>
@@ -158,16 +158,42 @@
   </nav>
 </div>
 
+<!-- ============================== -->
+<!-- Shop-by Subnav — Single Row    -->
+<!-- ============================== -->
 <section id="shop-by">
   <div class="sb-ribbon">
     <div class="container">
       <div class="sb-wrap">
-        <div class="sb-head">
-          <div class="sb-title">Shop:</div>
+        <div class="sb-rail">
+          <div class="sb-frame">
+        <nav class="sb-track" aria-label="Secondary navigation">
 
-        </div>
-        <nav class="sb-rail" aria-label="Secondary navigation">
-          <!-- Site links -->
+
+          <!-- categories -->
+          <a class="sb-chip sb-chip-all" href="/shop.html" data-shop-cat="" data-key="all" aria-current="true">All</a>
+          <details class="sb-phase sb-phase-pets">
+            <summary class="sb-chip" aria-haspopup="menu" aria-expanded="false">Pets</summary>
+            <div class="sb-menu" role="menu">
+              <a class="sb-chip" href="/shop.html" data-shop-cat="dog" role="menuitem">Dogs</a>
+              <a class="sb-chip" href="/shop.html" data-shop-cat="cat" role="menuitem">Cats</a>
+              <a class="sb-chip" href="/shop.html" data-shop-cat="bird" role="menuitem">Birds</a>
+              <a class="sb-chip" href="/shop.html" data-shop-cat="fish" role="menuitem">Fish</a>
+              <a class="sb-chip" href="/shop.html" data-shop-cat="reptiles" role="menuitem">Reptiles</a>
+              <a class="sb-chip" href="/shop.html" data-shop-cat="small-pet" role="menuitem">Small Pets</a>
+            </div>
+          </details>
+
+          <details class="sb-phase sb-phase-products">
+            <summary class="sb-chip" aria-haspopup="menu" aria-expanded="false">Products</summary>
+            <div class="sb-menu" role="menu">
+              <a class="sb-chip" href="/shop.html" data-shop-cat="accessories" role="menuitem">Accessories</a>
+              <a class="sb-chip" href="/shop.html" data-shop-cat="treats" role="menuitem">Treats</a>
+              <a class="sb-chip" href="/shop.html" data-shop-cat="toys" role="menuitem">Toys</a>
+            </div>
+          </details>
+
+                    <!-- site links -->
           <a class="sb-chip" href="/about.html">About</a>
           <a class="sb-chip" href="/community.html">Community</a>
           <a class="sb-chip" href="/events.html">Events</a>
@@ -175,24 +201,17 @@
           <a class="sb-chip" href="/contact.html">Contact</a>
           <a class="sb-chip" href="/privacy.html">Privacy &amp; Terms</a>
 
-          <!-- Shop categories -->
-          <a class="sb-chip" href="/shop.html" data-shop-cat="" data-key="all">All</a>
-          <a class="sb-chip" href="/shop.html" data-shop-cat="dog">Dogs</a>
-          <a class="sb-chip" href="/shop.html" data-shop-cat="cat">Cats</a>
-          <a class="sb-chip" href="/shop.html" data-shop-cat="bird">Birds</a>
-          <a class="sb-chip" href="/shop.html" data-shop-cat="fish">Fish</a>
-          <a class="sb-chip" href="/shop.html" data-shop-cat="reptiles">Reptiles</a>
-          <a class="sb-chip" href="/shop.html" data-shop-cat="small-pet">Small Pets</a>
-          <a class="sb-chip" href="/shop.html" data-shop-cat="accessories">Accessories</a>
-          <a class="sb-chip" href="/shop.html" data-shop-cat="treats">Treats</a>
-          <a class="sb-chip" href="/shop.html" data-shop-cat="toys">Toys</a>
+          <!-- specials -->
           <a class="sb-chip" href="/shop.html?subscribe=1" data-subscribe="1">Subscribe &amp; Save</a>
           <a class="sb-chip" href="/shop.html?mypets=1" data-my="1">For My Pets</a>
         </nav>
+        </div>
+      </div>
       </div>
     </div>
   </div>
 </section>
+
 
 <!-- Mobile Menu Shell -->
 <div class="mobile-menu" id="mobile-menu">
@@ -280,3 +299,6 @@
     <button class="close-btn" data-close="orderTrackerModal" aria-label="Close order tracking modal">×</button>
   </div>
 </div>
+
+<!-- Ensure the glide behavior is active -->
+<script type="module" src="/public/js/nav-glide.js"></script>

@@ -169,7 +169,6 @@ export function updateCartBadgeCompat() {
 
 /* ======================================================================== */
 /*                 SEARCH OVERLAY STYLES (fallback injector)                */
-/*   Ensures overlay CSS is present even if navbar.js didn’t inject it.     */
 /* ======================================================================== */
 function ensureSearchOverlayStyles() {
   if (document.getElementById('pp-search-overlay-styles')) return;
@@ -391,7 +390,6 @@ async function navMini_renderCart(menuEl) {
     const max = 6;
     const items = cart.slice(0, max);
     const subtotal = items.reduce((s, it) => s + (Number(it.price) || 0) * (Number(it.quantity) || 0), 0);
-
     const lines = items.map(it => `
       <div class="d-flex align-items-center gap-2 p-2">
         ${it.image ? `<img src="${it.image}" alt="" class="flex-shrink-0 rounded" style="width:48px;height:48px;object-fit:cover;">` : ''}
@@ -400,7 +398,6 @@ async function navMini_renderCart(menuEl) {
           <div class="text-muted">${navMini_money(it.price)} × ${Number(it.quantity)||1}</div>
         </div>
       </div>`).join('');
-
     menuEl.innerHTML = `
       <div class="p-2">${lines}</div>
       <div class="border-top p-2 d-flex align-items-center justify-content-between">
@@ -431,7 +428,6 @@ async function navMini_renderWishlist(menuEl) {
     menuEl.innerHTML = `<div class="p-3 text-center text-muted small">Wishlist is empty.</div>`;
     return;
   }
-
   const products = [];
   for (const h of handles) {
     const cached = navMini_getCached(h);
@@ -442,8 +438,8 @@ async function navMini_renderWishlist(menuEl) {
       products.push(p);
     } catch { /* ignore single failures */ }
   }
-
   menuEl.innerHTML = products.map(p => {
+    // Corrected the placeholder quote
     const img = p?.featuredImage?.url || p?.image || '/assets/images/placeholder.png';
     const price = p?.price?.amount ?? p?.variants?.[0]?.price ?? p?.priceRange?.minVariantPrice?.amount;
     return `
@@ -459,17 +455,14 @@ async function navMini_renderWishlist(menuEl) {
 
 function navMini_wire() {
   const { cartToggle, cartMenu, wishToggle, wishMenu } = navMini_find(document);
-
   const onOpenCart = () => navMini_renderCart(cartMenu);
   const onOpenWish = () => navMini_renderWishlist(wishMenu);
-
   if (cartToggle && cartMenu) {
     ['click','mouseenter','focusin'].forEach(ev => cartToggle.addEventListener(ev, onOpenCart, { passive: true }));
   }
   if (wishToggle && wishMenu) {
     ['click','mouseenter','focusin'].forEach(ev => wishToggle.addEventListener(ev, onOpenWish, { passive: true }));
   }
-
   document.addEventListener('show.bs.dropdown', (e) => {
     const toggle = e.target?.querySelector?.('[data-bs-toggle="dropdown"], .dropdown-toggle') || e.target;
     if (!toggle) return;
@@ -479,13 +472,21 @@ function navMini_wire() {
   });
 }
 
+function enhanceShopBy() {
+  try {
+    import('./js/nav-glide.js')
+      .then(mod => { try { mod.initNavGlide(); } catch (e) { console.warn('[nav-glide init]', e); } })
+      .catch(err => console.warn('[nav-glide import]', err));
+  } catch (e) {
+    console.warn('[enhanceShopBy shim]', e);
+  }
+}
+
 /* ======================================================================== */
 
 // ====== BOOT ======
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('[BOOT] main.js starting…');
-
-  // Start the merged bridge loader immediately
   brBoot();
 
   // Load required/primary modules. Use dynamic imports to avoid hard failures.
@@ -495,7 +496,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     footerMod,
     searchMod,
     heroMod,
-    shopByMod,
     missionMod,
     navOverlayMod,
     navAnimMod,
@@ -511,23 +511,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     tryImport('./navbarAnimation.js'),
     tryImport('./auth.js'),
   ]);
-
   const newsMod = (await tryImport('./newsModule.js')) || (await tryImport('./news.js'));
 
   const fetchFeaturedProducts = productsMod?.fetchFeaturedProducts;
   const setupEventListeners   = productsMod?.setupEventListeners;
   const allProducts           = productsMod?.allProducts || [];
-
   const injectNavbar                = navbarMod?.injectNavbar;
   const injectFooter                = footerMod?.injectFooter;
   const setupSearchFunctionality    = searchMod?.setupSearchFunctionality;
   const injectHero                  = heroMod?.injectHero;
   const injectMission               = missionMod?.injectMission;
   const injectNews                  = newsMod?.injectNews || newsMod?.initNews;
-
   const setupNavbarOverlayHandlers  = navOverlayMod?.setupNavbarOverlayHandlers;
   const setupHueyAnimation          = navAnimMod?.setupHueyAnimation;
-
   const wireAuthUI                  = authMod?.wireAuthUI;
   const updateAuthDisplay           = authMod?.updateAuthDisplay;
 
@@ -538,21 +534,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       const afterNavbar = async () => {
         console.log('[Navbar] Ready. Initializing features…');
         try {
-          // ADDED: measure actual navbar height for layout
           setNavOffset();
           window.addEventListener('resize', setNavOffset, { passive: true });
-
           setupNavbarOverlayHandlers?.();
           setupHueyAnimation?.();
-
-          // Ensure overlay CSS is present before any interaction
           ensureSearchOverlayStyles();
 
           // Only wire searchLogic (page search) if a page-level container exists.
-          // For the overlay, let navbar overlay's own renderer handle results.
           try {
-            const pageSearchContainer =
-              document.querySelector('#search-results-container, [data-search-results]');
+            const pageSearchContainer = document.querySelector('#search-results-container, [data-search-results]');
             if (pageSearchContainer && setupSearchFunctionality) {
               try { await productsMod?.fetchAllProducts?.(); } catch {}
               const products = productsMod?.allProducts || allProducts || [];
@@ -565,7 +555,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.warn('[Search] wiring failed:', e);
           }
 
-          // Use our merged badge updater
           updateCartBadge();
           highlightActiveNav();
           wiresearchOverlay();
@@ -574,6 +563,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
           // Wire inlined nav mini after navbar is present
           navMini_wire();
+
+          // Enhance the Shop-By pill
+          enhanceShopBy();
 
           // Re-run bridge loader post-inject in case elements appeared
           brTryLoad();
@@ -692,7 +684,7 @@ window.addEventListener('unhandledrejection', (e) => {
     const img = p.featuredImage?.url || '/assets/images/placeholder.png';
     const title = p.title || '';
     const handle = p.handle || '';
-       const id = p.id || '';
+    const id = p.id || '';
     const minp = p.priceRange?.minVariantPrice, maxp = p.priceRange?.maxVariantPrice;
     const price = minp
       ? (minp.amount === maxp?.amount

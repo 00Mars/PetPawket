@@ -860,4 +860,6 @@ export function injectNavbar(callback){
     .catch((err) => console.error('[injectNavbar] Injection failed:', err));
 }
 
+
+
 // Note: main.js calls injectNavbar() and coordinates other lazy loaders.
