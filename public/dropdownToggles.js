@@ -1,6 +1,12 @@
 // /public/dropdownToggles.js
+// Single source of truth for dropdown handling
+// Supports BOTH new .pp-dropdown and legacy .nav-item.dropdown / .icon-dropdown
+
+let globalClickListenerAdded = false;
+let globalEscListenerAdded = false;
+
 export function setupDropdownToggles(root = document) {
-  // support BOTH the new pp-* dropdowns and the old ones
+  // Find all dropdown containers (new pp-* and legacy)
   const dropdownEls = root.querySelectorAll(
     '.pp-dropdown, .nav-item.dropdown, .icon-dropdown'
   );
@@ -8,35 +14,38 @@ export function setupDropdownToggles(root = document) {
   if (!dropdownEls.length) return;
 
   function getTrigger(dropdown) {
-    // prefer an explicit button/icon in the new markup
+    // For new .pp-dropdown: find button or element with aria-controls
+    const btn = dropdown.querySelector('button, .pp-icon-btn, [aria-controls]');
+    if (btn) return btn;
+    // For legacy: find toggle element
     return (
-      dropdown.querySelector('.pp-icon-btn') ||
       dropdown.querySelector('[data-toggle="dropdown"]') ||
-      dropdown.querySelector('button') ||
       dropdown.querySelector('a')
     );
   }
 
   function getMenu(dropdown) {
+    // Look for both standard dropdown-menu and icon-dropdown-menu
     return dropdown.querySelector('.dropdown-menu, .icon-dropdown-menu');
   }
 
   function closeDropdown(dropdown) {
     if (!dropdown) return;
-    dropdown.classList.remove('active');
+    dropdown.classList.remove('active', 'open');
     const menu = getMenu(dropdown);
     if (menu) {
-      // new markup: they start with `hidden`
-      menu.hidden = true;
+      // Use setAttribute for proper hidden attribute handling
+      menu.setAttribute('hidden', '');
     }
   }
 
   function openDropdown(dropdown) {
     if (!dropdown) return;
-    dropdown.classList.add('active');
+    dropdown.classList.add('active', 'open');
     const menu = getMenu(dropdown);
     if (menu) {
-      menu.hidden = false;
+      // Use removeAttribute for proper hidden attribute handling
+      menu.removeAttribute('hidden');
     }
   }
 
@@ -47,21 +56,26 @@ export function setupDropdownToggles(root = document) {
     });
   }
 
+  // Wire up each dropdown
   dropdownEls.forEach((dropdown) => {
     const trigger = getTrigger(dropdown);
     const menu = getMenu(dropdown);
     if (!trigger || !menu) return;
 
-    // start hidden if not already
-    if (menu.hidden !== false) {
-      menu.hidden = true;
+    // Skip if already wired to prevent duplicate listeners
+    if (trigger.dataset.dropdownWired === '1') return;
+    trigger.dataset.dropdownWired = '1';
+
+    // Ensure menu starts hidden
+    if (!menu.hasAttribute('hidden')) {
+      menu.setAttribute('hidden', '');
     }
 
     trigger.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
 
-      const isOpen = dropdown.classList.contains('active') && menu.hidden === false;
+      const isOpen = dropdown.classList.contains('active') && !menu.hasAttribute('hidden');
 
       if (isOpen) {
         closeDropdown(dropdown);
@@ -74,15 +88,21 @@ export function setupDropdownToggles(root = document) {
     });
   });
 
-  // click outside closes everything
-  document.addEventListener('click', () => {
-    closeAll();
-  });
-
-  // ESC closes everything
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
+  // Add global click listener only once
+  if (!globalClickListenerAdded) {
+    globalClickListenerAdded = true;
+    document.addEventListener('click', () => {
       closeAll();
-    }
-  });
+    });
+  }
+
+  // Add global Escape listener only once
+  if (!globalEscListenerAdded) {
+    globalEscListenerAdded = true;
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeAll();
+      }
+    });
+  }
 }

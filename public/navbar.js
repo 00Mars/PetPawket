@@ -469,38 +469,10 @@ function closeSearchOverlay() {
 }
 
 /* ==========================================================================
-   pp-dropdowns (wishlist, cart, orders) — for .pp-dropdown
+   pp-dropdowns (wishlist, cart, orders) — handled by dropdownToggles.js
    ========================================================================== */
-function wirePPDropdowns(root = document) {
-  const dropdowns = root.querySelectorAll('.pp-dropdown');
-  const closeAll = () => {
-    dropdowns.forEach((d) => {
-      const m = d.querySelector('.dropdown-menu, .icon-dropdown-menu');
-      if (m) {
-        m.setAttribute('hidden', '');
-        d.classList.remove('open');
-      }
-    });
-  };
-  dropdowns.forEach((dd) => {
-    const btn = dd.querySelector('button, .pp-icon-btn, [aria-controls]');
-    const menu = dd.querySelector('.dropdown-menu, .icon-dropdown-menu');
-    if (!btn || !menu) return;
-    if (btn.dataset.wiredPPDD === '1') return;
-    btn.dataset.wiredPPDD = '1';
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const isHidden = menu.hasAttribute('hidden');
-      closeAll();
-      if (isHidden) {
-        menu.removeAttribute('hidden');
-        dd.classList.add('open');
-      }
-    });
-  });
-  document.addEventListener('click', closeAll);
-}
+// Removed duplicate wirePPDropdowns function - all dropdown logic is now
+// centralized in dropdownToggles.js via setupDropdownToggles()
 
 /* ==========================================================================
    huey animation re-trigger
@@ -558,9 +530,8 @@ function wireNavbar(container = document) {
   // cart
   ensureCartBadge(container);
 
-  // dropdowns: legacy + new pp-dropdowns
-  setupDropdownToggles?.();     // for any .nav-item.dropdown / .icon-dropdown in fetched navbar.html
-  wirePPDropdowns(container);   // for your .pp-dropdown buttons
+  // dropdowns: unified handling via dropdownToggles.js
+  setupDropdownToggles?.(container);  // handles both .pp-dropdown and legacy .nav-item.dropdown
 
   // search overlay hot wiring
   wireSearchOverlayOnce();
