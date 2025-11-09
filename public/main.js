@@ -1,4 +1,4 @@
-// public/main.js
+// /public/main.js
 // Resilient bootstrap: navbar/footer injection, search overlay wiring,
 // cart utilities (merged from cartUtils.js), inlined nav mini, and a minimal featured grid fallback.
 
@@ -14,7 +14,8 @@ const cssFiles = [
   '/css/wishlist.css',
   '/css/ambient-mesh.css',
   '/css/fonts.css',
-  '/css/footer.css'
+  '/css/footer.css',
+  '/css/navbar.css?v=1' 
 ];
 
 function isAbsoluteUrl(u) {
@@ -439,7 +440,6 @@ async function navMini_renderWishlist(menuEl) {
     } catch { /* ignore single failures */ }
   }
   menuEl.innerHTML = products.map(p => {
-    // Corrected the placeholder quote
     const img = p?.featuredImage?.url || p?.image || '/assets/images/placeholder.png';
     const price = p?.price?.amount ?? p?.variants?.[0]?.price ?? p?.priceRange?.minVariantPrice?.amount;
     return `
