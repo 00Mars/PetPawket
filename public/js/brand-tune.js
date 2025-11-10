@@ -5,8 +5,8 @@
   const params = new URLSearchParams(location.search);
   if (!params.has('brand-tune')) return;
 
-  const wrapper = document.querySelector('.charlie-frame-wrapper');
-  const logo = document.querySelector('.brand-logo');
+  const wrapper = document.querySelector('.pp-brand-frame, .charlie-frame-wrapper');
+  const logo = document.querySelector('.pp-brand-text, .brand-logo');
   if (!wrapper || !logo) return;
 
   const ui = document.createElement('div');
@@ -65,11 +65,11 @@
   $('#ppCopy').addEventListener('click', async () => {
     const css = `
 /* Finalized brand numbers for THIS container width breakpoint */
-.charlie-frame-wrapper{
+.pp-brand-frame, .charlie-frame-wrapper{
   --frame: ${state.frame};
   --icon-scale: ${state.scale};
 }
-.brand-logo{ font-size: ${state.logo}px; }
+.pp-brand-text, .brand-logo{ font-size: ${state.logo}px; }
 `.trim();
     try {
       await navigator.clipboard.writeText(css);

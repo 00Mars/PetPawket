@@ -15,11 +15,20 @@
         </button>
 
         <div class="pp-dropdown">
-          <button class="pp-icon-btn" type="button" aria-label="Account" data-action="open-account">
+          <button class="pp-icon-btn" type="button" aria-label="Account" id="nav-account-toggle" data-action="open-account">
             <i class="bi bi-person-circle"></i>
           </button>
-          <!-- host for account menu (JS can fill this) -->
-          <div class="dropdown-menu icon-dropdown-menu dropdown-menu-end p-0 shadow" hidden></div>
+          <div class="dropdown-menu icon-dropdown-menu dropdown-menu-end" aria-labelledby="nav-account-toggle" hidden>
+            <div id="auth-menu-guest" data-auth="signed-out">
+              <a href="#" class="dropdown-item" data-toggle="login-modal">Log In</a>
+              <a href="#" class="dropdown-item" data-toggle="signup-modal">Sign Up</a>
+            </div>
+            <div id="auth-menu-user" data-auth="signed-in" class="d-none">
+              <a href="/account.html" class="dropdown-item">My Account</a>
+              <a href="#settings" class="dropdown-item">Settings</a>
+              <a href="#" class="dropdown-item" id="logout-btn" data-action="logout">Log Out</a>
+            </div>
+          </div>
         </div>
 
         <div class="pp-dropdown">
