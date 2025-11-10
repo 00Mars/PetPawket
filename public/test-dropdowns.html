@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dropdown Diagnostic Test - PetPawket</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
+  <style>
+    body { padding: 20px; font-family: system-ui, -apple-system, sans-serif; }
+    .test-section { margin: 30px 0; padding: 20px; border: 2px solid #ddd; border-radius: 8px; }
+    .test-section h2 { margin-top: 0; color: #0187ad; }
+    .result { margin: 10px 0; padding: 10px; border-radius: 4px; }
+    .result.pass { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+    .result.fail { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+    .result.info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+    pre { background: #f5f5f5; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    .test-button { margin: 10px 5px; }
+    #test-navbar { margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>PetPawket Dropdown & Login Diagnostic</h1>
+  
+  <div class="test-section">
+    <h2>1. Module Loading Tests</h2>
+    <div id="module-tests"></div>
+    <button class="btn btn-primary test-button" onclick="testModules()">Run Module Tests</button>
+  </div>
+
+  <div class="test-section">
+    <h2>2. Navbar HTML Structure Test</h2>
+    <div id="structure-tests"></div>
+    <button class="btn btn-primary test-button" onclick="testStructure()">Run Structure Tests</button>
+  </div>
+
+  <div class="test-section">
+    <h2>3. Dropdown Event Listener Tests</h2>
+    <div id="listener-tests"></div>
+    <button class="btn btn-primary test-button" onclick="testListeners()">Run Listener Tests</button>
+  </div>
+
+  <div class="test-section">
+    <h2>4. Auth System Tests</h2>
+    <div id="auth-tests"></div>
+    <button class="btn btn-primary test-button" onclick="testAuth()">Run Auth Tests</button>
+  </div>
+
+  <div class="test-section">
+    <h2>5. Live Dropdown Test</h2>
+    <div id="test-navbar"></div>
+    <button class="btn btn-primary test-button" onclick="loadNavbar()">Load Navbar</button>
+    <button class="btn btn-secondary test-button" onclick="testDropdownClicks()">Test Dropdown Clicks</button>
+  </div>
+
+  <script type="module">
+    // Global test results
+    window.testResults = {
+      modules: [],
+      structure: [],
+      listeners: [],
+      auth: []
+    };
+
+    function addResult(category, test, pass, details = '') {
+      const resultDiv = document.getElementById(`${category}-tests`);
+      const resultEl = document.createElement('div');
+      resultEl.className = `result ${pass ? 'pass' : 'fail'}`;
+      resultEl.innerHTML = `<strong>${pass ? '✓' : '✗'} ${test}</strong>${details ? `<br><small>${details}</small>` : ''}`;
+      resultDiv.appendChild(resultEl);
+      window.testResults[category].push({ test, pass, details });
+    }
+
+    function addInfo(category, message) {
+      const resultDiv = document.getElementById(`${category}-tests`);
+      const resultEl = document.createElement('div');
+      resultEl.className = 'result info';
+      resultEl.innerHTML = `<strong>ℹ ${message}</strong>`;
+      resultDiv.appendChild(resultEl);
+    }
+
+    // Test 1: Module Loading
+    window.testModules = async function() {
+      const testsDiv = document.getElementById('module-tests');
+      testsDiv.innerHTML = '';
+      
+      try {
+        const navbar = await import('./navbar.js');
+        addResult('module', 'navbar.js loads', true, 'injectNavbar: ' + typeof navbar.injectNavbar);
+      } catch (e) {
+        addResult('module', 'navbar.js loads', false, e.message);
+      }
+
+      try {
+        const dropdowns = await import('./dropdownToggles.js');
+        addResult('module', 'dropdownToggles.js loads', true, 'setupDropdownToggles: ' + typeof dropdowns.setupDropdownToggles);
+      } catch (e) {
+        addResult('module', 'dropdownToggles.js loads', false, e.message);
+      }
+
+      try {
+        const auth = await import('./auth.js');
+        addResult('module', 'auth.js loads', true, 'updateAuthDisplay: ' + typeof auth.updateAuthDisplay);
+      } catch (e) {
+        addResult('module', 'auth.js loads', false, e.message);
+      }
+
+      try {
+        const modals = await import('./navbarModals.js');
+        addResult('module', 'navbarModals.js loads', true, 'attachNavbarModals: ' + typeof modals.attachNavbarModals);
+      } catch (e) {
+        addResult('module', 'navbarModals.js loads', false, e.message);
+      }
+    };
+
+    // Test 2: Structure
+    window.testStructure = async function() {
+      const testsDiv = document.getElementById('structure-tests');
+      testsDiv.innerHTML = '';
+
+      const response = await fetch('/navbar.html');
+      const html = await response.text();
+      
+      addResult('structure', 'navbar.html loads', response.ok, `Status: ${response.status}`);
+      
+      const checks = [
+        { test: 'Contains pp-header', regex: /class="pp-header"/ },
+        { test: 'Contains pp-dropdown', regex: /class="pp-dropdown"/ },
+        { test: 'Contains nav-account-toggle', regex: /id="nav-account-toggle"/ },
+        { test: 'Contains nav-wish-toggle', regex: /id="nav-wish-toggle"/ },
+        { test: 'Contains nav-cart-toggle', regex: /id="nav-cart-toggle"/ },
+        { test: 'Contains nav-orders-toggle', regex: /id="nav-orders-toggle"/ },
+        { test: 'Contains auth-menu-guest', regex: /id="auth-menu-guest"/ },
+        { test: 'Contains auth-menu-user', regex: /id="auth-menu-user"/ },
+        { test: 'Contains data-toggle="login-modal"', regex: /data-toggle="login-modal"/ },
+      ];
+
+      checks.forEach(check => {
+        addResult('structure', check.test, check.regex.test(html));
+      });
+
+      const dropdownCount = (html.match(/class="pp-dropdown"/g) || []).length;
+      addInfo('structure', `Found ${dropdownCount} pp-dropdown elements in navbar.html`);
+    };
+
+    // Test 3: Listeners
+    window.testListeners = async function() {
+      const testsDiv = document.getElementById('listener-tests');
+      testsDiv.innerHTML = '';
+
+      // Load navbar first
+      try {
+        const { injectNavbar } = await import('./navbar.js');
+        await new Promise((resolve) => {
+          injectNavbar(() => {
+            addInfo('listener', 'Navbar injected successfully');
+            resolve();
+          });
+        });
+
+        // Give it a moment to wire up
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Check for dropdowns
+        const dropdowns = document.querySelectorAll('.pp-dropdown');
+        addResult('listener', 'Found pp-dropdown elements', dropdowns.length > 0, `Count: ${dropdowns.length}`);
+
+        // Check each dropdown
+        dropdowns.forEach((dd, i) => {
+          const trigger = dd.querySelector('button, .pp-icon-btn');
+          const menu = dd.querySelector('.dropdown-menu');
+          const hasListener = trigger && trigger.dataset.dropdownWired === '1';
+          
+          addResult('listener', `Dropdown ${i+1} wired`, hasListener, 
+            `Trigger: ${!!trigger}, Menu: ${!!menu}, Wired: ${hasListener}`);
+        });
+
+        // Check for login modal listeners
+        const loginBtns = document.querySelectorAll('[data-toggle="login-modal"]');
+        addResult('listener', 'Login buttons exist', loginBtns.length > 0, `Count: ${loginBtns.length}`);
+
+      } catch (e) {
+        addResult('listener', 'Navbar injection', false, e.message);
+      }
+    };
+
+    // Test 4: Auth
+    window.testAuth = async function() {
+      const testsDiv = document.getElementById('auth-tests');
+      testsDiv.innerHTML = '';
+
+      try {
+        const { updateAuthDisplay, onAuthChange } = await import('./auth.js');
+        addResult('auth', 'Auth functions available', true, 
+          `updateAuthDisplay: ${typeof updateAuthDisplay}, onAuthChange: ${typeof onAuthChange}`);
+
+        // Check if auth elements exist
+        const guestMenu = document.getElementById('auth-menu-guest');
+        const userMenu = document.getElementById('auth-menu-user');
+        
+        addResult('auth', 'Guest menu exists', !!guestMenu);
+        addResult('auth', 'User menu exists', !!userMenu);
+
+        if (guestMenu && userMenu) {
+          const guestVisible = guestMenu.dataset.auth === 'signed-out';
+          const userHidden = userMenu.classList.contains('d-none');
+          addResult('auth', 'Default auth state correct', guestVisible && userHidden,
+            `Guest visible: ${guestVisible}, User hidden: ${userHidden}`);
+        }
+
+      } catch (e) {
+        addResult('auth', 'Auth module test', false, e.message);
+      }
+    };
+
+    // Test 5: Live Test
+    window.loadNavbar = async function() {
+      const container = document.getElementById('test-navbar');
+      container.innerHTML = '<p>Loading navbar...</p>';
+
+      try {
+        const { injectNavbar } = await import('./navbar.js');
+        injectNavbar(() => {
+          container.innerHTML = '';
+          const navbarContainer = document.getElementById('navbar-container');
+          if (navbarContainer) {
+            container.appendChild(navbarContainer.cloneNode(true));
+            addInfo('listener', 'Navbar loaded into test area');
+          }
+        });
+      } catch (e) {
+        container.innerHTML = `<p class="text-danger">Error: ${e.message}</p>`;
+      }
+    };
+
+    window.testDropdownClicks = function() {
+      const dropdowns = document.querySelectorAll('#test-navbar .pp-dropdown');
+      const testsDiv = document.getElementById('listener-tests');
+      
+      dropdowns.forEach((dd, i) => {
+        const trigger = dd.querySelector('button');
+        const menu = dd.querySelector('.dropdown-menu');
+        
+        if (trigger) {
+          addInfo('listener', `Testing dropdown ${i+1}...`);
+          trigger.click();
+          
+          setTimeout(() => {
+            const isOpen = !menu.hasAttribute('hidden');
+            addResult('listener', `Dropdown ${i+1} opens on click`, isOpen,
+              `Hidden attr: ${menu.hasAttribute('hidden')}, Has open class: ${dd.classList.contains('open')}`);
+          }, 100);
+        }
+      });
+    };
+
+    // Auto-run initial tests
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        testModules();
+        testStructure();
+      }, 500);
+    });
+  </script>
+</body>
+</html>
