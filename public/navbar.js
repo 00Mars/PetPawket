@@ -469,9 +469,63 @@ function closeSearchOverlay() {
 }
 
 /* ==========================================================================
+<<<<<<< Updated upstream
    pp-dropdowns (wishlist, cart, orders) — handled by dropdownToggles.js
    ========================================================================== */
-// All dropdown logic is now centralized in dropdownToggles.js via setupDropdownToggles()
+// Removed duplicate wirePPDropdowns function - all dropdown logic is now
+// centralized in dropdownToggles.js via setupDropdownToggles()
+=======
+   FIXED: pp-dropdowns (wishlist, cart, orders) — for .pp-dropdown
+   ========================================================================== */
+function wirePPDropdowns(root = document) {
+  const dropdowns = root.querySelectorAll('.pp-dropdown');
+  
+  // This function closes all dropdowns.
+  const closeAll = () => {
+    dropdowns.forEach((d) => {
+      const menu = d.querySelector('.dropdown-menu, .icon-dropdown-menu');
+      const trigger = d.querySelector('button, .pp-icon-btn, [aria-controls]');
+      if (menu) menu.setAttribute('hidden', '');
+      if (trigger) trigger.setAttribute('aria-expanded', 'false');
+      d.classList.remove('open');
+    });
+  };
+
+  dropdowns.forEach((dd) => {
+    const btn = dd.querySelector('button, .pp-icon-btn, [aria-controls]');
+    const menu = dd.querySelector('.dropdown-menu, .icon-dropdown-menu');
+    
+    if (!btn || !menu) return;
+    if (btn.dataset.wiredPPDD === '1') return;
+    btn.dataset.wiredPPDD = '1';
+
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent the global document click from firing
+      
+      const isOpening = menu.hasAttribute('hidden');
+      
+      // Always close everything first.
+      closeAll();
+      
+      // If the menu we clicked was closed, re-open it.
+      if (isOpening) {
+        menu.removeAttribute('hidden');
+        btn.setAttribute('aria-expanded', 'true');
+        dd.classList.add('open');
+      }
+    });
+  });
+  
+  // Global click listener to close dropdowns when clicking outside
+  document.addEventListener('click', (e) => {
+    const clickedDropdown = e.target.closest('.pp-dropdown');
+    // If the click was outside any dropdown, close them all.
+    if (!clickedDropdown) {
+      closeAll();
+    }
+  });
+}
+>>>>>>> Stashed changes
 
 
 /* ==========================================================================
