@@ -11,6 +11,7 @@ import fetch from 'node-fetch';
 import { ensureUser, getUserByEmail, updateUser } from './userDB.pg.js';
 
 import { requireAuth, softSession } from './middleware/requireAuth.js';
+import { signToken } from './utils/jwt.js';
 import addressesRouter from './routes/addressesRoutes.js';
 import productsRouter from './routes/productsRoutes.js';
 import searchRouter from './routes/searchRoutes.js';
@@ -78,36 +79,6 @@ async function shopifyGQL(query, variables) {
   return json;
 }
 
-function setTokenCookie(res, token, maxDays = 30) {
-  const maxAge = maxDays * 24 * 60 * 60 * 1000;
-  // Express 5 supports res.cookie without cookie-parser
-  res.cookie?.('shopify_token', token, {
-    httpOnly: true,
-    secure: NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-    maxAge,
-  }) || res.setHeader(
-    'Set-Cookie',
-    `shopify_token=${encodeURIComponent(token)}; HttpOnly; Path=/; SameSite=Lax; Max-Age=${Math.floor(
-      maxAge / 1000
-    )}${NODE_ENV === 'production' ? '; Secure' : ''}`
-  );
-}
-
-function clearTokenCookie(res) {
-  res.cookie?.('shopify_token', '', {
-    httpOnly: true,
-    secure: NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-    maxAge: 0,
-  }) || res.setHeader(
-    'Set-Cookie',
-    `shopify_token=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0${NODE_ENV === 'production' ? '; Secure' : ''}`
-  );
-}
-
 // --- Health -------------------------------------------------------------------
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
@@ -128,21 +99,127 @@ app.post('/api/auth/login', async (req, res) => {
     const resp = await shopifyGQL(mutation, { input: { email, password } });
     const payload = resp?.data?.customerAccessTokenCreate;
 
-    theToken: {
-      const token = payload?.customerAccessToken?.accessToken;
-      const errMsg = payload?.customerUserErrors?.[0]?.message;
-      if (!token) {
-        res.status(401).json({ ok: false, error: errMsg || 'Invalid credentials' });
-        break theToken;
-      }
-      setTokenCookie(res, token);
-
-      // ✅ Seed/ensure user row via shared DB layer (normalize email case)
-      const normalizedEmail = String(email).trim().toLowerCase();
-      await ensureUser(normalizedEmail, '', '');
-
-      res.json({ ok: true });
+    const shopifyToken = payload?.customerAccessToken?.accessToken;
+    const errMsg = payload?.customerUserErrors?.[0]?.message;
+    if (!shopifyToken) {
+      return res.status(401).json({ ok: false, error: errMsg || 'Invalid credentials' });
     }
+
+    // Fetch customer details from Shopify
+    const query = /* GraphQL */ `
+      query WhoAmI($token: String!) {
+        customer(customerAccessToken: $token) {
+          id
+          email
+          firstName
+          lastName
+        }
+      }
+    `;
+    const customerResp = await shopifyGQL(query, { token: shopifyToken });
+    const customer = customerResp?.data?.customer;
+
+    if (!customer || !customer.email) {
+      return res.status(401).json({ ok: false, error: 'Failed to fetch customer details' });
+    }
+
+    // ✅ Seed/ensure user row via shared DB layer (normalize email case)
+    const normalizedEmail = String(customer.email).trim().toLowerCase();
+    await ensureUser(normalizedEmail, customer.firstName || '', customer.lastName || '');
+
+    // Create JWT token with customer data and Shopify token
+    const jwtPayload = {
+      email: customer.email,
+      firstName: customer.firstName,
+      lastName: customer.lastName,
+      id: customer.id,
+      shopifyToken, // Store Shopify token in JWT for backend API calls
+    };
+    const token = signToken(jwtPayload);
+
+    // Return JWT token and user info
+    res.json({
+      ok: true,
+      token,
+      user: {
+        email: customer.email,
+        firstName: customer.firstName,
+        lastName: customer.lastName,
+        id: customer.id,
+      },
+    });
+  } catch (err) {
+    console.error('[login] error:', err);
+    return res.status(500).json({ ok: false, error: 'Login failed' });
+  }
+});
+
+// Alternative /api/login endpoint for backward compatibility
+app.post('/api/login', async (req, res) => {
+  try {
+    const { email, password } = req.body || {};
+    if (!email || !password) return res.status(400).json({ ok: false, error: 'Email and password required' });
+
+    const mutation = /* GraphQL */ `
+      mutation Login($input: CustomerAccessTokenCreateInput!) {
+        customerAccessTokenCreate(input: $input) {
+          customerAccessToken { accessToken, expiresAt }
+          customerUserErrors { field, message, code }
+        }
+      }
+    `;
+    const resp = await shopifyGQL(mutation, { input: { email, password } });
+    const payload = resp?.data?.customerAccessTokenCreate;
+
+    const shopifyToken = payload?.customerAccessToken?.accessToken;
+    const errMsg = payload?.customerUserErrors?.[0]?.message;
+    if (!shopifyToken) {
+      return res.status(401).json({ ok: false, error: errMsg || 'Invalid credentials' });
+    }
+
+    // Fetch customer details from Shopify
+    const query = /* GraphQL */ `
+      query WhoAmI($token: String!) {
+        customer(customerAccessToken: $token) {
+          id
+          email
+          firstName
+          lastName
+        }
+      }
+    `;
+    const customerResp = await shopifyGQL(query, { token: shopifyToken });
+    const customer = customerResp?.data?.customer;
+
+    if (!customer || !customer.email) {
+      return res.status(401).json({ ok: false, error: 'Failed to fetch customer details' });
+    }
+
+    // ✅ Seed/ensure user row via shared DB layer (normalize email case)
+    const normalizedEmail = String(customer.email).trim().toLowerCase();
+    await ensureUser(normalizedEmail, customer.firstName || '', customer.lastName || '');
+
+    // Create JWT token with customer data and Shopify token
+    const jwtPayload = {
+      email: customer.email,
+      firstName: customer.firstName,
+      lastName: customer.lastName,
+      id: customer.id,
+      shopifyToken, // Store Shopify token in JWT for backend API calls
+    };
+    const token = signToken(jwtPayload);
+
+    // Return JWT token and user info
+    res.json({
+      ok: true,
+      token,
+      user: {
+        email: customer.email,
+        firstName: customer.firstName,
+        lastName: customer.lastName,
+        id: customer.id,
+      },
+    });
   } catch (err) {
     console.error('[login] error:', err);
     return res.status(500).json({ ok: false, error: 'Login failed' });
@@ -150,7 +227,14 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 app.post('/logout', (req, res) => {
-  clearTokenCookie(res);
+  // JWT is stateless, so logout is handled client-side by removing the token
+  // No server-side state to clear
+  res.json({ ok: true });
+});
+
+app.post('/api/auth/logout', (req, res) => {
+  // JWT is stateless, so logout is handled client-side by removing the token
+  // No server-side state to clear
   res.json({ ok: true });
 });
 
