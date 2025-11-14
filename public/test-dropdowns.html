@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dropdown Diagnostic - PetPawket</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
+  <link rel="stylesheet" href="/css/core.css" />
+  <link rel="stylesheet" href="/css/navbar.css" />
+  <style>
+    body { padding: 20px; }
+    .test-section { margin: 30px 0; padding: 20px; border: 2px solid #ddd; border-radius: 8px; }
+    .result { margin: 10px 0; padding: 10px; border-radius: 4px; }
+    .result.pass { background: #d4edda; color: #155724; }
+    .result.fail { background: #f8d7da; color: #721c24; }
+    .result.info { background: #d1ecf1; color: #0c5460; }
+  </style>
+</head>
+<body>
+  <h1>Dropdown & Login Diagnostic</h1>
+  
+  <div class="test-section">
+    <h2>Module Loading Tests</h2>
+    <div id="module-tests"></div>
+    <button class="btn btn-primary" onclick="testModules()">Run Tests</button>
+  </div>
+
+  <div class="test-section">
+    <h2>Dropdown Wiring Tests</h2>
+    <div id="dropdown-tests"></div>
+    <button class="btn btn-primary" onclick="testDropdowns()">Run Tests</button>
+  </div>
+
+  <div class="test-section">
+    <h2>Live Navbar Test</h2>
+    <div id="navbar-container"></div>
+    <button class="btn btn-primary" onclick="loadNavbar()">Load Navbar</button>
+    <button class="btn btn-secondary" onclick="testClicks()">Test Clicks</button>
+  </div>
+
+  <script type="module">
+    function log(category, test, pass, details = '') {
+      const div = document.getElementById(`${category}-tests`);
+      const el = document.createElement('div');
+      el.className = `result ${pass ? 'pass' : 'fail'}`;
+      el.innerHTML = `<strong>${pass ? '✓' : '✗'} ${test}</strong>${details ? `<br><small>${details}</small>` : ''}`;
+      div.appendChild(el);
+    }
+
+    window.testModules = async function() {
+      document.getElementById('module-tests').innerHTML = '';
+      
+      try {
+        const navbar = await import('./navbar.js');
+        log('module', 'navbar.js loads', true);
+      } catch (e) {
+        log('module', 'navbar.js loads', false, e.message);
+      }
+
+      try {
+        const dt = await import('./dropdownToggles.js');
+        log('module', 'dropdownToggles.js loads', true);
+      } catch (e) {
+        log('module', 'dropdownToggles.js loads', false, e.message);
+      }
+    };
+
+    window.testDropdowns = async function() {
+      document.getElementById('dropdown-tests').innerHTML = '';
+      const dropdowns = document.querySelectorAll('.pp-dropdown');
+      log('dropdown', `Found ${dropdowns.length} dropdowns`, dropdowns.length > 0);
+      
+      dropdowns.forEach((dd, i) => {
+        const trigger = dd.querySelector('button');
+        const menu = dd.querySelector('.dropdown-menu');
+        log('dropdown', `Dropdown ${i+1}`, !!trigger && !!menu, 
+          `Trigger: ${!!trigger}, Menu: ${!!menu}, Wired: ${trigger?.dataset.dropdownWired}`);
+      });
+    };
+
+    window.loadNavbar = async function() {
+      const { injectNavbar } = await import('./navbar.js');
+      injectNavbar(() => {
+        setTimeout(() => testDropdowns(), 500);
+      });
+    };
+
+    window.testClicks = function() {
+      document.querySelectorAll('#navbar-container .pp-dropdown button').forEach((btn, i) => {
+        console.log(`Clicking dropdown ${i+1}`);
+        btn.click();
+        const menu = btn.nextElementSibling;
+        console.log(`  Menu hidden: ${menu.hasAttribute('hidden')}`);
+      });
+    };
+  </script>
+</body>
+</html>

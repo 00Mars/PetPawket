@@ -285,8 +285,10 @@ body {
 
 .dropdown-menu[hidden],
 .icon-dropdown-menu[hidden] {
-  display: none !important;
+  display: none;
 }
+
+.pp-dropdown [aria-expanded="true"] ~ .dropdown-menu { display: block; }
 
 .dropdown-menu .dropdown-item,
 .icon-dropdown-menu .dropdown-item {
