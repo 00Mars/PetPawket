@@ -1,23 +1,28 @@
-async function handleLogin(email, password) {
-  const res = await fetch("/api/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password })
-  });
+// Dedicated login page — delegates to token-based auth.js
+import { login, updateAuthDisplay } from '../auth.js';
 
-  const data = await res.json();
-  if (res.ok) {
-    localStorage.setItem("authToken", data.token);
-    localStorage.setItem("currentUserId", data.user.id);
-    // redirect or show dashboard
-  } else {
-    alert(data.message || "Login failed");
-  }
+function getNextUrl() {
+  const u = new URL(location.href);
+  const next = u.searchParams.get('next');
+  return (next && /^\/[^\s]*$/.test(next)) ? next : '/account.html';
 }
 
-document.getElementById("login-form").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const email = document.getElementById("login-email").value;
-  const password = document.getElementById("login-password").value;
-  await handleLogin(email, password);
-});
+const form = document.getElementById('login-form') || document.getElementById('loginForm');
+if (form) {
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const scope = form;
+    const email = scope.querySelector('input[name="email"], input[type="email"]')?.value?.trim() || '';
+    const password = scope.querySelector('input[name="password"], input[type="password"]')?.value || '';
+    const msg = scope.querySelector('[data-login-msg]') || document.querySelector('[data-login-msg]');
+    try {
+      await login(email, password);   // stores token and verifies /api/me
+      await updateAuthDisplay();      // repaint UI based on real session
+      if (msg) msg.textContent = 'Signed in!';
+      window.location.assign(getNextUrl());
+    } catch (err) {
+      if (msg) msg.textContent = err?.message || 'Login failed';
+      else alert(err?.message || 'Login failed');
+    }
+  });
+}

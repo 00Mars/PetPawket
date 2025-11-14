@@ -380,11 +380,9 @@ async function navMini_renderCart(menuEl) {
     const cart = getCart() || [];
     if (!Array.isArray(cart) || cart.length === 0) {
       menuEl.innerHTML = `
-        <div class="p-3">
-          <div class="text-center text-muted small">Your cart is empty.</div>
-          <div class="d-grid mt-2">
-            <a class="btn btn-sm btn-primary" href="/shop">Shop now</a>
-          </div>
+        <div class="p-3 text-center">
+          <div class="text-muted small">Sign in to view your wishlist.</div>
+          <a class="btn btn-sm btn-primary mt-2" href="/login.html" data-toggle="login-modal">Sign in</a>
         </div>`;
       return;
     }
@@ -420,7 +418,7 @@ async function navMini_renderWishlist(menuEl) {
     menuEl.innerHTML = `
       <div class="p-3 text-center">
         <div class="text-muted small">Sign in to view your wishlist.</div>
-        <a class="btn btn-sm btn-primary mt-2" href="/account/login">Sign in</a>
+        <a class="btn btn-sm btn-primary mt-2" href="#" data-toggle="login-modal">Sign in</a>
       </div>`;
     return;
   }

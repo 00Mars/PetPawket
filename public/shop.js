@@ -357,6 +357,7 @@ async function ensureMyPetsPane() {
   host.innerHTML = loadingMyPetsHtml();
   try {
     const r = await fetch('/api/pets', { credentials: 'include' });
+    if (r.status === 401 || r.status === 403) { host.innerHTML = needLoginHtml(); return; }
     if (!r.ok) throw new Error('pets');
     const pets = await r.json();
     state.myPets = Array.isArray(pets) ? pets : [];
@@ -389,7 +390,7 @@ function needLoginHtml() {
         <div><strong>Sign in</strong> to see guidance and recommendations for your pets.</div>
       </div>
       <div class="mt-2">
-        <a class="btn btn-primary btn-sm" href="/account/login">Sign in</a>
+        <a class="btn btn-primary btn-sm" href="/login.html" data-toggle="login-modal">Sign in</a>
         <a class="btn btn-outline-secondary btn-sm ms-2" href="/for-my-pets.html">Manage</a>
       </div>
     </div>`;

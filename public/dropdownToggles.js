@@ -33,6 +33,8 @@ export function setupDropdownToggles(root = document) {
     if (!dropdown) return;
     dropdown.classList.remove('active', 'open');
     const menu = getMenu(dropdown);
+    const trigger = getTrigger(dropdown);
+    if (trigger) trigger.setAttribute('aria-expanded', 'false');
     if (menu) {
       // Use setAttribute for proper hidden attribute handling
       menu.setAttribute('hidden', '');
@@ -43,6 +45,8 @@ export function setupDropdownToggles(root = document) {
     if (!dropdown) return;
     dropdown.classList.add('active', 'open');
     const menu = getMenu(dropdown);
+    const trigger = getTrigger(dropdown);
+    if (trigger) trigger.setAttribute('aria-expanded', 'true');
     if (menu) {
       // Use removeAttribute for proper hidden attribute handling
       menu.removeAttribute('hidden');
@@ -66,10 +70,16 @@ export function setupDropdownToggles(root = document) {
     if (trigger.dataset.dropdownWired === '1') return;
     trigger.dataset.dropdownWired = '1';
 
-    // Ensure menu starts hidden
+    // Ensure menu starts hidden + ARIA baseline
     if (!menu.hasAttribute('hidden')) {
       menu.setAttribute('hidden', '');
     }
+    trigger.setAttribute('aria-expanded', 'false');
+
+    // Prevent clicks inside the menu from bubbling to the document (which would close it)
+    menu.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
 
     trigger.addEventListener('click', (e) => {
       e.preventDefault();
@@ -88,11 +98,13 @@ export function setupDropdownToggles(root = document) {
     });
   });
 
-  // Add global click listener only once
+  // Add global click listener only once — close only when clicking OUTSIDE any dropdown
   if (!globalClickListenerAdded) {
     globalClickListenerAdded = true;
-    document.addEventListener('click', () => {
-      closeAll();
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.pp-dropdown, .nav-item.dropdown, .icon-dropdown')) {
+        closeAll();
+      }
     });
   }
 

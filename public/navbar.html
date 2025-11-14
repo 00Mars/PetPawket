@@ -174,8 +174,9 @@
   <div class="modal-content">
     <h3 id="loginHeading">Log In</h3>
     <form id="loginForm" autocomplete="on">
-      <input type="email" name="email" placeholder="Email" required autocomplete="username" spellcheck="false" />
+      <input type="email"    name="email"    placeholder="Email"    required autocomplete="username" spellcheck="false" />
       <input type="password" name="password" placeholder="Password" required autocomplete="current-password" />
+      <div class="small text-danger mt-2" aria-live="polite" data-login-msg></div>
       <button type="submit" class="btn btn-primary">Continue</button>
     </form>
     <button class="close-btn" data-close="loginModal" aria-label="Close login modal">×</button>
