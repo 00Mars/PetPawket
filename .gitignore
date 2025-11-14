@@ -24,6 +24,7 @@ coverage/
 # Env / local
 .env
 .env.*
+!.env.example
 *.local
 
 # IDE
