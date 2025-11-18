@@ -1,145 +1,223 @@
 // middleware/requireAuth.js
-// Shopify Storefront cookie auth (no Clerk). Resilient to network timeouts.
-// Exports: softSession (non-blocking), requireAuth (blocking)
-// Node 20 / ESM
+// Hybrid: JWT-first authentication with optional (env-gated) Shopify fallback.
+// Adds requireShopifyCustomer() for routes that need verified Shopify customer context.
+// Exports: softSession, requireAuth, requireShopifyCustomer.
 
 import fetch from 'node-fetch';
+import { verifyToken } from '../utils/auth.js';
+import { getUserById, getUserByEmail } from '../userDB.pg.js';
 
-// --- Env & constants ----------------------------------------------------------
-const RAW_DOMAIN = process.env.SHOPIFY_DOMAIN || ''; // e.g. "your-shop.myshopify.com"
-const SHOPIFY_DOMAIN = sanitizeDomain(RAW_DOMAIN);
+/* -------------------- Config -------------------- */
+const FALLBACK_ENABLED = String(process.env.SHOPIFY_COOKIE_FALLBACK || '').toLowerCase() === 'true';
+
+const RAW_DOMAIN       = process.env.SHOPIFY_DOMAIN || '';
+const SHOPIFY_DOMAIN   = sanitizeDomain(RAW_DOMAIN);
 const STOREFRONT_TOKEN = process.env.SHOPIFY_STOREFRONT_TOKEN || '';
-const API_VERSION = process.env.SHOPIFY_API_VERSION || '2024-07';
+const API_VERSION      = process.env.SHOPIFY_API_VERSION || '2024-07';
+const TIMEOUT_MS       = parseInt(process.env.SHOPIFY_TIMEOUT_MS || '5000', 10);
+const CACHE_TTL_MS     = parseInt(process.env.SHOPIFY_AUTH_CACHE_TTL_MS || '600000', 10);
+
 const SF_ENDPOINT = `https://${SHOPIFY_DOMAIN}/api/${API_VERSION}/graphql.json`;
+const tokenCache = new Map(); // Map<shopifyAccessToken, { customer, ts }>
 
-// 5s default timeout; override with SHOPIFY_TIMEOUT_MS
-const TIMEOUT_MS = Number.parseInt(process.env.SHOPIFY_TIMEOUT_MS || '5000', 10);
-// 10 minutes default cache TTL; override with SHOPIFY_AUTH_CACHE_TTL_MS
-const CACHE_TTL_MS = Number.parseInt(process.env.SHOPIFY_AUTH_CACHE_TTL_MS || '600000', 10);
+const AUTH_DEBUG = String(process.env.AUTH_DEBUG || '').toLowerCase() === 'true';
+function dbg(...args){ if (AUTH_DEBUG) console.log('[auth]', ...args); }
+function dbgWarn(...args){ if (AUTH_DEBUG) console.warn('[auth]', ...args); }
+function dbgErr(...args){ if (AUTH_DEBUG) console.error('[auth]', ...args); }
 
-// --- Tiny in-memory cache keyed by access token -------------------------------
-/** Map<token, { customer: {email, firstName, lastName, id}, ts:number }> */
-const tokenCache = new Map();
-
-// --- Public: softSession ------------------------------------------------------
-/**
- * GET /api/session uses this.
- * Never throws; returns { signedIn:false } on any failure.
- */
+/* -------------------- softSession (non-blocking) -------------------- */
 export async function softSession(req, res) {
   try {
-    const token = readCookie(req, 'shopify_token');
-    if (!token) return res.json({ signedIn: false });
+    const jwtToken = extractBearer(req);
+    if (jwtToken) {
+      try {
+        const decoded = verifyToken(jwtToken);
+        const user = await getUserById(decoded.id);
+        if (user && user.email.toLowerCase() === decoded.email.toLowerCase()) {
+          req.customer = synthCustomerFromUser(user);
+          req.user = { id: user.id, email: user.email };
+          req.dbUser = user;
+          req.customerToken = jwtToken;
+          return res.json({
+            signedIn: true,
+            email: user.email,
+            firstName: user.firstName || null,
+            lastName: user.lastName || null,
+            mode: 'jwt'
+          });
+        }
+      } catch {/* ignore and continue */}
+    }
 
-    const customer = await getCustomerSafe(token);
-    if (!customer) return res.json({ signedIn: false });
+    if (FALLBACK_ENABLED) {
+      const shopToken = readCookie(req, 'shopify_token');
+      if (shopToken) {
+        const customer = await getCustomerSafe(shopToken);
+        if (customer) {
+          req.customer = customer;
+          req.customerToken = shopToken;
+          return res.json({
+            signedIn: true,
+            email: customer.email || null,
+            firstName: customer.firstName || null,
+            lastName: customer.lastName || null,
+            mode: 'shopify-fallback'
+          });
+        }
+      }
+    }
 
-    // Stash on req for any downstream route that might rely on it
-    req.customerToken = token;
-    req.customer = customer;
-
-    return res.json({
-      signedIn: true,
-      email: customer.email || null,
-      firstName: customer.firstName || null,
-      lastName: customer.lastName || null,
-    });
-  } catch (err) {
-    // Do not crash session endpoint; just report signed out
-    console.warn('[softSession] degraded:', briefError(err));
+    return res.json({ signedIn: false });
+  } catch (e) {
+    console.warn('[softSession] degraded:', briefError(e));
     return res.json({ signedIn: false });
   }
 }
 
-// --- Public: requireAuth ------------------------------------------------------
-/**
- * Middleware to guard API routes.
- * - 401 on missing/invalid token
- * - 503 on Shopify network timeout (unless we have a cached customer, then continue)
- *
- * Defensive wrapper:
- *   - If someone mistakenly calls requireAuth() as a factory,
- *     we return the actual middleware function (no crash).
- */
+/* -------------------- requireAuth (JWT-first) -------------------- */
 export function requireAuth(...args) {
-  // Factory-usage guard: allow router.use(requireAuth()) and router.use(requireAuth)
+  // Support router.use(requireAuth()) and router.use(requireAuth)
   if (args.length !== 3 || !args[0] || !args[1] || !args[2]) {
     return (req, res, next) => requireAuth(req, res, next);
   }
-
   const [req, res, next] = args;
 
   (async () => {
     try {
-      const token = readCookie(req, 'shopify_token');
-      if (!token) return res.status(401).json({ error: 'Unauthorized' });
-
-      try {
-        const customer = await getCustomerStrict(token);
-        req.customerToken = token;
-        req.customer = customer;
-        return next();
-      } catch (err) {
-        // On network timeout, try cache as a graceful fallback
-        if (isTimeout(err)) {
-          const cached = getCached(token);
-          if (cached) {
-            console.warn('[requireAuth] Shopify timeout; using cached customer for token.');
-            req.customerToken = token;
-            req.customer = cached;
-            return next();
+      const jwtToken = extractBearer(req);
+      if (jwtToken) {
+        try {
+          const decoded = verifyToken(jwtToken);
+          if (!decoded?.id || !decoded?.email) {
+            return res.status(401).json({ error: 'Unauthorized' });
           }
-          console.error('[requireAuth] timeout to Shopify with no cache:', briefError(err));
-          return res.status(503).json({ error: 'Shopify auth timeout' });
+          const user = await getUserById(decoded.id);
+          if (!user || user.email.toLowerCase() !== decoded.email.toLowerCase()) {
+            return res.status(401).json({ error: 'Unauthorized' });
+          }
+          req.user = { id: user.id, email: user.email };
+          req.dbUser  = user;
+          req.customer = synthCustomerFromUser(user);
+          req.customerToken = jwtToken;
+          return next();
+        } catch (jwtErr) {
+          if (!FALLBACK_ENABLED) {
+            return res.status(401).json({ error: 'Unauthorized' });
+          }
         }
+      } else if (!FALLBACK_ENABLED) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
 
-        // Invalid token or other auth failure → 401
-        if (isUnauthorized(err)) {
-          return res.status(401).json({ error: 'Unauthorized' });
+      if (FALLBACK_ENABLED) {
+        const shopToken = readCookie(req, 'shopify_token');
+        if (!shopToken) return res.status(401).json({ error: 'Unauthorized' });
+
+        try {
+          const customer = await getCustomerStrict(shopToken);
+          req.customer = customer;
+          req.customerToken = shopToken;
+
+            // Attempt to link DB user for unified identity (non-fatal if missing)
+          if (customer?.email) {
+            const dbUser = await getUserByEmail(customer.email.toLowerCase());
+            if (dbUser) {
+              req.user = { id: dbUser.id, email: dbUser.email };
+              req.dbUser = dbUser;
+            }
+          }
+          return next();
+        } catch (err) {
+          if (isTimeout(err)) {
+            const cached = getCached(shopToken);
+            if (cached) {
+              console.warn('[requireAuth] Shopify timeout; using cached customer.');
+              req.customer = cached;
+              req.customerToken = shopToken;
+              return next();
+            }
+            return res.status(503).json({ error: 'Shopify auth timeout' });
+          }
+          if (isUnauthorized(err)) {
+            return res.status(401).json({ error: 'Unauthorized' });
+          }
+          console.error('[requireAuth] fallback error:', err);
+          return res.status(500).json({ error: 'Auth verification failed' });
         }
-
-        // Unexpected errors
-        console.error('[requireAuth] error:', err);
-        return res.status(500).json({ error: 'Auth verification failed' });
       }
     } catch (outer) {
       console.error('[requireAuth] outer error:', outer);
-      try {
-        return res.status(500).json({ error: 'Auth middleware error' });
-      } catch {
-        // If res is somehow not usable, bubble up
-        return next(outer);
-      }
+      try { return res.status(500).json({ error: 'Auth middleware error' }); }
+      catch { return next(outer); }
     }
   })();
 }
 
-// --- Internals: Shopify -------------------------------------------------------
+/* -------------------- requireShopifyCustomer -------------------- */
+/**
+ * Use after requireAuth() in routes that need a verified Shopify customer.
+ * If a Shopify token cookie/header is absent or invalid, 401.
+ * Accepts:
+ *   - HttpOnly cookie: shopify_token
+ *   - Header: X-Shopify-Customer-Token (for non-cookie scenarios)
+ */
+export function requireShopifyCustomer(...args) {
+  if (args.length !== 3 || !args[0] || !args[1] || !args[2]) {
+    return (req, res, next) => requireShopifyCustomer(req, res, next);
+  }
+  const [req, res, next] = args;
+
+  (async () => {
+    try {
+      // If already resolved in previous fallback path:
+      if (req.customer && req.customer.id && req.customer.email) {
+        return next();
+      }
+
+      const headerToken = req.headers['x-shopify-customer-token'];
+      const cookieToken = readCookie(req, 'shopify_token');
+      const token = headerToken || cookieToken;
+      if (!token) return res.status(401).json({ error: 'Shopify customer token missing' });
+
+      try {
+        const customer = await getCustomerStrict(token);
+        req.customer = customer;
+        req.customerToken = token;
+        return next();
+      } catch (err) {
+        if (isTimeout(err)) return res.status(503).json({ error: 'Shopify auth timeout' });
+        if (isUnauthorized(err)) return res.status(401).json({ error: 'Unauthorized' });
+        console.error('[requireShopifyCustomer] error:', err);
+        return res.status(500).json({ error: 'Shopify verification failed' });
+      }
+    } catch (outer) {
+      console.error('[requireShopifyCustomer] outer error:', outer);
+      return res.status(500).json({ error: 'Auth middleware error' });
+    }
+  })();
+}
+
+/* -------------------- Shopify Customer Fetch Logic -------------------- */
 async function getCustomerStrict(token) {
   const cached = getCached(token);
   if (cached) return cached;
-
-  const customer = await fetchCustomerWithRetry(token);
-  if (!customer) throw unauthorized('Missing customer');
-
-  setCached(token, customer);
-  return customer;
+  const c = await fetchCustomerWithRetry(token);
+  if (!c) throw unauthorized('Missing customer');
+  setCached(token, c);
+  return c;
 }
 
 async function getCustomerSafe(token) {
   const cached = getCached(token);
   if (cached) return cached;
-
   try {
-    const customer = await fetchCustomerWithRetry(token);
-    if (!customer) return null;
-    setCached(token, customer);
-    return customer;
+    const c = await fetchCustomerWithRetry(token);
+    if (!c) return null;
+    setCached(token, c);
+    return c;
   } catch (err) {
-    // On timeout or network errors, soft path returns null
-    if (isTimeout(err)) return null;
-    if (isUnauthorized(err)) return null;
-    console.warn('[getCustomerSafe] non-fatal error:', briefError(err));
+    if (isTimeout(err) || isUnauthorized(err)) return null;
+    console.warn('[getCustomerSafe] non-fatal:', briefError(err));
     return null;
   }
 }
@@ -149,7 +227,7 @@ async function fetchCustomerWithRetry(token, retries = 1) {
     return await fetchCustomer(token);
   } catch (err) {
     if (retries > 0 && (isTimeout(err) || isTransient(err))) {
-      await sleep(200); // tiny backoff
+      await sleep(200);
       return fetchCustomerWithRetry(token, retries - 1);
     }
     throw err;
@@ -158,9 +236,8 @@ async function fetchCustomerWithRetry(token, retries = 1) {
 
 async function fetchCustomer(token) {
   if (!SHOPIFY_DOMAIN || !STOREFRONT_TOKEN) {
-    throw new Error('Shopify env not configured: SHOPIFY_DOMAIN/SHOPIFY_STOREFRONT_TOKEN');
+    throw new Error('Shopify env not configured (SHOPIFY_DOMAIN / SHOPIFY_STOREFRONT_TOKEN)');
   }
-
   const query = /* GraphQL */ `
     query WhoAmI($token: String!) {
       customer(customerAccessToken: $token) {
@@ -171,7 +248,6 @@ async function fetchCustomer(token) {
       }
     }
   `;
-
   const json = await fetchWithTimeout(
     SF_ENDPOINT,
     {
@@ -185,23 +261,17 @@ async function fetchCustomer(token) {
     TIMEOUT_MS
   );
 
-  // Network-level .ok check is inside fetchWithTimeout; here we inspect body
   if (!json || json.errors) {
-    // If Storefront returns errors for an invalid token, treat as 401
-    const message = (json?.errors && JSON.stringify(json.errors)) || 'Unknown GraphQL error';
-    const e = new Error(message);
+    const e = new Error(json?.errors ? JSON.stringify(json.errors) : 'GraphQL error');
     e.status = 401;
     throw e;
   }
-
   const customer = json?.data?.customer;
-  if (!customer || !customer.email) {
+  if (!customer?.email) {
     const e = new Error('No customer for token');
     e.status = 401;
     throw e;
   }
-
-  // Return a normalized object (only what we actually use)
   return {
     id: customer.id,
     email: customer.email,
@@ -210,7 +280,7 @@ async function fetchCustomer(token) {
   };
 }
 
-// --- Helpers: fetch with timeout ---------------------------------------------
+/* -------------------- Fetch With Timeout -------------------- */
 async function fetchWithTimeout(url, options, timeoutMs) {
   const controller = new AbortController();
   const t = setTimeout(() => controller.abort(), timeoutMs);
@@ -218,8 +288,7 @@ async function fetchWithTimeout(url, options, timeoutMs) {
     const res = await fetch(url, { ...options, signal: controller.signal });
     const text = await res.text().catch(() => '');
     let json = null;
-    try { json = text ? JSON.parse(text) : null; } catch { /* not json */ }
-
+    try { json = text ? JSON.parse(text) : null; } catch {}
     if (!res.ok) {
       const err = new Error(`HTTP ${res.status}`);
       err.status = res.status;
@@ -239,25 +308,20 @@ async function fetchWithTimeout(url, options, timeoutMs) {
   }
 }
 
-// --- Helpers: cookie, cache, errors ------------------------------------------
-function readCookie(req, key) {
-  const raw = req?.headers?.cookie || '';
-  if (!raw) return null;
-  // naive parse; fine for a single key
-  const parts = raw.split(/;\s*/);
-  for (const p of parts) {
-    const [k, v] = p.split('=');
-    if (decodeURIComponent(k) === key) {
-      try { return decodeURIComponent(v || ''); } catch { return v || ''; }
-    }
-  }
-  return null;
+/* -------------------- Helpers -------------------- */
+function extractBearer(req) {
+  const h = req.headers.authorization || req.headers.Authorization || '';
+  if (!/^Bearer\s+/i.test(h)) return null;
+  return h.replace(/^Bearer\s+/i, '').trim();
 }
 
-function sanitizeDomain(domain) {
-  return String(domain || '')
-    .replace(/^https?:\/\//i, '')
-    .replace(/\/+$/, '');
+function synthCustomerFromUser(user) {
+  return {
+    id: user.id,
+    email: user.email,
+    firstName: user.firstName || '',
+    lastName: user.lastName || '',
+  };
 }
 
 function setCached(token, customer) {
@@ -274,16 +338,26 @@ function getCached(token) {
   return hit.customer;
 }
 
-function isTimeout(err) {
-  return err?.code === 'ETIMEDOUT' || err?.name === 'AbortError';
+function readCookie(req, key) {
+  const raw = req?.headers?.cookie || '';
+  if (!raw) return null;
+  const parts = raw.split(/;\s*/);
+  for (const p of parts) {
+    const [k, v] = p.split('=');
+    if (decodeURIComponent(k) === key) {
+      try { return decodeURIComponent(v || ''); } catch { return v || ''; }
+    }
+  }
+  return null;
 }
 
-function isUnauthorized(err) {
-  return err?.status === 401;
+function sanitizeDomain(domain) {
+  return String(domain || '').replace(/^https?:\/\//i, '').replace(/\/+$/, '');
 }
 
+function isTimeout(err) { return err?.code === 'ETIMEDOUT' || err?.name === 'AbortError'; }
+function isUnauthorized(err) { return err?.status === 401; }
 function isTransient(err) {
-  // network-y issues we might retry once
   return ['ECONNRESET', 'EAI_AGAIN', 'ENETUNREACH', 'EHOSTUNREACH'].includes(err?.code);
 }
 
@@ -302,4 +376,4 @@ function briefError(err) {
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-export default { softSession, requireAuth };
+export default { softSession, requireAuth, requireShopifyCustomer };

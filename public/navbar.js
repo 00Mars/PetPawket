@@ -7,10 +7,27 @@
 // - huey re-trigger
 // - no legacy #shop-by injection
 // - WILL fetch /navbar.html like before, but if it fails, will wire existing DOM
+// - ADDED: explicit cookie/JWT mode alignment + extra login form selector robustness
+// - ADDED: defensive dropdown wiring for account/wishlist/cart/orders if present
+// - ADDED: fallback auth repaint timer + console diagnostics
 
 import { attachNavbarModals } from './navbarModals.js';
 import { updateAuthDisplay, logout, login, onAuthChange } from './auth.js';
 import { setupDropdownToggles } from './dropdownToggles.js';
+
+/* ==========================================================================
+   Auth mode alignment (ensure cookie-session unless override present)
+   ========================================================================== */
+window.__AUTH_CONFIG = Object.assign(
+  {
+    expectToken: false,          // cookie session default
+    login: '/api/auth/login',
+    me: '/api/me',
+    logout: '/logout',
+    logoutFallbacks: ['/logout','/api/logout','/api/auth/logout']
+  },
+  window.__AUTH_CONFIG || {}
+);
 
 /* ==========================================================================
    small helpers
@@ -39,7 +56,9 @@ const byId = (...ids) => {
    optional auth fetch
    ========================================================================== */
 export function authFetch(url, options = {}) {
-  const token = localStorage.getItem?.('authToken');
+  const token = window.__AUTH_CONFIG?.expectToken
+    ? localStorage.getItem?.('authToken')
+    : null;
   const headers = {
     'Content-Type': 'application/json',
     ...(options.headers || {}),
@@ -78,15 +97,27 @@ function wireLogoutButtons(root = document) {
 }
 
 function wireLoginForm(root = document) {
-  const form = root.querySelector?.('#loginForm') || document.getElementById('loginForm');
+  // Support both #loginForm and legacy #login-form or data-auth markers
+  const form =
+    root.querySelector?.('#loginForm, #login-form, [data-auth="login-form"]') ||
+    document.getElementById('loginForm') ||
+    document.getElementById('login-form');
   if (!form || form.dataset.wiredLogin) return;
   form.dataset.wiredLogin = '1';
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = form.querySelector('[name="email"]')?.value || '';
-    const password = form.querySelector('[name="password"]')?.value || '';
-    try { await login(email, password); await updateAuthDisplay(); }
-    catch (err) { console.error('[login] error:', err); }
+    const email = form.querySelector('[name="email"], input[type="email"]')?.value || '';
+    const password = form.querySelector('[name="password"], input[type="password"]')?.value || '';
+    const msgEl = form.querySelector('[data-login-msg]');
+    try {
+      await login(email, password);
+      await updateAuthDisplay();
+      form.closest('.custom-modal')?.classList.add('hidden');
+      if (msgEl) msgEl.textContent = '';
+    } catch (err) {
+      console.error('[login] error:', err);
+      if (msgEl) msgEl.textContent = err.message || 'Login failed';
+    }
   });
 }
 
@@ -267,7 +298,7 @@ function renderResults(container, payload, { q, cat = 'all' }) {
             <div class="title">${highlight(name, q)} <span class="tag">Profile</span></div>
             <div class="meta">${escapeHtml(meta)}</div>
           </div>
-          <div class="price"><i class="bi bi-heart"></i></div>
+            <div class="price"><i class="bi bi-heart"></i></div>
         </a>`;
       }).join('') }
     `);
@@ -499,6 +530,34 @@ function wirePPSubnav(root = document) {
 }
 
 /* ==========================================================================
+   Dropdown toggles for pp-dropdown elements (account, wish, cart, orders)
+   ========================================================================== */
+function wireIconDropdowns(root = document) {
+  const ddSelectors = [
+    { toggle: '#nav-account-toggle', menu: '#nav-account-toggle + .dropdown-menu' },
+    { toggle: '#nav-wish-toggle',    menu: '#pp-wish-menu' },
+    { toggle: '#nav-cart-toggle',    menu: '#cart-menu' },
+    { toggle: '#nav-orders-toggle',  menu: '#orders-menu' },
+  ];
+  ddSelectors.forEach(({ toggle, menu }) => {
+    const btn = root.querySelector(toggle);
+    const panel = root.querySelector(menu);
+    if (!btn || !panel || btn.dataset.wiredDD) return;
+    btn.dataset.wiredDD = '1';
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      panel.hidden = !panel.hidden;
+    });
+    document.addEventListener('click', (e) => {
+      if (panel.hidden) return;
+      if (!panel.contains(e.target) && e.target !== btn) {
+        panel.hidden = true;
+      }
+    });
+  });
+}
+
+/* ==========================================================================
    global delegated click to open search
    ========================================================================== */
 document.addEventListener('click', (e) => {
@@ -519,29 +578,32 @@ function wireNavbar(container = document) {
   wireLogoutButtons(container);
   wireLoginForm(container);
 
-  // cart
+  // dropdowns
+  wireIconDropdowns(container);
+  setupDropdownToggles?.(container); // legacy safety
+
+  // cart badge
   ensureCartBadge(container);
 
-  // dropdowns: unified handling via dropdownToggles.js
-  setupDropdownToggles?.(container);  // handles both .pp-dropdown and legacy .nav-item.dropdown
-
-  // search overlay hot wiring
+  // search overlay
   wireSearchOverlayOnce();
 
-  // priority nav (no-op if no .nav-links)
+  // priority nav
   setupPriorityNav(document);
 
-  // subnav
+  // subnav active states
   wirePPSubnav(document);
 
-  // huey
+  // huey animation
   wireHueyAnimation(container);
-
 
   // mark touch
   if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
     document.body.classList.add('touch-device');
   }
+
+  // defensive repaint if auth state changes late
+  setTimeout(() => { try { updateAuthDisplay?.(); } catch {} }, 300);
 
   // signal
   try { document.dispatchEvent(new CustomEvent('pp:navbar:ready')); } catch {}
@@ -549,8 +611,6 @@ function wireNavbar(container = document) {
 
 /* ==========================================================================
    export: injectNavbar
-   still fetches /navbar.html (like your original), but if it fails we just
-   wire whatever is already on the page
    ========================================================================== */
 export function injectNavbar(callback) {
   fetch('/navbar.html', { credentials: 'include' })
@@ -574,10 +634,17 @@ export function injectNavbar(callback) {
     })
     .catch((err) => {
       console.error('[injectNavbar] Injection failed, wiring existing markup:', err);
-      // fall back to whatever HTML is already in the page (your current inline navbar.html)
+      // fall back to existing inline markup
       requestAnimationFrame(() => {
         wireNavbar(document);
         try { callback?.(); } catch (e) { console.warn('[injectNavbar callback]', e); }
       });
     });
+}
+
+// Optional auto-init if needed outside main.js
+if (!window.__PP_NAVBAR_AUTO_INIT && !document.getElementById('navbar-container')?.children.length) {
+  // Allow main.js to set window.__PP_NAVBAR_AUTO_INIT = false to disable
+  window.__PP_NAVBAR_AUTO_INIT = true;
+  try { injectNavbar(); } catch {}
 }
