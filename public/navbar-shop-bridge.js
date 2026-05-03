@@ -4,7 +4,7 @@
  * - Supports a "For My Pets" toggle via data-my="1".
  *
  * data attributes:
- *   data-shop-cat="dog|cat|small-pet|bird|fish|accessories|"
+ *   data-shop-cat="dog|cat|small-pet|bird|fish|reptile|toy|treat|accessories|"
  *   data-shop-sort="relevance|price-asc|price-desc|title-asc|title-desc"
  *   data-shop-per="24|48|96|192|0"
  *   data-subscribe="1"
@@ -59,7 +59,7 @@ function bindSelect(select) {
     const d = {};
     if (val === 'subscriptions' || val === 'subscribe') d.subscribe = true;
     else if (val === 'my-pets') d.myPets = true;
-    else if (['dog','cat','small-pet','bird','fish','accessories',''].includes(val)) d.pet = val;
+    else if (['dog','cat','small-pet','bird','fish','reptile','toy','treat','accessories',''].includes(val)) d.pet = val;
     else if (/^per-\d+|^per-0$/.test(val)) d.per = Number(val.split('-')[1] || '0');
     else if (['relevance','price-asc','price-desc','title-asc','title-desc'].includes(val)) d.sort = val;
     if (!applyToLiveShop(d)) location.href = buildShopURL(d);

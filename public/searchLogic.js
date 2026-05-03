@@ -46,7 +46,7 @@ export function setupSearchFunctionality(allProducts = []) {
     cta.className = 'btn btn-outline-primary mt-2';
     cta.textContent = 'View All Results';
     cta.addEventListener('click', () => {
-      window.location.href = `/shop?q=${encodeURIComponent(term)}`;
+      window.location.href = `/shop.html?q=${encodeURIComponent(term)}`;
     });
     const ctaWrap = document.createElement('div');
     ctaWrap.className = 'mt-2';
@@ -75,6 +75,14 @@ export function setupSearchFunctionality(allProducts = []) {
 /* ---------- helpers ---------- */
 function debounce(fn, wait = 150) {
   let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), wait); };
+}
+
+function safeImageUrl(value, fallback = '') {
+  const raw = String(value || '').trim();
+  if (!raw) return fallback;
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (raw.startsWith('/') && !raw.startsWith('//')) return raw;
+  return fallback;
 }
 
 function normProduct(p = {}) {
@@ -127,7 +135,7 @@ function renderPet(p) {
   const li = document.createElement('div');
   li.className = 'search-result-card';
   const img = document.createElement('img');
-  img.src = p.avatar || '/assets/images/default-pet.png';
+  img.src = safeImageUrl(p.avatar || p.photoUrl || p.imageUrl || p.pictureUrl, '/assets/images/default-pet.png');
   const a = document.createElement('a');
   a.href = '/account.html#pets';
   a.textContent = p.name || 'Pet';
@@ -162,9 +170,9 @@ function renderProductCard(p) {
   const card = document.createElement('div');
   card.className = 'search-result-card';
   const img = document.createElement('img');
-  img.src = p.image || '/assets/images/placeholder.png';
+  img.src = safeImageUrl(p.image, '/assets/images/placeholder.png');
   const a = document.createElement('a');
-  a.href = '/products/' + encodeURIComponent(p.handle || '');
+  a.href = '/product.html?handle=' + encodeURIComponent(p.handle || '');
   a.className = 'search-result-title';
   a.textContent = p.titleRaw || p.title || 'Product';
   const meta = document.createElement('div');

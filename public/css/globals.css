@@ -1,0 +1,11 @@
+/* /public/css/globals.css
+   Legacy entry-point for pages still referencing globals.css.
+   Keep minimal so core.css remains the single source of truth.
+*/
+
+@import url("/css/fonts.css");
+
+/* Small safety net for pages that skip main.js */
+body {
+  font-family: var(--pp-body-font, "Fredoka", system-ui, -apple-system, "Segoe UI", sans-serif);
+}

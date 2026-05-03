@@ -1,5 +1,5 @@
 import express from 'express';
-import { getUserByEmail, getUserById, updateUser } from '../userDB.pg.js';
+import { getUserByEmail, getUserById, getUserByIdWithPassword, updateUser } from '../userDB.pg.js';
 import {
   createPasswordResetToken,
   verifyPasswordResetToken,
@@ -107,7 +107,10 @@ router.post('/change-password', requireAuth(), async (req, res) => {
       return res.status(400).json({ ok: false, error: 'New password must be at least 8 characters' });
     }
 
-    const user = req.dbUser;
+    let user = req.dbUser;
+    if (!user?.passwordHash && user?.id) {
+      user = await getUserByIdWithPassword(user.id);
+    }
     if (!user?.passwordHash) {
       return res.status(400).json({ ok: false, error: 'No current password set; use reset password' });
     }

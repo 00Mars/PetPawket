@@ -1,0 +1,393 @@
+/* public/css/charm.css — CHARM Foundation page */
+
+.charm-page .pp-band{
+  border-top: none;
+}
+
+.charm-hero{
+  background:
+    radial-gradient(1200px 480px at 10% 20%, rgba(255, 220, 150, .38), transparent 60%),
+    radial-gradient(1200px 480px at 90% 0%, rgba(120, 220, 255, .35), transparent 60%),
+    linear-gradient(135deg, rgba(255,255,255,.9), rgba(240, 255, 248, .9));
+}
+
+.charm-hero-inner{
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, .9fr);
+  gap: clamp(20px, 4vw, 36px);
+  align-items: center;
+}
+
+.charm-hero-copy h1{
+  margin: 0 0 8px;
+  font-size: clamp(2rem, 1.5rem + 1.8vw, 3rem);
+  font-weight: 800;
+}
+
+.charm-hero-sub{
+  font-weight: 600;
+  color: #0b6f89;
+}
+
+.charm-hero-actions{
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.pp-impact-btn.ghost{
+  background: rgba(255,255,255,.9);
+  border: 1px solid rgba(0, 142, 176, 0.2);
+  color: #0b6f89;
+  box-shadow: 0 6px 16px rgba(0,0,0,.08);
+}
+
+.charm-hero-tags{
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.charm-hero-tags span{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.9);
+  border: 1px solid rgba(0, 142, 176, 0.15);
+  font-weight: 700;
+  font-size: .85rem;
+  color: #0b6f89;
+}
+
+.charm-cast{
+  background:
+    radial-gradient(1200px 520px at 15% 0%, rgba(255, 209, 124, .32), transparent 60%),
+    radial-gradient(1200px 520px at 90% 20%, rgba(147, 222, 255, .35), transparent 60%),
+    linear-gradient(135deg, rgba(255,255,255,.92), rgba(245, 255, 250, .92));
+}
+.charm-cast-grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: clamp(14px, 2.6vw, 26px);
+}
+.charm-mascot-card{
+  background: rgba(255,255,255,.95);
+  border-radius: 20px;
+  border: 1px solid rgba(0,0,0,.06);
+  box-shadow: 0 12px 24px rgba(0,0,0,.08);
+  padding: 16px;
+  display: grid;
+  gap: 10px;
+  position: relative;
+  overflow: hidden;
+}
+.charm-mascot-card::after{
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 120% at 0% 0%, rgba(255,255,255,.55), transparent 60%);
+  opacity: .6;
+  pointer-events: none;
+}
+.charm-mascot-badge{
+  width: 54px;
+  height: 54px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  font-size: 1.4rem;
+  box-shadow: 0 10px 20px rgba(0,0,0,.12);
+}
+.charm-mascot-body strong{
+  font-size: 1.05rem;
+}
+.charm-mascot-body span{
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #4b6b63;
+}
+.charm-mascot-body p{
+  margin: 6px 0 4px;
+  font-size: .92rem;
+  color: #5c6b72;
+}
+.charm-mascot-tags{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.charm-mascot-tags span{
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: .7rem;
+  font-weight: 700;
+  color: #0b6f89;
+  background: rgba(255,255,255,.9);
+  border: 1px solid rgba(0, 142, 176, 0.15);
+}
+.charm-mascot-card[data-tone="sun"] .charm-mascot-badge{
+  background: linear-gradient(135deg, rgba(255, 221, 140, .9), rgba(255, 170, 92, .9));
+  color: #7a3e00;
+}
+.charm-mascot-card[data-tone="sky"] .charm-mascot-badge{
+  background: linear-gradient(135deg, rgba(165, 243, 252, .9), rgba(59, 130, 246, .2));
+  color: #0b6f89;
+}
+.charm-mascot-card[data-tone="mint"] .charm-mascot-badge{
+  background: linear-gradient(135deg, rgba(167, 244, 255, .8), rgba(120, 237, 180, .9));
+  color: #0b6f89;
+}
+.charm-mascot-card[data-tone="coral"] .charm-mascot-badge{
+  background: linear-gradient(135deg, rgba(255, 174, 201, .9), rgba(255, 221, 140, .8));
+  color: #7a3e00;
+}
+
+.charm-trail{
+  background:
+    radial-gradient(1200px 520px at 0% 20%, rgba(167, 244, 255, .35), transparent 60%),
+    linear-gradient(135deg, rgba(255,255,255,.92), rgba(240, 255, 248, .92));
+}
+.charm-trail-inner{
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(20px, 4vw, 36px);
+  align-items: center;
+}
+.charm-trail-map{
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.charm-trail-node{
+  background: rgba(255,255,255,.96);
+  border-radius: 16px;
+  border: 1px solid rgba(0,0,0,.06);
+  box-shadow: 0 10px 20px rgba(0,0,0,.08);
+  padding: 12px;
+  display: grid;
+  gap: 6px;
+}
+.charm-trail-node i{
+  font-size: 1.2rem;
+}
+.charm-trail-node strong{
+  font-size: 1rem;
+}
+.charm-trail-node span{
+  font-size: .86rem;
+  color: #5c6b72;
+}
+.charm-trail-node[data-tone="sun"]{ border-color: rgba(255, 176, 92, .35); }
+.charm-trail-node[data-tone="sky"]{ border-color: rgba(59, 130, 246, .25); }
+.charm-trail-node[data-tone="mint"]{ border-color: rgba(34, 197, 94, .28); }
+.charm-trail-node[data-tone="coral"]{ border-color: rgba(255, 126, 179, .28); }
+.charm-trail-actions{
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.charm-quests{
+  background:
+    radial-gradient(1200px 520px at 10% 0%, rgba(255, 209, 124, .3), transparent 60%),
+    linear-gradient(135deg, rgba(255,255,255,.92), rgba(245, 255, 250, .92));
+}
+.charm-quest-grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: clamp(16px, 2.8vw, 28px);
+}
+.charm-quest-card{
+  background: rgba(255,255,255,.96);
+  border-radius: 18px;
+  border: 1px solid rgba(0,0,0,.06);
+  box-shadow: 0 12px 24px rgba(0,0,0,.08);
+  padding: 16px;
+  display: grid;
+  gap: 10px;
+}
+.charm-quest-head{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.charm-quest-pill{
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: .72rem;
+  font-weight: 800;
+  background: rgba(255, 221, 140, .45);
+  color: #7a3e00;
+}
+.charm-quest-card[data-tone="sky"]{ border-color: rgba(59, 130, 246, .2); }
+.charm-quest-card[data-tone="mint"]{ border-color: rgba(34, 197, 94, .2); }
+.charm-quest-card[data-tone="sun"]{ border-color: rgba(255, 176, 92, .25); }
+
+.charm-stats-grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: clamp(16px, 2.8vw, 28px);
+}
+
+.charm-stat-card{
+  background: rgba(255,255,255,.92);
+  border: 1px solid rgba(0,0,0,.06);
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 10px 22px rgba(0,0,0,.08);
+  display: grid;
+  gap: 8px;
+  min-height: 220px;
+}
+.charm-stat-kicker{
+  font-size: .72rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #4b6b63;
+}
+.charm-progress{
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(15,23,42,.08);
+  overflow: hidden;
+}
+.charm-progress span{
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #22c55e, #fbbf24);
+}
+
+.charm-stat-icons{
+  display: grid;
+  gap: 6px;
+  color: #0b6f89;
+  font-weight: 600;
+  font-size: .9rem;
+}
+.charm-stat-icons span{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.charm-steps{
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.charm-steps li{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.96);
+  border: 1px solid rgba(0, 142, 176, 0.12);
+}
+.charm-steps li strong{
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  font-size: .8rem;
+  font-weight: 800;
+  color: #0b6f89;
+  background: linear-gradient(135deg, rgba(180, 242, 255, .8), rgba(255, 211, 140, .7));
+}
+
+.charm-story-grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: clamp(16px, 2.6vw, 26px);
+}
+.charm-story-card{
+  background: rgba(255,255,255,.95);
+  border-radius: 18px;
+  border: 1px solid rgba(0,0,0,.06);
+  box-shadow: 0 10px 22px rgba(0,0,0,.08);
+  overflow: hidden;
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+}
+.charm-story-card img{
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 14px;
+}
+.charm-story-icon{
+  width: 100%;
+  height: 160px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(167, 244, 255, .8), rgba(255, 215, 140, .7));
+  display: grid;
+  place-items: center;
+  font-size: 2rem;
+  color: #0b6f89;
+}
+.charm-story-body strong{
+  display: block;
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+.charm-story-body p{
+  margin: 0 0 6px;
+  color: #5c6b72;
+  font-size: .92rem;
+}
+.charm-story-body span{
+  font-size: .78rem;
+  font-weight: 700;
+  color: #0b6f89;
+}
+.charm-story-card.is-skeleton{
+  min-height: 220px;
+  background: linear-gradient(90deg, #f1f6f9 0%, #f7fbff 50%, #f1f6f9 100%);
+  background-size: 200% 100%;
+  animation: charm-skel 1.2s linear infinite;
+}
+@keyframes charm-skel{
+  0% { background-position: 0% 0; }
+  100% { background-position: 100% 0; }
+}
+
+.charm-cta-inner{
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.charm-cta-actions{
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 980px){
+  .charm-hero-inner{
+    grid-template-columns: 1fr;
+  }
+  .charm-trail-inner{
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 640px){
+  .charm-stat-card{
+    min-height: auto;
+  }
+}

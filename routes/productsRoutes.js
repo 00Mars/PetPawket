@@ -2,6 +2,7 @@
 // Products proxy against Shopify Storefront (no client token exposure).
 // Endpoints:
 //   GET /api/products/featured?limit=8
+//   GET /api/products/all?limit=250         -> { ok, items/products }
 //   GET /api/products/handle/:handle        -> { ok, product } (offline fallback in dev if enabled)
 //   GET /api/products/id/:gid               -> { ok, product } (offline fallback in dev if enabled)
 //
@@ -23,7 +24,7 @@ const OFFLINE_OK = process.env.ALLOW_OFFLINE_PRODUCTS === '1' || (process.env.NO
 // -------- Helpers ----------
 async function shopifyGQL(query, variables) {
   // Slightly longer timeout to reduce ETIMEDOUT during slow edges
-  return await storefrontFetch(query, variables, { timeoutMs: 10000, retries: 2 });
+  return await storefrontFetch(query, variables, { timeoutMs: 10000, retries: 2, justData: true });
 }
 
 function offlineItems(limit = 8) {
@@ -37,6 +38,14 @@ function offlineItems(limit = 8) {
       handle: `demo-product-${idx}`,
       availableForSale: true,
       featuredImage: { url: '/assets/images/placeholder.png', altText: `Demo ${idx}`, width: 800, height: 800 },
+      variants: { edges: [{
+        node: {
+          id: `gid://shopify/ProductVariant/offline-${idx}`,
+          title: 'Default',
+          availableForSale: true,
+          price: { amount: (9.99 + i).toFixed(2), currencyCode: 'USD' }
+        }
+      }]},
       priceRange: {
         minVariantPrice: { amount: (9.99 + i).toFixed(2), currencyCode: 'USD' },
         maxVariantPrice: { amount: (19.99 + i).toFixed(2), currencyCode: 'USD' }
@@ -90,6 +99,7 @@ router.get('/featured', async (req, res) => {
     productType
     tags
     featuredImage { url altText width height }
+    variants(first: 1) { edges { node { id price { amount currencyCode } } } }
     priceRange {
       minVariantPrice { amount currencyCode }
       maxVariantPrice { amount currencyCode }
@@ -143,6 +153,48 @@ router.get('/featured', async (req, res) => {
     }
     const code = (e?.name === 'AbortError') ? 504 : 502;
     return res.status(code).json({ ok: false, error: 'SHOPIFY_FETCH_FAILED', message: 'Failed to load featured products' });
+  }
+});
+
+// GET /api/products/all?limit=250
+router.get('/all', async (req, res) => {
+  const limit = Math.min(Math.max(parseInt(req.query.limit || '250', 10), 1), 250);
+
+  const productFields = `
+    id
+    title
+    handle
+    availableForSale
+    productType
+    tags
+    featuredImage { url altText width height }
+    variants(first: 1) { edges { node { id price { amount currencyCode } } } }
+    priceRange {
+      minVariantPrice { amount currencyCode }
+      maxVariantPrice { amount currencyCode }
+    }
+  `;
+
+  try {
+    const q = /* GraphQL */ `
+      query All($first:Int!) {
+        products(first:$first, sortKey:BEST_SELLING) {
+          edges { node { ${productFields} } }
+        }
+      }
+    `;
+    const data = await shopifyGQL(q, { first: limit });
+    const edges = data?.products?.edges || [];
+    const items = edges.map(e => e.node);
+    return res.json({ ok: true, source: 'site', count: items.length, items, products: items });
+  } catch (e) {
+    console.error('GET /api/products/all error:', e);
+    if (OFFLINE_OK) {
+      const items = offlineItems(limit);
+      return res.status(200).json({ ok: true, source: 'offline', count: items.length, items, products: items });
+    }
+    const code = (e?.name === 'AbortError') ? 504 : 502;
+    return res.status(code).json({ ok: false, error: 'SHOPIFY_FETCH_FAILED', message: 'Failed to load products' });
   }
 });
 

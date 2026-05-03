@@ -23,15 +23,35 @@ function safeNumber(v, def = 0) {
   return Number.isFinite(n) ? n : def;
 }
 
+function looksLikeVariantId(id) {
+  const s = String(id || '').trim();
+  if (!s) return false;
+  if (/^gid:\/\/shopify\/ProductVariant\//i.test(s)) return true;
+  if (/^\d+$/.test(s)) return true;
+  if (/^ProductVariant\/\d+$/i.test(s)) return true;
+  if (/^variant[:_-]/i.test(s)) return true;
+  return false;
+}
+
+function resolveVariantId(it = {}) {
+  const direct = it?.variantId ?? it?.variant_id ?? it?.variant ?? it?.merchandiseId ?? it?.merchandise_id;
+  if (direct) return direct;
+  return looksLikeVariantId(it?.id) ? it.id : '';
+}
+
 function sanitizeCart(arr) {
   if (!Array.isArray(arr)) return [];
   return arr
-    .map(it => ({
-      ...it,
-      quantity: Math.max(1, safeNumber(it?.quantity, 1)),
-      price: safeNumber(it?.price, 0),
-      variantId: it?.variantId ?? it?.variant_id ?? it?.variant ?? it?.id, // best-effort
-    }))
+    .map(it => {
+      const variantId = resolveVariantId(it);
+      return {
+        ...it,
+        quantity: Math.max(1, safeNumber(it?.quantity ?? it?.qty, 1)),
+        price: safeNumber(it?.price, 0),
+        productId: it?.productId ?? it?.product_id ?? (looksLikeVariantId(it?.id) ? it?.productId : it?.id),
+        variantId,
+      };
+    })
     .filter(it => !!it.variantId);
 }
 
@@ -62,7 +82,7 @@ export function saveCart(cart) {
 export function addToCart(item, qty = 1) {
   const addQty = Math.max(1, safeNumber(qty, 1));
   const cart = getCart();
-  const variantId = item?.variantId ?? item?.variant_id ?? item?.variant ?? item?.id;
+  const variantId = resolveVariantId(item);
   if (!variantId) return cart;
 
   const ix = cart.findIndex(x => String(x.variantId) === String(variantId));
@@ -71,6 +91,8 @@ export function addToCart(item, qty = 1) {
   } else {
     cart.push({
       variantId,
+      productId: item?.productId ?? item?.product_id ?? item?.id ?? '',
+      handle: item?.handle || '',
       title: item?.title || 'Item',
       price: safeNumber(item?.price, 0),
       image: item?.image || '',

@@ -304,7 +304,13 @@
     btn.className = 'trait-chip';
     btn.setAttribute('data-value', v);
     btn.setAttribute('aria-pressed', 'true');
-    btn.innerHTML = `<span>${v}</span><span class="chip-x" aria-hidden="true">×</span>`;
+    const label = document.createElement('span');
+    label.textContent = v;
+    const x = document.createElement('span');
+    x.className = 'chip-x';
+    x.setAttribute('aria-hidden', 'true');
+    x.textContent = '×';
+    btn.append(label, x);
     allergiesWrap.appendChild(btn);
   }
 

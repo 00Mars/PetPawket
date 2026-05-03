@@ -1,4 +1,4 @@
-import { TRAITS, defaultTraits } from '/public/petTraitsSchema.js';
+import { TRAITS, defaultTraits } from '/petTraitsSchema.js';
 
 // ——— helpers
 const $  = (sel, root=document) => root.querySelector(sel);

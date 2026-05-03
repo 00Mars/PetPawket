@@ -1,14 +1,14 @@
 // /public/pettypes.js
-// Chip-based "Shop by" that NAVIGATES to the shop page (e.g., /products?pet=dog).
+// Chip-based "Shop by" that NAVIGATES to the shop page (e.g., /shop.html?pet=dog).
 // Optional: set a custom destination via data attribute on the mount:
-//   <div id="pettypes-container" data-shop-path="/shop"></div>
+//   <div id="pettypes-container" data-shop-path="/shop.html"></div>
 
 export async function injectPetTypes() {
   const mount = document.getElementById('pettypes-container');
   if (!mount) return;
 
   // Where to send users when they pick a chip
-  const SHOP_PATH = mount.dataset.shopPath || window.__SHOP_PAGE_PATH || '/products';
+  const SHOP_PATH = mount.dataset.shopPath || window.__SHOP_PAGE_PATH || '/shop.html';
 
   const TYPES = [
     { key: 'all',   label: 'All',        icon: 'bi-stars' },
@@ -16,9 +16,9 @@ export async function injectPetTypes() {
     { key: 'cat',   label: 'Cats',       icon: 'bi-emoji-smile' },
     { key: 'bird',  label: 'Birds',      icon: 'bi-feather' },
     { key: 'fish',  label: 'Fish',       icon: 'bi-droplet' },
-    { key: 'rept',  label: 'Reptiles',   icon: 'bi-eye' },
-    { key: 'small', label: 'Small Pets', icon: 'bi-heart' },
-    { key: 'acc',   label: 'Accessories',icon: 'bi-bag' },
+    { key: 'reptile', label: 'Reptiles',   icon: 'bi-eye' },
+    { key: 'small-pet', label: 'Small Pets', icon: 'bi-heart' },
+    { key: 'accessories', label: 'Accessories',icon: 'bi-bag' },
     { key: 'treat', label: 'Treats',     icon: 'bi-cookie' },
     { key: 'toy',   label: 'Toys',       icon: 'bi-emoji-laughing' },
   ];
@@ -44,12 +44,18 @@ export async function injectPetTypes() {
 
   // Render chips (use an inner radio for a11y but we'll visually hide it)
   rail.innerHTML = TYPES.map(t => `
-    <label class="pp-chip" role="tab" aria-selected="${t.key === activeKey ? 'true' : 'false'}" data-key="${t.key}" data-active="${t.key === activeKey}">
+    <label class="pp-chip" role="tab" tabindex="${t.key === activeKey ? '0' : '-1'}" aria-selected="${t.key === activeKey ? 'true' : 'false'}" data-key="${t.key}" data-active="${t.key === activeKey}">
       <input type="radio" name="pp-shopby" value="${t.key}" ${t.key === activeKey ? 'checked' : ''} />
       <i class="bi ${t.icon}" aria-hidden="true"></i>
       <span>${t.label}</span>
     </label>
   `).join('');
+
+  function resetRailScroll() {
+    requestAnimationFrame(() => {
+      rail.scrollLeft = 0;
+    });
+  }
 
   function setActive(nextKey) {
     activeKey = nextKey;
@@ -57,6 +63,7 @@ export async function injectPetTypes() {
       const on = chip.getAttribute('data-key') === activeKey;
       chip.dataset.active = on ? 'true' : 'false';
       chip.setAttribute('aria-selected', on ? 'true' : 'false');
+      chip.tabIndex = on ? 0 : -1;
       const input = chip.querySelector('input[type="radio"]');
       if (input) input.checked = on;
     });
@@ -104,6 +111,9 @@ export async function injectPetTypes() {
 
   // Initial state (visual only)
   setActive(activeKey);
+  resetRailScroll();
+  window.addEventListener('resize', resetRailScroll, { passive: true });
+  window.addEventListener('pageshow', resetRailScroll, { passive: true });
 }
 
 // Back-compat alias

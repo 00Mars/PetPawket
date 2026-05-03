@@ -7,20 +7,302 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="/css/globals.css" />
   <link rel="stylesheet" href="/css/core.css" />
+  <link rel="stylesheet" href="/css/charm.css" />
+  <link rel="stylesheet" href="/css/impact-receipts.css" />
   <link rel="stylesheet" href="/css/footer.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;700&display=swap" rel="stylesheet" />
 </head>
 <body>
   <div id="navbar-container"></div>
-  <div class="page-container">
-    <div class="content-wrapper">
-      <h1>CHARM Foundation</h1>
-      <p>The CHARM Foundation — Caring Hearts for Animal Rescue & Medicine — is the heart of Pet Pawket. A portion of every purchase goes directly toward helping real animals in need through rescue missions, rehabilitation efforts, and critical medical care. Every order helps us fund life-saving actions that matter.</p>
-    </div>
-  </div>
+  <main class="charm-page">
+    <section class="pp-band charm-hero pp-standby-section" id="charm-hero" data-pp-standby="future-addition">
+      <div class="pp-band-inner charm-hero-inner">
+        <div class="charm-hero-copy">
+          <span class="pp-kicker pp-kicker-charm"><i class="bi bi-heart-pulse" aria-hidden="true"></i> CHARM Foundation</span>
+          <h1>Caring Hearts for Animal Rescue and Medicine.</h1>
+          <p>CHARM is the impact layer of Pet Pawket, connecting purchases, Pawket Passes, partner campaigns, and rescue care into one visible trail.</p>
+          <p class="charm-hero-sub">Funding receipts, care stories, and Pawket Pass impact loops are being staged carefully so rescue support stays warm, clear, and verifiable.</p>
+          <div class="pp-standby-note">
+            <strong>CHARM in progress</strong>
+            <span>This page introduces the CHARM model while verified receipts, cases, and partner updates are prepared.</span>
+          </div>
+          <div class="charm-hero-actions">
+            <a class="pp-impact-btn" href="/shop.html">Shop Pet Pawket</a>
+            <a class="pp-impact-btn ghost" href="/packs.html">Explore Pawket Packs</a>
+          </div>
+          <div class="charm-hero-tags" data-standby-hide="1">
+            <span><i class="bi bi-plus-circle"></i> Urgent medical care</span>
+            <span><i class="bi bi-heart"></i> Rescue missions</span>
+            <span><i class="bi bi-house-heart"></i> Placement support</span>
+          </div>
+        </div>
+        <div class="charm-hero-card" data-standby-hide="1">
+          <div class="pp-impact-ribbon pp-impact-ribbon--inline" data-impact-ribbon data-impact-steps="1" data-impact-orb-share="1" data-impact-rich="1"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="pp-band pp-band--cool charm-glance pp-standby-section" id="charm-glance" data-pp-standby="future-addition">
+      <div class="pp-band-inner">
+        <div class="pp-section-head">
+          <span class="pp-kicker">Impact model</span>
+          <h2>Impact tracking is designed around receipts.</h2>
+          <p>Receipt grids, rescue cases, CHARM Editions, and Pawket Pass impact loops are being shaped into a clear, verified experience.</p>
+          <div class="pp-standby-note">
+            <strong>Verification-first</strong>
+            <span>Public updates should show what is tracked, what is active, and what is still being verified.</span>
+          </div>
+        </div>
+        <div class="charm-micro" data-standby-hide="1">
+          <span class="pp-kicker">How CHARM works</span>
+          <p data-charm-how>Loading the CHARM impact recipe…</p>
+        </div>
+        <div class="charm-stats-grid" data-standby-hide="1">
+          <div class="charm-stat-card">
+            <span class="charm-stat-kicker">Active rescue case</span>
+            <strong data-charm-case-title>Loading…</strong>
+            <p data-charm-case-body>Fetching the current rescue story.</p>
+            <div class="charm-progress"><span data-charm-case-progress></span></div>
+            <small data-charm-case-meta>Active rescue case coming into view</small>
+          </div>
+          <div class="charm-stat-card">
+            <span class="charm-stat-kicker">Impact formula</span>
+            <strong>$0.50 + 1% per order</strong>
+            <p>Cap $5 per order · 100% to rescue care.</p>
+            <div class="charm-stat-icons">
+              <span><i class="bi bi-capsule"></i> Medical support</span>
+              <span><i class="bi bi-hospital"></i> Rescue missions</span>
+              <span><i class="bi bi-shield-check"></i> Placement &amp; recovery</span>
+            </div>
+          </div>
+          <div class="charm-stat-card">
+            <span class="charm-stat-kicker">Your role</span>
+            <ul class="charm-steps">
+              <li><strong>1</strong> Shop or start a Pawket Pack</li>
+              <li><strong>2</strong> Share a Pawket Pass</li>
+              <li><strong>3</strong> Earn CHARM Points + fund rescue care</li>
+            </ul>
+            <a class="pp-text-link" href="/account.html#loopTokensSection">View your Pawket Passes</a>
+          </div>
+        </div>
+        <div class="charm-receipt-grid" data-charm-receipts data-standby-hide="1">
+          <article class="charm-receipt" data-charm-receipt="where">
+            <div class="charm-receipt-head">
+              <span class="charm-receipt-label" data-charm-receipt-label>Example receipt</span>
+              <span class="charm-receipt-title">Where funds go</span>
+            </div>
+            <ul class="charm-receipt-list" data-charm-where-funds>
+              <li><span>Loading…</span><strong>0%</strong></li>
+            </ul>
+          </article>
+          <article class="charm-receipt" data-charm-receipt="funded">
+            <div class="charm-receipt-head">
+              <span class="charm-receipt-label" data-charm-receipt-label>Example receipt</span>
+              <span class="charm-receipt-title">What we funded this month</span>
+            </div>
+            <div class="charm-receipt-note" data-charm-funded-month>Example month</div>
+            <ul class="charm-receipt-list" data-charm-funded-list>
+              <li><span>Loading…</span><strong>$0</strong></li>
+            </ul>
+            <div class="charm-receipt-total">
+              <span>Total</span>
+              <strong data-charm-funded-total>$0</strong>
+            </div>
+          </article>
+          <article class="charm-receipt" data-charm-receipt="editions">
+            <div class="charm-receipt-head">
+              <span class="charm-receipt-label" data-charm-receipt-label>Example receipt</span>
+              <span class="charm-receipt-title">How CHARM Editions contribute</span>
+            </div>
+            <ul class="charm-receipt-list" data-charm-editions-list>
+              <li><span>Loading…</span><strong>CHARM</strong></li>
+            </ul>
+            <div class="charm-receipt-note">Impact you can feel, tracked like a receipt.</div>
+          </article>
+        </div>
+        <div class="charm-receipt-cta pp-standby-actions">
+          <a class="pp-impact-btn" href="/shop.html">Shop Pet Pawket</a>
+          <a class="pp-impact-btn ghost" href="/packs.html">Explore Pawket Packs</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="pp-band charm-cast pp-standby-section" id="charm-cast" data-pp-standby="future-addition">
+      <div class="pp-band-inner">
+        <div class="pp-section-head">
+          <span class="pp-kicker">Story cast</span>
+          <h2>The CHARM story cast gives impact a friendly face.</h2>
+          <p>Characters, Pawket Pass actions, CHARM Points, and companion tie-ins are being designed together.</p>
+        </div>
+        <div class="charm-cast-grid" data-standby-hide="1">
+          <article class="charm-mascot-card" data-tone="sun">
+            <div class="charm-mascot-badge"><i class="bi bi-sun"></i></div>
+            <div class="charm-mascot-body">
+              <strong>Sunny</strong>
+              <span>Impact Guide</span>
+              <p>Tracks rescue missions and celebrates each milestone you fund.</p>
+              <div class="charm-mascot-tags">
+                <span>Rescue missions</span>
+                <span>Medical care</span>
+              </div>
+            </div>
+          </article>
+          <article class="charm-mascot-card" data-tone="sky">
+            <div class="charm-mascot-badge"><i class="bi bi-send"></i></div>
+            <div class="charm-mascot-body">
+              <strong>Pip</strong>
+              <span>Pawket Pass Runner</span>
+              <p>Delivers your Pawket Pass and keeps the kindness trail moving.</p>
+              <div class="charm-mascot-tags">
+                <span>Share joy</span>
+                <span>Grow kindness</span>
+              </div>
+            </div>
+          </article>
+          <article class="charm-mascot-card" data-tone="mint">
+            <div class="charm-mascot-badge"><i class="bi bi-heart-pulse"></i></div>
+            <div class="charm-mascot-body">
+              <strong>Moxie</strong>
+              <span>Care Keeper</span>
+              <p>Turns CHARM Points into care tips, rewards, and wellness nudges.</p>
+              <div class="charm-mascot-tags">
+                <span>Care plans</span>
+                <span>Rewards</span>
+              </div>
+            </div>
+          </article>
+          <article class="charm-mascot-card" data-tone="coral">
+            <div class="charm-mascot-badge"><i class="bi bi-people"></i></div>
+            <div class="charm-mascot-body">
+              <strong>Nova</strong>
+              <span>Community Spark</span>
+              <p>Connects pet parents, stories, and community celebrations.</p>
+              <div class="charm-mascot-tags">
+                <span>Stories</span>
+                <span>Community</span>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="pp-band pp-band--cool charm-trail pp-standby-section" id="charm-trail" data-pp-standby="future-addition">
+      <div class="pp-band-inner charm-trail-inner">
+        <div class="charm-trail-copy">
+          <span class="pp-kicker">Kindness trail</span>
+          <h2>The kindness trail connects shopping, sharing, and rescue care.</h2>
+          <p>Order-to-impact storytelling is being shaped around CHARM verification, receipts, and Pawket Pass claims.</p>
+          <div class="charm-trail-actions">
+            <a class="pp-impact-btn ghost" href="/shop.html">Shop Pet Pawket</a>
+            <a class="pp-text-link" href="/packs.html">Explore Pawket Packs</a>
+          </div>
+        </div>
+        <div class="charm-trail-map" data-standby-hide="1">
+          <div class="charm-trail-node" data-tone="sun">
+            <i class="bi bi-box-seam"></i>
+            <strong>Shop</strong>
+            <span>Pick a Pawket Pack</span>
+          </div>
+          <div class="charm-trail-node" data-tone="sky">
+            <i class="bi bi-share"></i>
+            <strong>Share</strong>
+            <span>Send your Pawket Pass</span>
+          </div>
+          <div class="charm-trail-node" data-tone="mint">
+            <i class="bi bi-heart-pulse"></i>
+            <strong>Rescue</strong>
+            <span>Fund real care</span>
+          </div>
+          <div class="charm-trail-node" data-tone="coral">
+            <i class="bi bi-stars"></i>
+            <strong>Celebrate</strong>
+            <span>Unlock CHARM Points</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="pp-band charm-stories pp-standby-section" id="charm-stories" data-pp-standby="future-addition">
+      <div class="pp-band-inner">
+        <div class="pp-section-head">
+          <span class="pp-kicker">Rescue stories</span>
+          <h2>Rescue updates will be shared with care and clarity.</h2>
+          <p>Story cards are being prepared so CHARM can share rescue updates with care and clarity.</p>
+        </div>
+        <div class="charm-story-grid" data-charm-story-grid data-standby-hide="1">
+          <div class="charm-story-card is-skeleton"></div>
+          <div class="charm-story-card is-skeleton"></div>
+          <div class="charm-story-card is-skeleton"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="pp-band pp-band--warm charm-quests pp-standby-section" id="charm-quests" data-pp-standby="future-addition">
+      <div class="pp-band-inner">
+        <div class="pp-section-head">
+          <span class="pp-kicker">CHARM actions</span>
+          <h2>Small actions can become visible care moments.</h2>
+          <p>Points, story submissions, and Pawket Pass rewards are being shaped into the CHARM experience.</p>
+        </div>
+        <div class="charm-quest-grid" data-standby-hide="1">
+          <article class="charm-quest-card" data-tone="sky">
+            <div class="charm-quest-head">
+              <span class="charm-quest-pill">+10 CHARM</span>
+              <strong>Send a Pawket Pass</strong>
+            </div>
+            <p>Share your pass with a new pet parent and add another bright care moment.</p>
+            <button class="pp-impact-btn" type="button" data-loop-open>Share Pawket Pass</button>
+          </article>
+          <article class="charm-quest-card" data-tone="mint">
+            <div class="charm-quest-head">
+              <span class="charm-quest-pill">Story</span>
+              <strong>Submit a rescue memory</strong>
+            </div>
+            <p>Share a pet story with clear consent so it can be reviewed with care.</p>
+            <a class="pp-impact-btn ghost" href="/community.html">Share a story</a>
+          </article>
+          <article class="charm-quest-card" data-tone="sun">
+            <div class="charm-quest-head">
+              <span class="charm-quest-pill">Pack</span>
+              <strong>Explore Pawket Packs</strong>
+            </div>
+            <p>Curated box paths can later connect product care, story, and CHARM impact with clear rules.</p>
+            <a class="pp-impact-btn ghost" href="/packs.html">Explore packs</a>
+          </article>
+        </div>
+        <div class="pp-quest-map-shell pp-quest-map-shell--charm">
+          <div class="pp-quest-map-head">
+            <div>
+              <span class="pp-kicker">Care steps</span>
+              <h3>Helpful actions can support CHARM when they are clear and reviewable.</h3>
+            </div>
+            <span class="pp-story-pill" data-quest-sync>Saved here</span>
+          </div>
+          <div class="pp-quest-map" data-quest-map="charm" aria-live="polite"></div>
+          <div class="pp-handoff-panel" data-handoff-panel aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="pp-band pp-band--warm charm-cta pp-standby-section" id="charm-cta" data-pp-standby="future-addition">
+      <div class="pp-band-inner charm-cta-inner">
+        <div>
+          <span class="pp-kicker">Start here</span>
+          <h2>Start with Pet Pawket products.</h2>
+          <p>Every launch path begins with trustworthy pet care, clear partner verification, and impact systems that can grow without losing the human story.</p>
+        </div>
+        <div class="charm-cta-actions">
+          <a class="pp-impact-btn" href="/shop.html">Shop Pet Pawket</a>
+          <a class="pp-impact-btn ghost" href="/packs.html">Explore Pawket Packs</a>
+        </div>
+      </div>
+    </section>
+  </main>
   <div id="footer-container"></div>
  
   <script type="module" src="main.js"></script>
+  <script type="module" src="/charm.js"></script>
 </body>
 </html>

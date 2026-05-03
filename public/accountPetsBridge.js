@@ -23,6 +23,13 @@ if (PANE && TOGGLE && CONTENT) {
   /* -------------------- utils -------------------- */
   const $  = (sel, root = document) => root.querySelector(sel);
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const safeImageUrl = (value, fallback = '/assets/images/placeholder.png') => {
+    const raw = String(value || '').trim();
+    if (!raw) return fallback;
+    if (/^https?:\/\//i.test(raw)) return raw;
+    if (raw.startsWith('/') && !raw.startsWith('//')) return raw;
+    return fallback;
+  };
   const debounce = (fn, ms=200) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
   const hash = (s) => { let h=2166136261>>>0; for (let i=0;i<s.length;i++){h^=s.charCodeAt(i); h=Math.imul(h,16777619);} return h>>>0; };
   const clamp = (n,min,max) => Math.max(min, Math.min(max, n));
@@ -317,7 +324,7 @@ if (PANE && TOGGLE && CONTENT) {
     const title  = esc(p.title || p.name || 'Product');
     const priceN = Number(p?.variants?.[0]?.price ?? p?.priceRange?.minVariantPrice?.amount ?? p?.price ?? NaN);
     const price  = Number.isFinite(priceN) ? `$${priceN.toFixed(2)}` : '';
-    const img    = esc(p.image?.src || p.featuredImage?.url || p.images?.[0]?.src || p.images?.[0]?.url || '/img/placeholder.png');
+    const img    = esc(safeImageUrl(p.image?.src || p.featuredImage?.url || p.images?.[0]?.src || p.images?.[0]?.url));
     return `
       <div class="col-6 col-md-4 col-lg-3 mb-3">
         <div class="card h-100">

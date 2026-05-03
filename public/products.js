@@ -6,17 +6,28 @@
 // - fetchFeaturedProducts(): ensures all products are loaded, then derives a featured slice.
 // - Includes existing render, filters, cart badge helpers, and delegated "add-to-cart" click.
 
+import { addToCart as addCartItem, updateCartBadge as updateCartBadgeFromUtils } from './cartUtils.js';
+
 export let featuredProducts = [];
 export let allProducts = [];
 
-// ---- Config (inline Storefront API) ----
-const SHOP_DOMAIN = 'yx0ksi-xv.myshopify.com';
-const SF_VERSION = '2024-04';
-const SF_ENDPOINT = `https://${SHOP_DOMAIN}/api/${SF_VERSION}/graphql.json`;
+function escapeHtml(value = '') {
+  return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  }[char]));
+}
 
-// If this ever moves server-side, replace with a server proxy.
-// Keeping as provided in current code:
-const STOREFRONT_TOKEN = '409b760bb918367d377eb3a598c1298d';
+function safeImageUrl(value, fallback = '/assets/images/placeholder.png') {
+  const raw = String(value || '').trim();
+  if (!raw) return fallback;
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (raw.startsWith('/') && !raw.startsWith('//')) return raw;
+  return fallback;
+}
 
 // ---- Memoization / single-flight guards ----
 let _loadedAll = false;
@@ -25,28 +36,26 @@ let _lastAllAt = 0;
 const CACHE_TTL_MS = 5 * 60 * 1000; // optional TTL in case you want to refresh periodically
 
 // ---- Mapping helpers ----
-function mapEdgesToProducts(edges = []) {
-  return edges.map(({ node }) => ({
+function mapProducts(list = []) {
+  return list.map((node = {}) => ({
     id: node.id,
     title: node.title,
-    image: node.images?.edges?.[0]?.node?.url || 'assets/fallback.jpg',
-    price: parseFloat(node.variants?.edges?.[0]?.node?.price?.amount || '0'),
-    variantId: node.variants?.edges?.[0]?.node?.id || '',
-    type: node.productType || 'Uncategorized',
+    handle: node.handle,
+    image: safeImageUrl(node.featuredImage?.url || node.image || ''),
+    price: parseFloat(node.priceRange?.minVariantPrice?.amount || node.price || '0'),
+    variantId: node.variants?.edges?.[0]?.node?.id || node.variantId || '',
+    type: node.productType || node.type || 'Uncategorized',
   }));
 }
 
-async function gql(query, variables) {
-  const res = await fetch(SF_ENDPOINT, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Shopify-Storefront-Access-Token': STOREFRONT_TOKEN,
-    },
-    body: JSON.stringify({ query, variables }),
-  });
-  const json = await res.json();
-  return json;
+async function fetchJSON(url) {
+  const res = await fetch(url, { credentials: 'include' });
+  const data = await res.json().catch(() => null);
+  if (!res.ok || !data) {
+    const msg = data?.message || `Request failed: ${res.status}`;
+    throw new Error(msg);
+  }
+  return data;
 }
 
 /**
@@ -65,34 +74,11 @@ export async function fetchAllProducts(limit = 250) {
 
   console.log('[Products] fetchAllProducts…');
 
-  const QUERY = `
-    query AllProducts($first: Int!) {
-      products(first: $first) {
-        edges {
-          node {
-            id
-            title
-            productType
-            images(first: 1) { edges { node { url } } }
-            variants(first: 1) {
-              edges {
-                node {
-                  id
-                  price { amount currencyCode }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  `;
-
   _loadingAll = (async () => {
     try {
-      const result = await gql(QUERY, { first: limit });
-      const edges = result?.data?.products?.edges || [];
-      allProducts = mapEdgesToProducts(edges);
+      const result = await fetchJSON(`/api/products/all?limit=${limit}`);
+      const items = result?.items || result?.products || [];
+      allProducts = mapProducts(items);
       _loadedAll = true;
       _lastAllAt = Date.now();
       console.log(`[Products] Loaded ${allProducts.length} products.`);
@@ -143,21 +129,27 @@ export function renderProducts(products) {
   container.innerHTML = '';
 
   products.forEach(product => {
+    const title = escapeHtml(product.title || 'Product');
+    const image = escapeHtml(safeImageUrl(product.image));
+    const id = escapeHtml(product.id || '');
+    const variantId = escapeHtml(product.variantId || '');
+    const price = Number(product.price);
+    const priceText = Number.isFinite(price) ? price.toFixed(2) : '0.00';
     const col = document.createElement('div');
     col.className = 'col-md-6 col-lg-4 mb-4';
     col.innerHTML = `
       <div class="card h-100 shadow-sm">
-        <img src="${product.image}" alt="${product.title}" class="card-img-top">
+        <img src="${image}" alt="${title}" class="card-img-top">
         <div class="card-body d-flex flex-column">
-          <h5 class="card-title">${product.title}</h5>
-          <p class="card-text text-muted">$${Number(product.price).toFixed(2)}</p>
+          <h5 class="card-title">${title}</h5>
+          <p class="card-text text-muted">$${priceText}</p>
           <a href="#" class="btn btn-primary mt-auto add-to-cart"
-            aria-label="Add ${product.title} to cart"
-            data-id="${product.id}"
-            data-variant-id="${product.variantId}"
-            data-title="${product.title}"
-            data-price="${product.price}"
-            data-image="${product.image}">
+            aria-label="Add ${title} to cart"
+            data-id="${id}"
+            data-variant-id="${variantId}"
+            data-title="${title}"
+            data-price="${priceText}"
+            data-image="${image}">
             Add to Cart
           </a>
         </div>
@@ -221,16 +213,8 @@ export function updateCartBadge(countOverride = null) {
 
 // Optional: if you have an “add to cart” flow, call this after mutation
 export function addToCart(item) {
-  try {
-    const raw =
-      localStorage.getItem('cart') || localStorage.getItem('cartItems') || '[]';
-    const arr = JSON.parse(raw);
-    if (Array.isArray(arr)) {
-      arr.push(item);
-      localStorage.setItem('cart', JSON.stringify(arr));
-    }
-  } catch { /* ignore */ }
-  updateCartBadge();
+  addCartItem(item, Number(item?.quantity || 1));
+  updateCartBadgeFromUtils();
 }
 
 export function populateFilterOptions(categories) {
@@ -287,7 +271,7 @@ document.addEventListener('click', e => {
 
   const i = btn.dataset;
   const item = {
-    id: i.id,
+    productId: i.id,
     variantId: i.variantId,
     title: i.title,
     price: parseFloat(i.price),
@@ -295,17 +279,9 @@ document.addEventListener('click', e => {
     quantity: 1
   };
 
-  const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-  const existing = Array.isArray(cart) ? cart.find(p => p.id === item.id) : null;
-
-  if (existing) {
-    existing.quantity = Number(existing.quantity || 1) + 1;
-    console.log(`[Cart] Increased quantity for ${item.title}.`);
-  } else if (Array.isArray(cart)) {
-    cart.push(item);
-    console.log(`[Cart] Added new item: ${item.title}.`);
-  }
-
-  localStorage.setItem('cart', JSON.stringify(cart));
-  updateCartBadge();
+  const before = getCartItemCount();
+  addCartItem(item, 1);
+  updateCartBadgeFromUtils();
+  const after = getCartItemCount();
+  console.log(after > before ? `[Cart] Added item: ${item.title}.` : `[Cart] Cart unchanged for ${item.title}.`);
 });

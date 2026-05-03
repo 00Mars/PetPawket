@@ -16,8 +16,67 @@ function $all(sel, root = document) { return [...root.querySelectorAll(sel)]; }
 function escapeHtml(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+function safeUrl(v) {
+  const raw = String(v || '').trim();
+  if (!raw) return '';
+  try {
+    const url = new URL(raw, window.location.origin);
+    if (!['http:', 'https:'].includes(url.protocol)) return '';
+    return url.origin === window.location.origin
+      ? `${url.pathname}${url.search}${url.hash}`
+      : url.href;
+  } catch {
+    return '';
+  }
+}
+function safeMediaUrl(v) {
+  const raw = String(v || '').trim();
+  if (/^data:image\/(?:png|jpe?g|gif|webp);base64,/i.test(raw)) return raw;
+  return safeUrl(raw);
+}
 function show(el) { el?.classList?.remove('d-none', 'hidden'); }
 function hide(el) { el?.classList?.add('d-none'); }
+function setInlineStatus(id, message, level = 'info') {
+  const el = document.getElementById(id);
+  if (!el || !message) return;
+  el.className = `alert alert-${level} mt-2`;
+  el.setAttribute('role', level === 'danger' ? 'alert' : 'status');
+  el.setAttribute('aria-live', 'polite');
+  el.textContent = message;
+  el.classList.remove('d-none', 'hidden');
+}
+function clearInlineStatus(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = '';
+  el.classList.add('d-none');
+}
+function notifyStoryProgress(detail = {}) {
+  try {
+    document.dispatchEvent(new CustomEvent('pp:story:refresh', { detail }));
+  } catch {}
+}
+
+// Account-wide alert banner for critical data fetch failures
+const accountAlert = document.querySelector('[data-account-alert]');
+let accountAlertShown = false;
+function setAccountAlert(message, level = 'warning') {
+  if (!accountAlert || !message) return;
+  accountAlert.className = `alert alert-${level}`;
+  accountAlert.setAttribute('role', 'alert');
+  accountAlert.textContent = message;
+  accountAlert.classList.remove('d-none');
+  accountAlertShown = true;
+}
+function clearAccountAlert() {
+  if (!accountAlert) return;
+  if (!accountAlertShown) return;
+  accountAlert.classList.add('d-none');
+  accountAlertShown = false;
+}
+// Allow other modules to surface account errors
+window.PP_accountAlert = setAccountAlert;
+window.PP_accountClearAlert = clearAccountAlert;
 /* Focus helpers + improved open/close */
 let __activeModalId = null;
 let __lastFocus = null;
@@ -64,10 +123,96 @@ function closeModal(id) {
   if (!m) return;
   m.classList.add('hidden');
   m.setAttribute('aria-hidden', 'true');
-  document.body.style.overflow = '';
+  const otherOpenModal = [...document.querySelectorAll('.custom-modal')]
+    .some(el => el !== m && !el.classList.contains('hidden'));
+  document.body.style.overflow = otherOpenModal ? 'hidden' : '';
   m.removeEventListener('keydown', __trapKeydown);
   queueMicrotask(() => { try { __lastFocus?.focus(); } catch {} });
   __activeModalId = null;
+}
+
+let accountConfirmResolve = null;
+let accountConfirmLastFocus = null;
+
+function closeAccountConfirm(result = false) {
+  const modal = document.getElementById('accountConfirmModal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.setAttribute('aria-hidden', 'true');
+  }
+  const otherOpenModal = [...document.querySelectorAll('.custom-modal')]
+    .some(el => el !== modal && !el.classList.contains('hidden'));
+  document.body.style.overflow = otherOpenModal ? 'hidden' : '';
+  const resolve = accountConfirmResolve;
+  accountConfirmResolve = null;
+  queueMicrotask(() => { try { accountConfirmLastFocus?.focus(); } catch {} });
+  accountConfirmLastFocus = null;
+  if (resolve) resolve(!!result);
+}
+
+function ensureAccountConfirmModal() {
+  let modal = document.getElementById('accountConfirmModal');
+  if (modal) return modal;
+
+  modal = document.createElement('div');
+  modal.id = 'accountConfirmModal';
+  modal.className = 'custom-modal hidden account-confirm-modal';
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-modal', 'true');
+  modal.setAttribute('aria-hidden', 'true');
+  modal.setAttribute('aria-labelledby', 'accountConfirmTitle');
+  modal.setAttribute('aria-describedby', 'accountConfirmMessage');
+  modal.innerHTML = `
+    <div class="modal-content account-confirm-content" data-modal-content>
+      <h3 id="accountConfirmTitle">Confirm action</h3>
+      <p id="accountConfirmMessage" class="text-muted mb-0"></p>
+      <div class="account-confirm-actions">
+        <button type="button" class="btn btn-outline-secondary" data-confirm-result="cancel">Cancel</button>
+        <button type="button" class="btn btn-danger" data-confirm-result="confirm">Confirm</button>
+      </div>
+    </div>
+  `;
+  modal.addEventListener('click', (e) => {
+    const action = e.target.closest('[data-confirm-result]');
+    if (action) {
+      closeAccountConfirm(action.getAttribute('data-confirm-result') === 'confirm');
+      return;
+    }
+    if (e.target === modal) closeAccountConfirm(false);
+  });
+  modal.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeAccountConfirm(false);
+  });
+  document.body.appendChild(modal);
+  return modal;
+}
+
+function accountConfirm({ title, message, confirmLabel = 'Confirm', cancelLabel = 'Cancel', tone = 'danger' } = {}) {
+  const modal = ensureAccountConfirmModal();
+  if (accountConfirmResolve) closeAccountConfirm(false);
+
+  const titleEl = modal.querySelector('#accountConfirmTitle');
+  const messageEl = modal.querySelector('#accountConfirmMessage');
+  const confirmBtn = modal.querySelector('[data-confirm-result="confirm"]');
+  const cancelBtn = modal.querySelector('[data-confirm-result="cancel"]');
+
+  if (titleEl) titleEl.textContent = title || 'Confirm action';
+  if (messageEl) messageEl.textContent = message || 'Please confirm this action.';
+  if (confirmBtn) {
+    confirmBtn.textContent = confirmLabel;
+    confirmBtn.className = `btn btn-${tone === 'warning' ? 'warning' : 'danger'}`;
+  }
+  if (cancelBtn) cancelBtn.textContent = cancelLabel;
+
+  accountConfirmLastFocus = document.activeElement;
+  modal.classList.remove('hidden');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+  const content = modal.querySelector('[data-modal-content]') || modal.querySelector('.modal-content');
+  if (content) content.setAttribute('tabindex', '-1');
+  (confirmBtn || content || modal).focus();
+
+  return new Promise(resolve => { accountConfirmResolve = resolve; });
 }
 
 // Close when clicking the dim overlay (outside .modal-content)
@@ -104,6 +249,7 @@ function toggleAuthUI(signedIn, email = '') {
     const ue = document.getElementById('userEmail'); if (ue) ue.textContent = email || '';
   } else {
     show(signedOut); hide(signedInEl); hide(gated);
+    clearAccountAlert();
   }
 }
 
@@ -115,14 +261,716 @@ document.addEventListener('click', (e) => {
   }
 });
 
+document.addEventListener('keydown', (e) => {
+  const fileLabel = e.target.closest?.('.account-file-label[for]');
+  if (!fileLabel || (e.key !== 'Enter' && e.key !== ' ')) return;
+  const targetId = fileLabel.getAttribute('for');
+  if (!targetId || !['editPetAvatar', 'newPetAvatar'].includes(targetId)) return;
+  e.preventDefault();
+  document.getElementById(targetId)?.click();
+});
+
 //
 // -------------------------------
 // Pets — list, add, edit, delete
 // -------------------------------
 let PETS = [];                     // latest cache from GET /api/pets
+let ADDRESSES = [];                // latest cache from GET /api/addresses
 let CURRENT_PET_ID = null;
 let CURRENT_PET_SNAPSHOT = null;   // used to compute minimal diff
 let CURRENT_AVATAR_DATAURL = null; // set when user picks an avatar file
+let ADD_PET_AVATAR_DATAURL = null; // set when user stages a new-pet avatar
+let PET_JOURNAL_SUMMARIES = new Map();
+let PET_JOURNAL_SUMMARY_RUN = 0;
+
+const PET_DETAIL_OTHER_VALUE = '__other__';
+const PET_DETAIL_OPTIONS = {
+  dog: {
+    label: 'Breed',
+    placeholder: 'Select a dog breed',
+    otherLabel: 'Other dog breed',
+    help: 'Choose a common dog breed, or select Other to type it in.',
+    options: [
+      'Mixed Breed', 'Labrador Retriever', 'Golden Retriever', 'French Bulldog', 'German Shepherd',
+      'Poodle', 'Doodle / Poodle Mix', 'Bulldog', 'Beagle', 'Rottweiler', 'Dachshund',
+      'Pembroke Welsh Corgi', 'Australian Shepherd', 'Yorkshire Terrier', 'Boxer', 'Great Dane',
+      'Siberian Husky', 'Cavalier King Charles Spaniel', 'Shih Tzu', 'Boston Terrier', 'Pomeranian',
+      'Havanese', 'Border Collie', 'Chihuahua', 'Maltese', 'Pit Bull / Bully Mix'
+    ],
+  },
+  cat: {
+    label: 'Breed',
+    placeholder: 'Select a cat breed',
+    otherLabel: 'Other cat breed',
+    help: 'Choose a common cat breed, or select Other to type it in.',
+    options: [
+      'Domestic Shorthair', 'Domestic Medium Hair', 'Domestic Longhair', 'Maine Coon', 'Siamese',
+      'Ragdoll', 'British Shorthair', 'Bengal', 'Persian', 'Sphynx', 'Abyssinian',
+      'Russian Blue', 'Scottish Fold', 'American Shorthair', 'Norwegian Forest Cat',
+      'Oriental Shorthair', 'Birman', 'Devon Rex', 'Cornish Rex', 'Himalayan'
+    ],
+  },
+  bird: {
+    label: 'Bird species',
+    placeholder: 'Select a bird species',
+    otherLabel: 'Other bird species',
+    help: 'Birds are usually described by species or type rather than breed.',
+    options: [
+      'African Grey Parrot', 'Amazon Parrot', 'Blue-fronted Amazon Parrot', 'Budgerigar / Parakeet',
+      'Canary', 'Cockatiel', 'Cockatoo', 'Conure', 'Dove', 'Eclectus Parrot', 'Finch',
+      'Indian Ringneck Parakeet', 'Lovebird', 'Macaw', 'Parrotlet', 'Pionus Parrot',
+      'Quaker Parrot', 'Senegal Parrot', 'Lorikeet', 'Toucan'
+    ],
+  },
+  rabbit: {
+    label: 'Rabbit breed',
+    placeholder: 'Select a rabbit breed',
+    otherLabel: 'Other rabbit breed',
+    help: 'Choose a common rabbit breed, or select Other to type it in.',
+    options: [
+      'Holland Lop', 'Mini Lop', 'Netherland Dwarf', 'Lionhead', 'Mini Rex', 'Rex',
+      'Dutch', 'Flemish Giant', 'English Angora', 'French Lop', 'Californian',
+      'New Zealand', 'Harlequin', 'Jersey Wooly'
+    ],
+  },
+  hamster: {
+    label: 'Hamster type',
+    placeholder: 'Select a hamster type',
+    otherLabel: 'Other hamster type',
+    help: 'Choose a common hamster type, or select Other to type it in.',
+    options: ['Syrian Hamster', 'Dwarf Campbell Hamster', 'Dwarf Winter White Hamster', 'Roborovski Hamster', 'Chinese Hamster'],
+  },
+  'guinea pig': {
+    label: 'Guinea pig breed',
+    placeholder: 'Select a guinea pig breed',
+    otherLabel: 'Other guinea pig breed',
+    help: 'Choose a common guinea pig breed, or select Other to type it in.',
+    options: ['American', 'Abyssinian', 'Peruvian', 'Teddy', 'Texel', 'Silkie / Sheltie', 'Skinny Pig', 'Coronet'],
+  },
+  reptile: {
+    label: 'Reptile species',
+    placeholder: 'Select a reptile species',
+    otherLabel: 'Other reptile species',
+    help: 'Choose a common reptile species, or select Other to type it in.',
+    options: [
+      'Bearded Dragon', 'Leopard Gecko', 'Crested Gecko', 'Ball Python', 'Corn Snake',
+      'King Snake', 'Boa Constrictor', 'Russian Tortoise', 'Red-eared Slider', 'Greek Tortoise',
+      'Blue-tongued Skink', 'Green Iguana', 'Chameleon'
+    ],
+  },
+  fish: {
+    label: 'Fish type',
+    placeholder: 'Select a fish type',
+    otherLabel: 'Other fish type',
+    help: 'Choose a common fish type, or select Other to type it in.',
+    options: [
+      'Betta', 'Goldfish', 'Guppy', 'Tetra', 'Molly', 'Platy', 'Angelfish', 'Cichlid',
+      'Corydoras Catfish', 'Pleco', 'Koi', 'Discus', 'Gourami', 'Clownfish'
+    ],
+  },
+  horse: {
+    label: 'Horse breed',
+    placeholder: 'Select a horse breed',
+    otherLabel: 'Other horse breed',
+    help: 'Choose a common horse breed, or select Other to type it in.',
+    options: [
+      'Quarter Horse', 'Thoroughbred', 'Arabian', 'Paint Horse', 'Appaloosa', 'Morgan',
+      'Tennessee Walking Horse', 'Friesian', 'Clydesdale', 'Mustang', 'Warmblood', 'Shetland Pony'
+    ],
+  },
+  ferret: {
+    label: 'Ferret type',
+    placeholder: 'Select a ferret type',
+    otherLabel: 'Other ferret type',
+    help: 'Choose a common ferret coat/type, or select Other to type it in.',
+    options: ['Sable', 'Black Sable', 'Albino', 'Champagne', 'Chocolate', 'Cinnamon', 'Panda', 'Silver', 'Mixed / Unknown'],
+  },
+  other: {
+    label: 'Breed / species / type',
+    placeholder: 'Select an option',
+    otherLabel: 'Other',
+    help: 'Choose Other to type the best description for this pet.',
+    options: ['Mixed / Unknown'],
+  },
+};
+
+function normalizePetSpeciesForDetail(raw) {
+  const value = String(raw || '').trim().toLowerCase();
+  if (!value) return 'other';
+  if (value.includes('guinea')) return 'guinea pig';
+  if (value.includes('bird') || value.includes('parrot') || value.includes('parakeet') ||
+      value.includes('cockatiel') || value.includes('cockatoo') || value.includes('macaw') ||
+      value.includes('conure') || value.includes('finch') || value.includes('canary') ||
+      value.includes('lovebird') || value.includes('amazon') || value.includes('lorikeet') ||
+      value.includes('dove')) return 'bird';
+  if (value.includes('dog') || value.includes('puppy') || value.includes('canine')) return 'dog';
+  if (value.includes('cat') || value.includes('kitten') || value.includes('feline')) return 'cat';
+  if (value.includes('rabbit') || value.includes('bunny')) return 'rabbit';
+  if (value.includes('hamster')) return 'hamster';
+  if (value.includes('reptile') || value.includes('lizard') || value.includes('snake') || value.includes('turtle') || value.includes('tortoise') || value.includes('gecko')) return 'reptile';
+  if (value.includes('fish') || value.includes('betta') || value.includes('goldfish')) return 'fish';
+  if (value.includes('horse') || value.includes('pony')) return 'horse';
+  if (value.includes('ferret')) return 'ferret';
+  return PET_DETAIL_OPTIONS[value] ? value : 'other';
+}
+
+function getPetDetailConfig(species) {
+  return PET_DETAIL_OPTIONS[normalizePetSpeciesForDetail(species)] || PET_DETAIL_OPTIONS.other;
+}
+
+function getPetDetailLabel(species) {
+  return getPetDetailConfig(species).label || 'Breed / species / type';
+}
+
+function titleCasePetLabel(value) {
+  return String(value || '')
+    .trim()
+    .split(/\s+/)
+    .map(part => part ? `${part.charAt(0).toUpperCase()}${part.slice(1).toLowerCase()}` : '')
+    .join(' ');
+}
+
+function formatPetSpecies(species) {
+  const normalized = normalizePetSpeciesForDetail(species);
+  if (!species) return '';
+  if (normalized === 'other') return titleCasePetLabel(species);
+  return titleCasePetLabel(normalized);
+}
+
+function formatPetValue(value, fallback = 'Unknown') {
+  if (value === null || value === undefined || value === '') return fallback;
+  return titleCasePetLabel(value);
+}
+
+function getPetFixedLabel(pet = {}) {
+  const fixed = pet.spayedNeutered ?? pet.spayed_neutered;
+  if (fixed === true) return 'Yes';
+  if (fixed === false) return 'No';
+  return 'Unknown';
+}
+
+function getPetCardTone(species) {
+  const normalized = normalizePetSpeciesForDetail(species);
+  if (['dog', 'cat', 'bird', 'rabbit', 'hamster', 'guinea pig', 'reptile', 'fish', 'horse', 'ferret'].includes(normalized)) {
+    return normalized.replace(/\s+/g, '-');
+  }
+  return 'other';
+}
+
+function getPetCardState(summary = emptyJournalSummary()) {
+  const entries = Number(summary.entries || 0);
+  const core = Number(summary.core || 0);
+  if (summary.state === 'loading') {
+    return { tone: 'loading', icon: 'bi-arrow-repeat', label: 'Loading care trail' };
+  }
+  if (summary.state === 'error') {
+    return { tone: 'attention', icon: 'bi-exclamation-triangle', label: 'Care trail unavailable' };
+  }
+  if (core > 0) {
+    return { tone: 'core', icon: 'bi-stars', label: 'Core Memory saved' };
+  }
+  if (entries > 0) {
+    return { tone: 'active', icon: 'bi-journal-check', label: 'Care trail active' };
+  }
+  return { tone: 'ready', icon: 'bi-lock', label: 'Private profile' };
+}
+
+function renderPetCardState(summary = emptyJournalSummary()) {
+  const state = getPetCardState(summary);
+  return `
+    <span class="account-pet-state-badge is-${escapeHtml(state.tone)}" data-pet-card-state>
+      <i class="bi ${escapeHtml(state.icon)}" aria-hidden="true"></i>
+      <span>${escapeHtml(state.label)}</span>
+    </span>`;
+}
+
+function sortJournalEntriesNewestFirst(entries = []) {
+  return entries.slice().sort((a, b) => {
+    const aTime = new Date(a.occurredAt || a.createdAt || 0).getTime() || 0;
+    const bTime = new Date(b.occurredAt || b.createdAt || 0).getTime() || 0;
+    return bTime - aTime;
+  });
+}
+
+function summarizeJournalEntries(entries = []) {
+  const normalized = sortJournalEntriesNewestFirst(entries.map(normalizeJournalEntry));
+  const coreEntries = normalized.filter(entry => entry.highlighted);
+  const latest = normalized[0] || null;
+  const coreLatest = coreEntries[0] || null;
+  const handoffTargets = new Set();
+
+  normalized.forEach(entry => {
+    const targets = Array.isArray(entry.metadata?.handoffTargets)
+      ? entry.metadata.handoffTargets
+      : inferJournalHandoffTargets(entry);
+    targets.forEach(target => handoffTargets.add(target));
+  });
+
+  return {
+    state: 'ready',
+    entries: normalized.length,
+    core: coreEntries.length,
+    latest,
+    coreLatest,
+    handoffTargets: [...handoffTargets],
+  };
+}
+
+function emptyJournalSummary(state = 'loading') {
+  return {
+    state,
+    entries: 0,
+    core: 0,
+    latest: null,
+    coreLatest: null,
+    handoffTargets: [],
+  };
+}
+
+function renderPetJournalSummary(summary = emptyJournalSummary()) {
+  if (summary.state === 'error') {
+    return `
+      <div class="account-pet-journal-status" data-pet-journal-status>
+        <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+        <span>Journal summary unavailable</span>
+      </div>`;
+  }
+
+  if (summary.state === 'loading') {
+    return `
+      <div class="account-pet-journal-status" data-pet-journal-status>
+        <i class="bi bi-arrow-repeat" aria-hidden="true"></i>
+        <span>Loading story trail...</span>
+      </div>`;
+  }
+
+  const latest = summary.latest;
+  const coreLatest = summary.coreLatest;
+  const latestTitle = latest ? (latest.title || defaultJournalTitle(latest)) : '';
+  const latestDate = latest ? formatJournalDate(latest.occurredAt || latest.createdAt, '') : '';
+  const coreTitle = coreLatest ? (coreLatest.title || defaultJournalTitle(coreLatest)) : '';
+  const handoffCount = summary.handoffTargets.length;
+  const handoffs = summary.handoffTargets.length
+    ? summary.handoffTargets.slice(0, 4).map(target => (
+        `<span>${escapeHtml(JOURNAL_HANDOFF_LABELS[target] || target)}</span>`
+      )).join('')
+    : '<span>Ready to connect</span>';
+
+  return `
+    <div class="account-pet-summary-shell">
+      <div class="account-pet-stats" aria-label="Pet journal summary">
+        <span><strong data-pet-journal-count>${summary.entries}</strong><small>${summary.entries === 1 ? 'entry' : 'entries'}</small></span>
+        <span><strong data-pet-core-count>${summary.core}</strong><small>Core</small></span>
+        <span><strong>${handoffCount}</strong><small>${handoffCount === 1 ? 'path' : 'paths'}</small></span>
+      </div>
+      <div class="account-pet-story-stack">
+        <div class="account-pet-memory ${summary.core ? 'has-core-memory' : ''}" data-pet-core-summary>
+          <i class="bi ${summary.core ? 'bi-stars' : 'bi-journal-plus'}" aria-hidden="true"></i>
+          <div>
+            <strong>${summary.core ? 'Core Memory saved' : 'Core Memory ready'}</strong>
+            <span>${summary.core ? escapeHtml(coreTitle) : 'Mark one meaningful entry when the moment is ready.'}</span>
+          </div>
+        </div>
+        <div class="account-pet-latest">
+          <i class="bi bi-clock-history" aria-hidden="true"></i>
+          <span>${latest ? `Latest${latestDate ? ` ${escapeHtml(latestDate.split(',')[0])}` : ''}: ${escapeHtml(latestTitle)}` : 'Add the first care note, story moment, or Core Memory.'}</span>
+        </div>
+      </div>
+      <div class="account-pet-handoff-row">
+        <span class="account-pet-handoff-label">Connected paths</span>
+        <div class="account-pet-handoff-tags" aria-label="Connected Pet Pawket paths">${handoffs}</div>
+      </div>
+    </div>`;
+}
+
+function setPetJournalSummary(petId, summary) {
+  if (!petId) return;
+  PET_JOURNAL_SUMMARIES.set(String(petId), summary);
+  const target = document.querySelector(`[data-pet-journal-summary="${CSS.escape(String(petId))}"]`);
+  if (target) target.innerHTML = renderPetJournalSummary(summary);
+  const card = document.querySelector(`[data-pet-id="${CSS.escape(String(petId))}"]`);
+  if (card) {
+    card.classList.toggle('has-core-memory', !!summary?.core);
+    card.setAttribute('data-core-memory-count', String(summary?.core || 0));
+    card.setAttribute('data-journal-entry-count', String(summary?.entries || 0));
+    const stateTarget = card.querySelector('[data-pet-card-state]');
+    if (stateTarget) {
+      const state = getPetCardState(summary);
+      stateTarget.className = `account-pet-state-badge is-${state.tone}`;
+      stateTarget.innerHTML = `<i class="bi ${state.icon}" aria-hidden="true"></i><span>${escapeHtml(state.label)}</span>`;
+    }
+    const coreDot = card.querySelector('.account-pet-core-dot');
+    if (coreDot) {
+      const hasCore = !!summary?.core;
+      coreDot.setAttribute('title', hasCore ? 'Core Memory saved' : 'No Core Memory yet');
+      coreDot.innerHTML = `<i class="bi ${hasCore ? 'bi-stars' : 'bi-journal'}" aria-hidden="true"></i>`;
+    }
+  }
+}
+
+async function hydratePetJournalSummaries(pets = []) {
+  const run = ++PET_JOURNAL_SUMMARY_RUN;
+  await Promise.allSettled((Array.isArray(pets) ? pets : []).map(async pet => {
+    if (!pet?.id) return;
+    setPetJournalSummary(pet.id, PET_JOURNAL_SUMMARIES.get(String(pet.id)) || emptyJournalSummary('loading'));
+    try {
+      const res = await fetch(`/api/pets/${encodeURIComponent(pet.id)}/journal`, { credentials: 'include' });
+      if (!res.ok) throw new Error('Pet journal summary fetch failed');
+      const payload = await res.json().catch(() => ({}));
+      const entries = Array.isArray(payload)
+        ? payload
+        : (payload.journal || payload.entries || payload.items || []);
+      if (run !== PET_JOURNAL_SUMMARY_RUN) return;
+      setPetJournalSummary(pet.id, summarizeJournalEntries(entries || []));
+    } catch (err) {
+      if (run !== PET_JOURNAL_SUMMARY_RUN) return;
+      console.warn('[account.js] pet journal summary failed:', err);
+      setPetJournalSummary(pet.id, emptyJournalSummary('error'));
+    }
+  }));
+}
+
+function syncPetDetailValueFromControls() {
+  const hidden = document.getElementById('editPetBreed');
+  const select = document.getElementById('editPetBreedSelect');
+  const other = document.getElementById('editPetBreedOther');
+  if (!hidden || !select) return '';
+
+  const value = select.value === PET_DETAIL_OTHER_VALUE
+    ? (other?.value || '').trim()
+    : (select.value || '').trim();
+  hidden.value = value;
+  return value;
+}
+
+function syncAddPetDetailValueFromControls() {
+  const hidden = document.getElementById('newPetBreed');
+  const select = document.getElementById('newPetBreedSelect');
+  const other = document.getElementById('newPetBreedOther');
+  if (!hidden || !select) return '';
+
+  const value = select.value === PET_DETAIL_OTHER_VALUE
+    ? (other?.value || '').trim()
+    : (select.value || '').trim();
+  hidden.value = value;
+  return value;
+}
+
+function configurePetDetailField(species, currentValue = '') {
+  const cfg = getPetDetailConfig(species);
+  const label = document.getElementById('editPetBreedLabel');
+  const select = document.getElementById('editPetBreedSelect');
+  const other = document.getElementById('editPetBreedOther');
+  const hidden = document.getElementById('editPetBreed');
+  const help = document.getElementById('editPetBreedHelp');
+  if (!select || !hidden) return;
+
+  if (label) label.textContent = cfg.label;
+  if (help) help.textContent = cfg.help;
+
+  const options = Array.isArray(cfg.options) ? cfg.options : [];
+  const current = String(currentValue || '').trim();
+  select.innerHTML = [
+    `<option value="">${escapeHtml(cfg.placeholder || 'Select an option')}</option>`,
+    ...options.map(value => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`),
+    `<option value="${PET_DETAIL_OTHER_VALUE}">${escapeHtml(cfg.otherLabel || 'Other')}</option>`,
+  ].join('');
+
+  const matched = options.find(value => value.toLowerCase() === current.toLowerCase());
+  if (matched) {
+    select.value = matched;
+    if (other) {
+      other.value = '';
+      other.classList.add('d-none');
+      other.required = false;
+    }
+    hidden.value = matched;
+  } else if (current) {
+    select.value = PET_DETAIL_OTHER_VALUE;
+    if (other) {
+      other.value = current;
+      other.placeholder = cfg.otherLabel || 'Other';
+      other.classList.remove('d-none');
+      other.required = true;
+    }
+    hidden.value = current;
+  } else {
+    select.value = '';
+    if (other) {
+      other.value = '';
+      other.placeholder = cfg.otherLabel || 'Other';
+      other.classList.add('d-none');
+      other.required = false;
+    }
+    hidden.value = '';
+  }
+}
+
+function configureAddPetDetailField(species, currentValue = '') {
+  const cfg = getPetDetailConfig(species);
+  const label = document.getElementById('newPetBreedLabel');
+  const select = document.getElementById('newPetBreedSelect');
+  const other = document.getElementById('newPetBreedOther');
+  const hidden = document.getElementById('newPetBreed');
+  const help = document.getElementById('newPetBreedHelp');
+  if (!select || !hidden) return;
+
+  if (label) label.textContent = cfg.label;
+  if (help) help.textContent = cfg.help;
+
+  const options = Array.isArray(cfg.options) ? cfg.options : [];
+  const current = String(currentValue || '').trim();
+  select.innerHTML = [
+    `<option value="">${escapeHtml(cfg.placeholder || 'Select an option')}</option>`,
+    ...options.map(value => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`),
+    `<option value="${PET_DETAIL_OTHER_VALUE}">${escapeHtml(cfg.otherLabel || 'Other')}</option>`,
+  ].join('');
+
+  const matched = options.find(value => value.toLowerCase() === current.toLowerCase());
+  if (matched) {
+    select.value = matched;
+    if (other) {
+      other.value = '';
+      other.classList.add('d-none');
+      other.required = false;
+    }
+    hidden.value = matched;
+  } else if (current) {
+    select.value = PET_DETAIL_OTHER_VALUE;
+    if (other) {
+      other.value = current;
+      other.placeholder = cfg.otherLabel || 'Other';
+      other.classList.remove('d-none');
+      other.required = true;
+    }
+    hidden.value = current;
+  } else {
+    select.value = '';
+    if (other) {
+      other.value = '';
+      other.placeholder = cfg.otherLabel || 'Other';
+      other.classList.add('d-none');
+      other.required = false;
+    }
+    hidden.value = '';
+  }
+}
+
+function updateEditPetModalChrome({ name, species, detail } = {}) {
+  const titleEl = document.querySelector('[data-edit-pet-title]');
+  const subtitleEl = document.querySelector('[data-edit-pet-subtitle]');
+  const pillEl = document.querySelector('[data-edit-pet-species-pill]');
+  const petName = String(name || document.getElementById('editPetName')?.value || '').trim();
+  const speciesValue = String(species || document.getElementById('editPetType')?.value || '').trim();
+  const detailValue = String(detail || document.getElementById('editPetBreed')?.value || '').trim();
+  const speciesLabel = formatPetSpecies(speciesValue) || 'Pet profile';
+  const detailLabel = getPetDetailLabel(speciesValue).toLowerCase();
+
+  if (titleEl) titleEl.textContent = petName ? `Edit ${petName}` : 'Edit pet profile';
+  if (subtitleEl) {
+    subtitleEl.textContent = detailValue
+      ? `${speciesLabel} profile with ${detailLabel}: ${detailValue}.`
+      : `${speciesLabel} profile details for Pawket Packs, journals, and care notes.`;
+  }
+  if (pillEl) pillEl.textContent = speciesLabel;
+}
+
+function updateAddPetModalChrome({ name, species, detail } = {}) {
+  const titleEl = document.querySelector('[data-add-pet-title]');
+  const subtitleEl = document.querySelector('[data-add-pet-subtitle]');
+  const pillEl = document.querySelector('[data-add-pet-species-pill]');
+  const petName = String(name || document.getElementById('newPetName')?.value || '').trim();
+  const speciesValue = String(species || document.getElementById('newPetType')?.value || '').trim();
+  const detailValue = String(detail || document.getElementById('newPetBreed')?.value || '').trim();
+  const speciesLabel = formatPetSpecies(speciesValue) || 'New profile';
+  const detailLabel = getPetDetailLabel(speciesValue).toLowerCase();
+
+  if (titleEl) titleEl.textContent = petName ? `Add ${petName}` : 'Add a pet profile';
+  if (subtitleEl) {
+    subtitleEl.textContent = detailValue
+      ? `${speciesLabel} profile with ${detailLabel}: ${detailValue}.`
+      : `${speciesLabel} details for Pawket Packs, journals, and care notes.`;
+  }
+  if (pillEl) pillEl.textContent = speciesLabel;
+}
+
+function wirePetDetailField() {
+  const typeEl = document.getElementById('editPetType');
+  const nameEl = document.getElementById('editPetName');
+  const select = document.getElementById('editPetBreedSelect');
+  const other = document.getElementById('editPetBreedOther');
+  if (nameEl && !nameEl.dataset.petChromeWired) {
+    nameEl.dataset.petChromeWired = '1';
+    nameEl.addEventListener('input', () => updateEditPetModalChrome());
+  }
+  if (typeEl && !typeEl.dataset.petDetailWired) {
+    typeEl.dataset.petDetailWired = '1';
+    typeEl.addEventListener('change', () => {
+      configurePetDetailField(typeEl.value, '');
+      updateEditPetModalChrome({ species: typeEl.value, detail: '' });
+    });
+  }
+  if (select && !select.dataset.petDetailWired) {
+    select.dataset.petDetailWired = '1';
+    select.addEventListener('change', () => {
+      const cfg = getPetDetailConfig(typeEl?.value);
+      if (other) {
+        const isOther = select.value === PET_DETAIL_OTHER_VALUE;
+        other.classList.toggle('d-none', !isOther);
+        other.required = isOther;
+        other.placeholder = cfg.otherLabel || 'Other';
+        if (isOther) other.focus();
+        else other.value = '';
+      }
+      const detail = syncPetDetailValueFromControls();
+      updateEditPetModalChrome({ species: typeEl?.value, detail });
+    });
+  }
+  if (other && !other.dataset.petDetailWired) {
+    other.dataset.petDetailWired = '1';
+    other.addEventListener('input', () => {
+      const detail = syncPetDetailValueFromControls();
+      updateEditPetModalChrome({ species: typeEl?.value, detail });
+    });
+  }
+}
+
+function wireAddPetDetailField() {
+  const typeEl = document.getElementById('newPetType');
+  const nameEl = document.getElementById('newPetName');
+  const select = document.getElementById('newPetBreedSelect');
+  const other = document.getElementById('newPetBreedOther');
+  if (nameEl && !nameEl.dataset.petChromeWired) {
+    nameEl.dataset.petChromeWired = '1';
+    nameEl.addEventListener('input', () => updateAddPetModalChrome());
+  }
+  if (typeEl && !typeEl.dataset.petDetailWired) {
+    typeEl.dataset.petDetailWired = '1';
+    typeEl.addEventListener('change', () => {
+      configureAddPetDetailField(typeEl.value, '');
+      updateAddPetModalChrome({ species: typeEl.value, detail: '' });
+    });
+  }
+  if (select && !select.dataset.petDetailWired) {
+    select.dataset.petDetailWired = '1';
+    select.addEventListener('change', () => {
+      const cfg = getPetDetailConfig(typeEl?.value);
+      if (other) {
+        const isOther = select.value === PET_DETAIL_OTHER_VALUE;
+        other.classList.toggle('d-none', !isOther);
+        other.required = isOther;
+        other.placeholder = cfg.otherLabel || 'Other';
+        if (isOther) other.focus();
+        else other.value = '';
+      }
+      const detail = syncAddPetDetailValueFromControls();
+      updateAddPetModalChrome({ species: typeEl?.value, detail });
+    });
+  }
+  if (other && !other.dataset.petDetailWired) {
+    other.dataset.petDetailWired = '1';
+    other.addEventListener('input', () => {
+      const detail = syncAddPetDetailValueFromControls();
+      updateAddPetModalChrome({ species: typeEl?.value, detail });
+    });
+  }
+}
+
+function writeAddPetTraitsJson() {
+  const input = document.getElementById('addPetTraitsJson');
+  if (input) input.value = JSON.stringify(collectAddPetTraits());
+}
+
+function collectAddPetTraits() {
+  const modal = document.getElementById('addPetModal');
+  if (!modal) return {};
+  const traits = {};
+
+  modal.querySelectorAll('[data-add-trait]').forEach(group => {
+    const key = group.getAttribute('data-add-trait');
+    if (!key) return;
+    const multi = group.getAttribute('data-multi') === 'true';
+    const selected = Array.from(group.querySelectorAll('.trait-chip[aria-pressed="true"]'))
+      .map(btn => String(btn.dataset.value || '').trim())
+      .filter(Boolean);
+    if (multi) {
+      if (selected.length) traits[key] = selected;
+    } else if (selected[0]) {
+      traits[key] = selected[0];
+    }
+  });
+
+  modal.querySelectorAll('[data-add-trait-key]').forEach(input => {
+    const key = input.getAttribute('data-add-trait-key');
+    if (!key) return;
+    const raw = String(input.value || '').trim();
+    if (!raw) return;
+    if (input.type === 'number') {
+      const n = Number(raw);
+      if (Number.isFinite(n)) traits[key] = n;
+    } else {
+      traits[key] = raw;
+    }
+  });
+
+  return traits;
+}
+
+function resetAddPetTraitControls() {
+  const modal = document.getElementById('addPetModal');
+  if (!modal) return;
+  modal.querySelectorAll('[data-add-trait]').forEach(group => {
+    const multi = group.getAttribute('data-multi') === 'true';
+    const chips = Array.from(group.querySelectorAll('.trait-chip'));
+    if (multi) {
+      chips.forEach(chip => chip.setAttribute('aria-pressed', 'false'));
+      return;
+    }
+    const unknown = chips.find(chip => String(chip.dataset.value || '').toLowerCase() === 'unknown');
+    chips.forEach(chip => chip.setAttribute('aria-pressed', chip === unknown ? 'true' : 'false'));
+  });
+  const allergyWrap = modal.querySelector('[data-add-trait="allergies"]');
+  if (allergyWrap) allergyWrap.innerHTML = '';
+  modal.querySelectorAll('[data-add-trait-key], [data-add-trait-input]').forEach(input => { input.value = ''; });
+  writeAddPetTraitsJson();
+}
+
+function addAddPetAllergyChip(value) {
+  const allergyWrap = document.querySelector('#addPetModal [data-add-trait="allergies"]');
+  if (!allergyWrap) return;
+  const clean = String(value || '').trim();
+  if (!clean) return;
+  const exists = Array.from(allergyWrap.querySelectorAll('.trait-chip'))
+    .some(chip => String(chip.dataset.value || '').toLowerCase() === clean.toLowerCase());
+  if (exists) return;
+  const chip = document.createElement('button');
+  chip.type = 'button';
+  chip.className = 'trait-chip';
+  chip.dataset.value = clean;
+  chip.setAttribute('aria-pressed', 'true');
+  chip.textContent = clean;
+  allergyWrap.appendChild(chip);
+  writeAddPetTraitsJson();
+}
+
+function resetAddPetModal() {
+  const form = document.getElementById('addPetForm');
+  form?.reset();
+  ADD_PET_AVATAR_DATAURL = null;
+  updateNewPetAvatarPreview('');
+  clearInlineStatus('addPetFormStatus');
+  configureAddPetDetailField('', '');
+  resetAddPetTraitControls();
+  updateAddPetModalChrome({ name: '', species: '', detail: '' });
+}
+
+function openAddPetModal() {
+  resetAddPetModal();
+  openModal('addPetModal');
+  queueMicrotask(() => {
+    try { document.getElementById('newPetName')?.focus(); } catch {}
+  });
+}
 
 // Ensure For-My-Pets pane shell is always visible (content visibility is controlled by bridge)
 (function ensureMyPetsPaneShell() {
@@ -140,7 +988,12 @@ async function loadPets() {
     if (!res.ok) throw new Error('Pets fetch failed');
     // API might return array or {pets:[...]}
     PETS = Array.isArray(data) ? data : (data.pets || []);
+    const livePetIds = new Set(PETS.map(pet => String(pet.id)));
+    PET_JOURNAL_SUMMARIES.forEach((_summary, petId) => {
+      if (!livePetIds.has(String(petId))) PET_JOURNAL_SUMMARIES.delete(petId);
+    });
     renderPets(PETS);
+    hydratePetJournalSummaries(PETS).catch(err => console.warn('[account.js] journal summaries failed:', err));
     // Bus notifications for dependent panes (For My Pets, etc.)
     try {
       PetsBus.emit('pets:list:loaded', PETS);
@@ -148,6 +1001,7 @@ async function loadPets() {
     } catch {}
   } catch (err) {
     list.innerHTML = `<div class="text-danger">Failed to load pets</div>`;
+    setAccountAlert('Some account data failed to load. Please refresh or try again.', 'warning');
   }
 }
 
@@ -155,57 +1009,94 @@ function renderPets(pets) {
   const list = $('#petList');
   if (!list) return;
   if (!Array.isArray(pets) || pets.length === 0) {
-    list.innerHTML = `<div class="text-muted">No pets yet. Add your first friend below.</div>`;
+    list.innerHTML = `
+      <div class="account-empty-state">
+        <strong>Start by adding the pet you love.</strong>
+        <p class="mb-0">Pet profiles power journal memories, Pawket Pack fit, and better product picks.</p>
+      </div>`;
     return;
   }
 
   list.innerHTML = pets.map(p => {
     const name    = escapeHtml(p.name);
-    const species = escapeHtml(p.species || '');
+    const species = escapeHtml(formatPetSpecies(p.species));
     const breed   = escapeHtml(p.breed || '');
+    const detailLabel = escapeHtml(getPetDetailLabel(p.species));
     const bday    = p.birthday ? escapeHtml(String(p.birthday).slice(0,10)) : '';
-    const avatar  = p.avatar || '/assets/images/default-pet.png';
+    const avatar  = safeMediaUrl(p.avatar) || '/assets/images/default-pet.png';
+    const petId = escapeHtml(p.id);
+    const rawPetId = String(p.id);
+    const sex = escapeHtml(formatPetValue(p.sex));
+    const fixed = escapeHtml(getPetFixedLabel(p));
+    const summary = PET_JOURNAL_SUMMARIES.get(rawPetId) || emptyJournalSummary('loading');
+    const coreCount = Number(summary.core || 0);
+    const entryCount = Number(summary.entries || 0);
+    const tone = escapeHtml(getPetCardTone(p.species));
+    const birthdayLine = bday ? `<span><i class="bi bi-cake2" aria-hidden="true"></i> ${bday}</span>` : '';
+    const detailLine = breed ? `<span><i class="bi bi-tag" aria-hidden="true"></i> ${detailLabel}: ${breed}</span>` : '';
+    const photoAlt = `${name || 'Pet'} profile photo`;
 
     return `
-      <div class="card shadow-sm mb-3" data-pet-id="${p.id}">
-        <div class="card-body d-flex gap-3 align-items-center">
-          <img class="pet-thumb rounded border"
-               src="${avatar}" alt="${name}"
-               style="width:72px;height:72px;object-fit:cover;" />
-          <div class="flex-grow-1">
-            <div class="d-flex justify-content-between align-items-start">
-              <div>
-                <h5 class="card-title mb-1">${name} ${species ? `<small class="text-muted">(${species})</small>` : ''}</h5>
-                <div class="text-muted small">
-                  ${breed ? `Breed: ${breed} • ` : ''}${bday ? `Birthday: ${bday}` : ''}
+      <article class="account-pet-card ${coreCount ? 'has-core-memory' : ''}" data-pet-id="${petId}" data-core-memory-count="${coreCount}" data-journal-entry-count="${entryCount}" data-pet-tone="${tone}">
+        <div class="account-pet-card-body">
+          <div class="account-pet-avatar-wrap">
+            <img class="pet-thumb account-pet-thumb"
+                 src="${escapeHtml(avatar)}" alt="${escapeHtml(photoAlt)}"
+                 loading="lazy" />
+            <span class="account-pet-core-dot" title="${coreCount ? 'Core Memory saved' : 'No Core Memory yet'}" aria-hidden="true">
+              <i class="bi ${coreCount ? 'bi-stars' : 'bi-journal'}"></i>
+            </span>
+            ${species ? `<span class="account-pet-photo-label">${species}</span>` : ''}
+          </div>
+
+          <div class="account-pet-main">
+            <div class="account-pet-topline">
+              <div class="account-pet-title">
+                <span class="account-pet-eyebrow">Pet profile</span>
+                <div class="account-pet-name-line">
+                  <h5>${name}</h5>
+                  ${species ? `<span class="account-pet-species-pill">${species}</span>` : ''}
                 </div>
-                <div class="small">
-                  Sex: <span>${escapeHtml(p.sex ?? 'Unknown')}</span> • Fixed: <span>${p.spayedNeutered === true ? 'Yes' : p.spayedNeutered === false ? 'No' : 'Unknown'}</span>
-                </div>
+                <span class="account-pet-privacy-note"><i class="bi bi-shield-lock" aria-hidden="true"></i> Private care record</span>
               </div>
-              <div class="btn-group btn-group-sm">
-                <button class="btn btn-outline-secondary" data-action="open-journal" data-pet-id="${p.id}">
-                  <i class="bi bi-journals"></i> Journal
-                </button>
-                <button class="btn btn-outline-primary" data-action="open-edit" data-pet-id="${p.id}">
-                  <i class="bi bi-pencil"></i> Edit
-                </button>
-                <button class="btn btn-outline-danger" data-action="delete-pet" data-pet-id="${p.id}">
-                  <i class="bi bi-trash"></i> Delete
-                </button>
+              ${renderPetCardState(summary)}
+            </div>
+            <div class="account-pet-actions" aria-label="${name} actions">
+              <button class="btn btn-outline-secondary" data-action="open-journal" data-pet-id="${petId}" type="button">
+                <i class="bi bi-journals" aria-hidden="true"></i><span>Journal</span>
+              </button>
+              <button class="btn btn-outline-primary" data-action="open-edit" data-pet-id="${petId}" type="button">
+                <i class="bi bi-pencil" aria-hidden="true"></i><span>Edit</span>
+              </button>
+              <button class="btn btn-outline-danger" data-action="delete-pet" data-pet-id="${petId}" type="button">
+                <i class="bi bi-trash" aria-hidden="true"></i><span>Delete</span>
+              </button>
+            </div>
+
+            <div class="account-pet-meta-card">
+              <div class="account-pet-meta">
+                ${detailLine}
+                ${birthdayLine}
+                <span><i class="bi bi-gender-ambiguous" aria-hidden="true"></i> Sex: ${sex}</span>
+                <span><i class="bi bi-heart-pulse" aria-hidden="true"></i> Fixed: ${fixed}</span>
               </div>
+            </div>
+
+            <div class="account-pet-journal-summary" data-pet-journal-summary="${petId}">
+              ${renderPetJournalSummary(summary)}
             </div>
           </div>
         </div>
-      </div>`;
+      </article>`;
   }).join('');
 }
 
 // Reusable: file -> dataURL with 5MB guard
-async function readFileAsDataURL(file) {
+async function readFileAsDataURL(file, statusId = 'petFormStatus') {
   if (!file) return null;
   if (file.size > 5 * 1024 * 1024) {
-    alert('Please select a photo 5MB or smaller.');
+    setInlineStatus(statusId, 'Please select a photo 5MB or smaller.', 'warning');
+    setAccountAlert('Please select a photo 5MB or smaller.', 'warning');
     return null;
   }
   return await new Promise((resolve, reject) => {
@@ -223,27 +1114,101 @@ if (addPetForm) {
     e.preventDefault();
     const name    = document.getElementById('newPetName')?.value?.trim() || '';
     const species = document.getElementById('newPetType')?.value?.trim() || '';
+    const breed   = syncAddPetDetailValueFromControls();
     const birthday= document.getElementById('newPetBirthday')?.value || null;
-    if (!name || !species) return;
+    const traits  = collectAddPetTraits();
+    writeAddPetTraitsJson();
+    if (!name || !species) {
+      setInlineStatus('addPetFormStatus', 'Name and type are required.', 'warning');
+      setAccountAlert('Add a name and pet type to create a profile.', 'warning');
+      return;
+    }
 
+    const payload = {
+      name,
+      species,
+      birthday,
+      breed,
+      traits,
+      ...normalizeTraitsToTopLevel(traits),
+    };
+
+    clearInlineStatus('addPetFormStatus');
     const res = await fetch('/api/pets', {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, species, birthday }),
+      body: JSON.stringify(payload),
     });
     if (!res.ok) {
       console.error('Add pet failed');
+      setInlineStatus('addPetFormStatus', 'Could not add that pet profile. Please try again.', 'danger');
+      setAccountAlert('Could not add that pet profile. Please try again.', 'warning');
       return;
     }
-    addPetForm.reset();
+    const created = await res.json().catch(() => ({}));
+    const petId = created?.pet?.id;
+    if (ADD_PET_AVATAR_DATAURL && petId) {
+      const avatarRes = await fetch(`/api/pets/${encodeURIComponent(petId)}/avatar`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: ADD_PET_AVATAR_DATAURL }),
+      });
+      if (!avatarRes.ok) {
+        console.warn('[account.js] new pet avatar upload failed:', await avatarRes.text().catch(() => ''));
+      }
+    }
+    closeModal('addPetModal');
+    resetAddPetModal();
+    setAccountAlert(`${name} was added to your Pet Pawket account.`, 'success');
     try {
-      PetsBus.emit('pet:created', { temp: true, name, species, birthday });
+      PetsBus.emit('pet:created', { temp: true, name, species, birthday, breed, traits });
       PetsBus.emit('pets:refresh:request');
     } catch {}
     await loadPets();
+    notifyStoryProgress({ source: 'pet-created' });
   });
 }
+
+document.addEventListener('click', (e) => {
+  if (e.target.closest('[data-open-add-pet]')) {
+    openAddPetModal();
+    return;
+  }
+
+  const addTraitChip = e.target.closest('#addPetModal .trait-chip');
+  if (!addTraitChip) return;
+  const group = addTraitChip.closest('[data-add-trait]');
+  if (!group) return;
+  const key = group.getAttribute('data-add-trait');
+  const multi = group.getAttribute('data-multi') === 'true';
+  if (key === 'allergies') {
+    addTraitChip.remove();
+    writeAddPetTraitsJson();
+    return;
+  }
+  if (multi) {
+    const next = addTraitChip.getAttribute('aria-pressed') !== 'true';
+    addTraitChip.setAttribute('aria-pressed', next ? 'true' : 'false');
+  } else {
+    group.querySelectorAll('.trait-chip').forEach(chip => {
+      chip.setAttribute('aria-pressed', chip === addTraitChip ? 'true' : 'false');
+    });
+  }
+  writeAddPetTraitsJson();
+});
+
+document.getElementById('addTraitAllergyInput')?.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  addAddPetAllergyChip(e.currentTarget.value);
+  e.currentTarget.value = '';
+});
+
+document.getElementById('addPetModal')?.addEventListener('input', (e) => {
+  if (e.target.matches('[data-add-trait-key]')) writeAddPetTraitsJson();
+});
 
 // Delegated actions: open edit, delete, open journal
 document.addEventListener('click', async (e) => {
@@ -259,15 +1224,30 @@ document.addEventListener('click', async (e) => {
 
 async function deletePet(petId) {
   if (!petId) return;
-  if (!confirm('Delete this pet? This cannot be undone.')) return;
+  const pet = PETS.find(p => String(p.id) === String(petId));
+  const petName = pet?.name || 'this pet';
+  const confirmed = await accountConfirm({
+    title: 'Delete pet profile?',
+    message: `This will remove ${petName}'s profile and saved pet details from this account. This cannot be undone.`,
+    confirmLabel: 'Delete profile',
+  });
+  if (!confirmed) return;
   const res = await fetch(`/api/pets/${petId}`, { method: 'DELETE', credentials: 'include' });
   if (!res.ok) {
     console.error('Delete failed');
+    setAccountAlert('Could not delete that pet profile. Please try again.', 'warning');
     return;
   }
-  try { PetsBus.emit('pet:deleted', { id: petId }); } catch {}
-  await loadPets();
-}
+	  PET_JOURNAL_SUMMARIES.delete(String(petId));
+	  try { PetsBus.emit('pet:deleted', { id: petId }); } catch {}
+	  setAccountAlert(`${petName} was removed from your account.`, 'success');
+	  await loadPets();
+	  notifyStoryProgress({ source: 'pet-deleted' });
+	}
+
+wirePetDetailField();
+wireAddPetDetailField();
+configureAddPetDetailField('', '');
 
 //
 // --------- Traits helpers (always include + normalize to top-level) ---------
@@ -299,6 +1279,7 @@ function normalizeTraitsToTopLevel(traits = {}) {
 
 // Build minimal patch from edit form fields compared to snapshot
 function buildPetPatchFromForm() {
+  syncPetDetailValueFromControls();
   const name   = (document.getElementById('editPetName')?.value ?? '').trim();
   const type   = (document.getElementById('editPetType')?.value ?? '').trim();
   const breed  = (document.getElementById('editPetBreed')?.value ?? '').trim();
@@ -312,7 +1293,8 @@ function buildPetPatchFromForm() {
     const snapNorm = String(snap.species || '').toLowerCase();
     if (typeNorm !== snapNorm) patch.species = type; // send user’s selected value
   }
-  if (breed  && breed  !== (snap.breed || '')) patch.breed   = breed;
+  const snapBreed = String(snap.breed || '').trim();
+  if (breed !== snapBreed) patch.breed = breed;
 
   const normSnapBday = snap.birthday ? String(snap.birthday).slice(0,10) : '';
   if (bday && bday !== normSnapBday)           patch.birthday= bday;
@@ -387,6 +1369,7 @@ function hydrateTraitChipsFromPet(pet) {
 function openEditModal(petId) {
   CURRENT_PET_ID = petId;
   CURRENT_AVATAR_DATAURL = null;
+  clearInlineStatus('petFormStatus');
 
   const pet = PETS.find(p => String(p.id) === String(petId));
   if (!pet) return;
@@ -401,9 +1384,11 @@ function openEditModal(petId) {
 
   if (nameEl)  nameEl.value  = pet.name ?? '';
   if (typeEl)  setSelectValueCaseInsensitive(typeEl, pet.species);
-  if (breedEl) breedEl.value = pet.breed ?? '';
+  configurePetDetailField(typeEl?.value || pet.species, pet.breed ?? '');
+  if (breedEl && !document.getElementById('editPetBreedSelect')) breedEl.value = pet.breed ?? '';
   if (bdayEl)  bdayEl.value  = pet.birthday ? String(pet.birthday).slice(0,10) : '';
-  if (preview) preview.src   = pet.avatar || '/assets/images/default-pet.png';
+  if (preview) preview.src   = safeMediaUrl(pet.avatar) || '/assets/images/default-pet.png';
+  updateEditPetModalChrome({ name: pet.name, species: typeEl?.value || pet.species, detail: pet.breed });
 
   // Hydrate trait chips and hidden JSON BEFORE opening so the enhancer won’t reset them
   hydrateTraitChipsFromPet(pet);
@@ -415,6 +1400,7 @@ if (editForm) {
   editForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!CURRENT_PET_ID) return;
+    clearInlineStatus('petFormStatus');
 
     // Build a minimal patch; includes traits + normalized top-level fields
     const patch = buildPetPatchFromForm();
@@ -429,13 +1415,13 @@ if (editForm) {
       });
       if (!res.ok) {
         console.error('Update failed', await res.text());
-        alert('Could not save profile. Please try again.');
+        setInlineStatus('petFormStatus', 'Could not save profile. Please try again.', 'danger');
         return;
       }
       try { PetsBus.emit('pet:updated', { id: CURRENT_PET_ID, patch }); } catch {}
     } catch (err) {
       console.warn('[account.js] save failed:', err);
-      alert('Could not save profile. Please try again.');
+      setInlineStatus('petFormStatus', 'Could not save profile. Please try again.', 'danger');
       return;
     }
 
@@ -445,7 +1431,7 @@ if (editForm) {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dataUrl: CURRENT_AVATAR_DATAURL }),
+        body: JSON.stringify({ imageBase64: CURRENT_AVATAR_DATAURL }),
       });
       if (!res2.ok) {
         console.error('Avatar upload failed', await res2.text());
@@ -454,10 +1440,12 @@ if (editForm) {
       CURRENT_AVATAR_DATAURL = null;
     }
 
-    closeModal('editPetModal');
-    await loadPets(); // rebind from server truth
-  });
-}
+	    closeModal('editPetModal');
+	    setAccountAlert('Pet profile saved.', 'success');
+	    await loadPets(); // rebind from server truth
+	    notifyStoryProgress({ source: 'pet-updated' });
+	  });
+	}
 
 //
 // -------------------------------
@@ -465,7 +1453,12 @@ if (editForm) {
 // -------------------------------
 function updateAvatarPreview(src) {
   const preview = document.getElementById('avatarPreview');
-  if (preview) preview.src = src || '/assets/images/default-pet.png';
+  if (preview) preview.src = safeMediaUrl(src) || '/assets/images/default-pet.png';
+}
+
+function updateNewPetAvatarPreview(src) {
+  const preview = document.getElementById('newPetAvatarPreview');
+  if (preview) preview.src = safeMediaUrl(src) || '/assets/images/default-pet.png';
 }
 
 /**
@@ -516,11 +1509,37 @@ async function removePetAvatar(petId) {
 }
 
 // Avatar file selection → preview & stage upload (no default submit)
+document.getElementById('newPetAvatar')?.addEventListener('change', async (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) {
+    setInlineStatus('addPetFormStatus', 'Please choose an image 5MB or smaller.', 'warning');
+    return;
+  }
+  const dataUrl = await readFileAsDataURL(file, 'addPetFormStatus');
+  if (!dataUrl) return;
+  ADD_PET_AVATAR_DATAURL = dataUrl;
+  updateNewPetAvatarPreview(ADD_PET_AVATAR_DATAURL);
+});
+
+document.getElementById('newPetAvatarPreview')?.addEventListener('click', () => {
+  clearInlineStatus('addPetFormStatus');
+  document.getElementById('newPetAvatar')?.click();
+});
+
+document.getElementById('removeNewPetAvatarBtn')?.addEventListener('click', () => {
+  ADD_PET_AVATAR_DATAURL = null;
+  updateNewPetAvatarPreview('');
+  const input = document.getElementById('newPetAvatar');
+  if (input) input.value = '';
+  clearInlineStatus('addPetFormStatus');
+});
+
 document.getElementById('editPetAvatar')?.addEventListener('change', async (e) => {
   const file = e.target.files?.[0];
   if (!file) return;
   if (file.size > 5 * 1024 * 1024) {
-    alert('Please choose an image 5MB or smaller.');
+    setInlineStatus('petFormStatus', 'Please choose an image 5MB or smaller.', 'warning');
     e.target.value = '';
     return;
   }
@@ -530,33 +1549,25 @@ document.getElementById('editPetAvatar')?.addEventListener('change', async (e) =
   updateAvatarPreview(CURRENT_AVATAR_DATAURL);
 });
 
-// Click the avatar → confirm remove; if cancelled, open picker to replace
+// Click the avatar to choose a replacement. The X button handles removal.
 document.getElementById('avatarPreview')?.addEventListener('click', async () => {
   if (!CURRENT_PET_ID) return;
-  const confirmed = confirm('Remove this pet photo?\n\nOK: remove photo\nCancel: pick a new photo');
-  if (confirmed) {
-    const { ok } = await removePetAvatar(CURRENT_PET_ID);
-    if (!ok) {
-      alert('Sorry—could not remove the photo. Please try again.');
-      return;
-    }
-    CURRENT_AVATAR_DATAURL = null;
-    updateAvatarPreview('/assets/images/default-pet.png');
-    try { await loadPets(); } catch {}
-  } else {
-    // choose a replacement
-    document.getElementById('editPetAvatar')?.click();
-  }
+  clearInlineStatus('petFormStatus');
+  document.getElementById('editPetAvatar')?.click();
 });
 
 // Keep the old button wired too (in case you show it later via CSS)
 document.getElementById('removeAvatarBtn')?.addEventListener('click', async () => {
   if (!CURRENT_PET_ID) return;
-  const confirmed = confirm('Remove this pet photo?');
+  const confirmed = await accountConfirm({
+    title: 'Remove pet photo?',
+    message: 'This will return the profile to the default Pet Pawket avatar.',
+    confirmLabel: 'Remove photo',
+  });
   if (!confirmed) return;
   const { ok } = await removePetAvatar(CURRENT_PET_ID);
   if (!ok) {
-    alert('Sorry—could not remove the photo. Please try again.');
+    setInlineStatus('petFormStatus', 'Could not remove the photo. Please try again.', 'danger');
     return;
   }
   CURRENT_AVATAR_DATAURL = null;
@@ -566,25 +1577,487 @@ document.getElementById('removeAvatarBtn')?.addEventListener('click', async () =
 
 //
 // -------------------------------
-// Pet Journal Modal (mood, tags, photo)
+// Pet Journal Modal (timeline, Core Memories, and connected path metadata)
 // -------------------------------
+const JOURNAL_ENTRY_TYPES = [
+  { value: 'note', label: 'Daily note', icon: 'bi-journal-text' },
+  { value: 'story', label: 'Story moment', icon: 'bi-bookmark-heart' },
+  { value: 'milestone', label: 'Milestone', icon: 'bi-award' },
+  { value: 'wellness', label: 'Wellness', icon: 'bi-heart-pulse' },
+  { value: 'vet', label: 'Vet visit', icon: 'bi-clipboard2-pulse' },
+  { value: 'medication', label: 'Medication', icon: 'bi-capsule' },
+  { value: 'meal', label: 'Meal', icon: 'bi-egg-fried' },
+  { value: 'walk', label: 'Walk', icon: 'bi-signpost-split' },
+  { value: 'training', label: 'Training', icon: 'bi-mortarboard' },
+  { value: 'grooming', label: 'Grooming', icon: 'bi-scissors' },
+  { value: 'play', label: 'Play', icon: 'bi-joystick' },
+  { value: 'behavior', label: 'Behavior', icon: 'bi-chat-heart' },
+  { value: 'weight', label: 'Weight', icon: 'bi-speedometer2' },
+  { value: 'allergy', label: 'Allergy', icon: 'bi-exclamation-triangle' },
+  { value: 'rescue', label: 'Rescue/adoption', icon: 'bi-house-heart' },
+  { value: 'memorial', label: 'Memorial', icon: 'bi-stars' },
+  { value: 'charm', label: 'CHARM note', icon: 'bi-shield-heart' },
+  { value: 'pawket-pal', label: 'Pawket Pal', icon: 'bi-controller' },
+];
+
+const JOURNAL_TYPE_BY_VALUE = new Map(JOURNAL_ENTRY_TYPES.map(type => [type.value, type]));
+const JOURNAL_VISIBILITY_LABELS = {
+  private: 'Private',
+  shareable: 'Shareable later',
+  community: 'Town Square candidate',
+  'charm-foundation': 'CHARM care note',
+};
+const JOURNAL_HANDOFF_LABELS = {
+  'pawket-pals': 'Pawket Pals',
+  'charm-foundation': 'CHARM',
+  'share-studio': 'Share Studio',
+  'town-square': 'Town Square',
+};
+const JOURNAL_MOODS = [
+  '',
+  'Happy',
+  'Playful',
+  'Calm',
+  'Energetic',
+  'Sleepy',
+  'Curious',
+  'Concerned',
+  'Anxious',
+  'Protective',
+  'Peaceful',
+  'Excited',
+  'Lonely',
+  'Mischievous',
+  'Inspired',
+];
+let JOURNAL_CACHE = [];
+
+function getJournalTypeMeta(value = 'note') {
+  const normalized = String(value || 'note').trim().toLowerCase();
+  return JOURNAL_TYPE_BY_VALUE.get(normalized) || JOURNAL_TYPE_BY_VALUE.get('note');
+}
+
+function journalTypeOptions(currentType = 'note') {
+  const current = getJournalTypeMeta(currentType).value;
+  return JOURNAL_ENTRY_TYPES.map(type => {
+    const selected = type.value === current ? ' selected' : '';
+    return `<option value="${escapeHtml(type.value)}"${selected}>${escapeHtml(type.label)}</option>`;
+  }).join('');
+}
+
+function journalMoodOptions(currentMood = '') {
+  const normalizedCurrent = String(currentMood || '').trim();
+  const values = [...JOURNAL_MOODS];
+  if (normalizedCurrent && !values.some(v => v.toLowerCase() === normalizedCurrent.toLowerCase())) {
+    values.push(normalizedCurrent);
+  }
+  return values.map(value => {
+    const label = value || 'No mood';
+    const selected = value.toLowerCase() === normalizedCurrent.toLowerCase() ? ' selected' : '';
+    return `<option value="${escapeHtml(value)}"${selected}>${escapeHtml(label)}</option>`;
+  }).join('');
+}
+
+function normalizeJournalTags(input) {
+  if (Array.isArray(input)) {
+    return input.map(tag => String(tag).replace(/^#/, '').trim()).filter(Boolean);
+  }
+  return String(input || '')
+    .split(',')
+    .map(tag => tag.replace(/^#/, '').trim())
+    .filter(Boolean);
+}
+
+function uniqueJournalTags(...tagGroups) {
+  const seen = new Set();
+  const out = [];
+  tagGroups.flatMap(normalizeJournalTags).forEach(tag => {
+    const key = tag.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push(tag);
+  });
+  return out;
+}
+
+function formatDateForDatetimeLocal(value = new Date()) {
+  const d = value ? new Date(value) : new Date();
+  if (Number.isNaN(d.getTime())) return '';
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function parseJournalLocalDate(value) {
+  if (!value) return null;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+}
+
+function formatJournalDate(value, fallback = 'Just now') {
+  if (!value) return fallback;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return fallback;
+  return d.toLocaleString([], {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
+function normalizeJournalEntry(entry = {}) {
+  const createdAt = entry.createdAt || entry.CreatedAt || entry.created_at || entry.created || '';
+  const occurredAt = entry.occurredAt || entry.occurred_at || createdAt;
+  const entryType = getJournalTypeMeta(entry.entryType || entry.entry_type || 'note').value;
+  const metadata = entry.metadata && typeof entry.metadata === 'object' && !Array.isArray(entry.metadata)
+    ? entry.metadata
+    : {};
+  return {
+    id: entry.id,
+    userId: entry.userId || entry.user_id,
+    petId: entry.petId || entry.pet_id,
+    title: String(entry.title || '').trim(),
+    entryType,
+    occurredAt,
+    text: String(entry.text || entry.note || '').trim(),
+    mood: String(entry.mood || '').trim(),
+    tags: normalizeJournalTags(entry.tags || []),
+    photo: entry.photo || '',
+    highlighted: entry.highlighted === true || entry.coreMemory === true,
+    visibility: JOURNAL_VISIBILITY_LABELS[entry.visibility] ? entry.visibility : 'private',
+    metadata,
+    createdAt,
+    updatedAt: entry.updatedAt || entry.updated_at || '',
+  };
+}
+
+function getJournalEntryById(entryId) {
+  return JOURNAL_CACHE.find(entry => String(entry.id) === String(entryId)) || null;
+}
+
+function inferJournalHandoffTargets({ entryType = 'note', visibility = 'private', highlighted = false, tags = [] } = {}) {
+  const targets = new Set();
+  const type = getJournalTypeMeta(entryType).value;
+  const normalizedTags = normalizeJournalTags(tags).map(tag => tag.toLowerCase());
+
+  if (highlighted || ['story', 'milestone', 'memorial', 'rescue', 'pawket-pal'].includes(type)) {
+    targets.add('pawket-pals');
+  }
+  if (['vet', 'medication', 'wellness', 'allergy', 'weight', 'rescue', 'charm'].includes(type) || visibility === 'charm-foundation') {
+    targets.add('charm-foundation');
+  }
+  if (visibility === 'shareable' || visibility === 'community' || highlighted) {
+    targets.add('share-studio');
+  }
+  if (visibility === 'community') {
+    targets.add('town-square');
+  }
+  if (normalizedTags.some(tag => ['rescue', 'adoption', 'foster', 'medical', 'shelter'].includes(tag))) {
+    targets.add('charm-foundation');
+  }
+
+  return [...targets];
+}
+
+function buildJournalMetadata(draft = {}, existing = {}) {
+  const metadata = existing && typeof existing === 'object' && !Array.isArray(existing) ? { ...existing } : {};
+  const handoffTargets = inferJournalHandoffTargets(draft);
+  return {
+    ...metadata,
+    source: 'account-journal',
+    schemaVersion: 1,
+    handoffTargets,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function defaultJournalTitle(entry) {
+  const type = getJournalTypeMeta(entry.entryType);
+  const date = entry.occurredAt ? new Date(entry.occurredAt) : null;
+  const day = date && !Number.isNaN(date.getTime())
+    ? date.toLocaleDateString([], { month: 'short', day: 'numeric' })
+    : '';
+  return [type.label, day].filter(Boolean).join(' · ') || 'Journal entry';
+}
+
+function getJournalFilters() {
+  return {
+    type: document.getElementById('journalFilterType')?.value || '',
+    query: String(document.getElementById('journalSearch')?.value || '').trim().toLowerCase(),
+    coreOnly: document.getElementById('journalCoreOnly')?.checked === true,
+  };
+}
+
+function filterJournalEntries(entries) {
+  const filters = getJournalFilters();
+  return entries.filter(entry => {
+    if (filters.type && entry.entryType !== filters.type) return false;
+    if (filters.coreOnly && !entry.highlighted) return false;
+    if (!filters.query) return true;
+
+    const type = getJournalTypeMeta(entry.entryType);
+    const haystack = [
+      entry.title,
+      entry.text,
+      entry.mood,
+      type.label,
+      JOURNAL_VISIBILITY_LABELS[entry.visibility],
+      ...entry.tags,
+    ].join(' ').toLowerCase();
+    return haystack.includes(filters.query);
+  });
+}
+
+function renderJournalStats(entries) {
+  const stats = document.getElementById('journalStats');
+  if (!stats) return;
+
+  const coreCount = entries.filter(entry => entry.highlighted).length;
+  const latest = entries[0]?.occurredAt || entries[0]?.createdAt || '';
+  const moodCounts = new Map();
+  entries.forEach(entry => {
+    if (!entry.mood) return;
+    moodCounts.set(entry.mood, (moodCounts.get(entry.mood) || 0) + 1);
+  });
+  const topMood = [...moodCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || 'None yet';
+
+  stats.innerHTML = `
+    <div class="journal-stat">
+      <strong>${entries.length}</strong>
+      <span>Entries</span>
+    </div>
+    <div class="journal-stat">
+      <strong>${coreCount}</strong>
+      <span>Core Memories</span>
+    </div>
+    <div class="journal-stat">
+      <strong>${escapeHtml(topMood)}</strong>
+      <span>Top mood</span>
+    </div>
+    <div class="journal-stat">
+      <strong>${escapeHtml(latest ? formatJournalDate(latest, 'None yet') : 'None yet')}</strong>
+      <span>Latest</span>
+    </div>
+  `;
+}
+
+function renderJournalEntry(entry) {
+  const type = getJournalTypeMeta(entry.entryType);
+  const title = entry.title || defaultJournalTitle(entry);
+  const when = formatJournalDate(entry.occurredAt || entry.createdAt);
+  const moodBadge = entry.mood
+    ? `<span class="journal-mood"><i class="bi bi-emoji-smile" aria-hidden="true"></i>${escapeHtml(entry.mood)}</span>`
+    : '';
+  const coreBadge = entry.highlighted
+    ? '<span class="journal-core-memory"><i class="bi bi-stars" aria-hidden="true"></i>Core Memory</span>'
+    : '';
+  const tags = entry.tags.length
+    ? `<div class="journal-tags">${entry.tags.map(tag => `<span class="journal-tag">#${escapeHtml(tag)}</span>`).join('')}</div>`
+    : '';
+  const photoUrl = safeMediaUrl(entry.photo);
+  const photo = photoUrl
+    ? `<div class="journal-photo">
+         <img src="${escapeHtml(photoUrl)}" alt="${escapeHtml(title)} photo" />
+         <button class="btn btn-sm btn-outline-warning" data-action="remove-photo" type="button"><i class="bi bi-image" aria-hidden="true"></i> Remove Photo</button>
+       </div>`
+    : '';
+  const handoffTargets = Array.isArray(entry.metadata?.handoffTargets)
+    ? entry.metadata.handoffTargets
+    : inferJournalHandoffTargets(entry);
+  const handoffBadges = handoffTargets.length
+    ? `<div class="journal-handoff-tags" aria-label="Connected story paths">
+        ${handoffTargets.map(target => `<span>${escapeHtml(JOURNAL_HANDOFF_LABELS[target] || target)}</span>`).join('')}
+       </div>`
+    : '';
+
+  return `
+    <li class="journal-entry-wrapper" data-entry-id="${escapeHtml(entry.id)}" data-entry-type="${escapeHtml(entry.entryType)}" data-mood="${escapeHtml(entry.mood || 'Unknown')}" data-highlighted="${entry.highlighted ? 'true' : 'false'}">
+      <div class="journal-entry-shell">
+        <div class="journal-entry-icon" aria-hidden="true"><i class="bi ${escapeHtml(type.icon)}"></i></div>
+        <div class="journal-entry-content">
+          <div class="journal-entry-topline">
+            <span class="journal-entry-date">${escapeHtml(when)}</span>
+            <span class="journal-type-chip">${escapeHtml(type.label)}</span>
+            <span class="journal-visibility-chip">${escapeHtml(JOURNAL_VISIBILITY_LABELS[entry.visibility] || 'Private')}</span>
+          </div>
+          <h5 class="journal-entry-title">${escapeHtml(title)}</h5>
+          <div class="journal-entry-badges">${moodBadge}${coreBadge}</div>
+          <div class="journal-note">${escapeHtml(entry.text)}</div>
+          ${tags}
+          ${handoffBadges}
+          ${photo}
+        </div>
+        <div class="journal-actions">
+          <button class="btn btn-sm btn-outline-warning" data-action="toggle-core-memory" aria-pressed="${entry.highlighted ? 'true' : 'false'}" type="button"><i class="bi bi-stars" aria-hidden="true"></i><span>${entry.highlighted ? 'Unmark' : 'Core'}</span></button>
+          <button class="btn btn-sm btn-outline-secondary" data-action="edit-journal" type="button"><i class="bi bi-pencil" aria-hidden="true"></i><span>Edit</span></button>
+          <button class="btn btn-sm btn-outline-danger" data-action="delete-journal" type="button"><i class="bi bi-trash3" aria-hidden="true"></i><span>Delete</span></button>
+        </div>
+      </div>
+    </li>`;
+}
+
+function renderJournalTimeline() {
+  const list = document.getElementById('journalEntryList');
+  const empty = document.getElementById('journalEmpty');
+  if (!list) return;
+
+  renderJournalStats(JOURNAL_CACHE);
+  const filteredEntries = filterJournalEntries(JOURNAL_CACHE);
+
+  if (!JOURNAL_CACHE.length) {
+    list.innerHTML = '';
+    if (empty) {
+      empty.textContent = 'No entries yet. Add the first care note, story moment, or Core Memory.';
+      empty.style.display = '';
+    }
+    return;
+  }
+
+  if (!filteredEntries.length) {
+    list.innerHTML = '';
+    if (empty) {
+      empty.textContent = 'No journal entries match these filters.';
+      empty.style.display = '';
+    }
+    return;
+  }
+
+  list.innerHTML = filteredEntries.map(renderJournalEntry).join('');
+  if (empty) empty.style.display = 'none';
+}
+
+function setJournalComposerStatus(message, level = 'muted') {
+  const status = document.getElementById('journalComposerStatus');
+  if (!status) return;
+  status.textContent = message || '';
+  status.dataset.level = level;
+}
+
+function clearJournalPhotoPreview() {
+  const wrap = document.getElementById('journalPhotoPreviewWrap');
+  if (wrap) wrap.innerHTML = '';
+}
+
+function resetJournalComposer(pet) {
+  const titleEl = document.getElementById('newJournalTitle');
+  const noteEl = document.getElementById('newJournalNote');
+  const tagsEl = document.getElementById('journalTags');
+  const moodEl = document.getElementById('journalMood');
+  const photoEl = document.getElementById('journalPhoto');
+  const typeEl = document.getElementById('journalEntryType');
+  const occurredEl = document.getElementById('journalOccurredAt');
+  const visibilityEl = document.getElementById('journalVisibility');
+  const coreEl = document.getElementById('journalCoreMemory');
+
+  if (titleEl) {
+    titleEl.value = '';
+    titleEl.placeholder = pet?.name ? `${pet.name}'s moment title` : 'Morning walk, first trick, vet follow-up...';
+  }
+  if (noteEl) {
+    noteEl.value = '';
+    noteEl.placeholder = pet?.name ? `What happened with ${pet.name}?` : "Today's update...";
+    try { noteEl.dispatchEvent(new Event('input')); } catch {}
+  }
+  if (tagsEl) tagsEl.value = '';
+  if (moodEl) moodEl.value = 'Happy';
+  if (photoEl) photoEl.value = '';
+  if (typeEl) typeEl.value = 'note';
+  if (occurredEl) occurredEl.value = formatDateForDatetimeLocal(new Date());
+  if (visibilityEl) visibilityEl.value = 'private';
+  if (coreEl) coreEl.checked = false;
+  clearJournalPhotoPreview();
+  setJournalComposerStatus('');
+}
+
 function openJournalModal(petId) {
   CURRENT_PET_ID = petId;
 
-  const idxEl   = document.getElementById('journalPetIndex');
-  const noteEl  = document.getElementById('newJournalNote');
-  const tagsEl  = document.getElementById('journalTags');
-  const moodEl  = document.getElementById('journalMood');
-  const photoEl = document.getElementById('journalPhoto');
+  ensureJournalEnhancements();
 
-  if (idxEl)  idxEl.value  = petId;
-  if (noteEl) noteEl.value = '';
-  if (tagsEl) tagsEl.value = '';
-  if (moodEl)  moodEl.value = 'Happy';
-  if (photoEl) photoEl.value = '';
+  const pet = PETS.find(p => String(p.id) === String(petId));
+  const idxEl = document.getElementById('journalPetIndex');
+  const label = document.getElementById('journalLabel');
+  if (label) label.textContent = pet?.name ? `Pet Journal — ${pet.name}` : 'Pet Journal';
+
+  const sub = document.getElementById('journalSubhead');
+  if (sub) {
+    const meta = [pet?.species, pet?.breed].filter(Boolean).join(' • ');
+    sub.textContent = meta ? `${meta} • Notes, care, story moments, and Core Memories.` : 'Capture notes, moods, care moments, and Core Memories.';
+  }
+
+  if (idxEl) idxEl.value = petId;
+  resetJournalComposer(pet);
 
   openModal('journal-modal');
   loadPetJournal(petId).catch(err => console.error('loadPetJournal', err));
+}
+
+function ensureJournalEnhancements() {
+  const noteEl = document.getElementById('newJournalNote');
+  const photoEl = document.getElementById('journalPhoto');
+
+  if (noteEl && !noteEl.dataset.journalCount) {
+    noteEl.dataset.journalCount = '1';
+    const counter = document.createElement('div');
+    counter.id = 'journalNoteCount';
+    counter.className = 'journal-note-count text-muted small';
+    noteEl.insertAdjacentElement('afterend', counter);
+    const update = () => {
+      const len = noteEl.value?.length || 0;
+      counter.textContent = `${len} characters`;
+    };
+    noteEl.addEventListener('input', update);
+    update();
+  }
+
+  if (photoEl && !photoEl.dataset.journalPreview) {
+    photoEl.dataset.journalPreview = '1';
+    let wrap = document.getElementById('journalPhotoPreviewWrap');
+    if (!wrap) {
+      wrap = document.createElement('div');
+      wrap.id = 'journalPhotoPreviewWrap';
+      wrap.className = 'journal-photo-preview';
+      photoEl.insertAdjacentElement('afterend', wrap);
+    }
+    photoEl.addEventListener('change', async () => {
+      const file = photoEl.files?.[0];
+      if (!file) { wrap.innerHTML = ''; return; }
+      const dataUrl = await readFileAsDataURL(file);
+      if (!dataUrl) return;
+      wrap.innerHTML = `<img src="${dataUrl}" alt="Journal preview" />`;
+    });
+  }
+
+  document.querySelectorAll('[data-journal-prompt]').forEach(btn => {
+    if (btn.dataset.journalPromptWired === '1') return;
+    btn.dataset.journalPromptWired = '1';
+    btn.addEventListener('click', () => {
+      const typeEl = document.getElementById('journalEntryType');
+      const titleEl = document.getElementById('newJournalTitle');
+      const noteEl = document.getElementById('newJournalNote');
+      const tagsEl = document.getElementById('journalTags');
+      const type = getJournalTypeMeta(btn.dataset.journalType || 'note');
+      if (typeEl) typeEl.value = type.value;
+      if (titleEl && !titleEl.value.trim()) titleEl.value = `${type.label} update`;
+      if (noteEl) {
+        const prompt = btn.dataset.journalText || '';
+        noteEl.value = noteEl.value.trim() ? `${noteEl.value.trim()}\n\n${prompt}` : prompt;
+        try { noteEl.dispatchEvent(new Event('input')); } catch {}
+        noteEl.focus();
+      }
+      if (tagsEl) {
+        tagsEl.value = uniqueJournalTags(tagsEl.value, btn.dataset.journalTags || '').join(', ');
+      }
+    });
+  });
+
+  ['journalFilterType', 'journalSearch', 'journalCoreOnly'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el || el.dataset.journalFilterWired === '1') return;
+    el.dataset.journalFilterWired = '1';
+    el.addEventListener(id === 'journalSearch' ? 'input' : 'change', renderJournalTimeline);
+  });
 }
 
 async function loadPetJournal(petId) {
@@ -592,59 +2065,98 @@ async function loadPetJournal(petId) {
   const empty = document.getElementById('journalEmpty');
   if (!list) return;
 
-  list.innerHTML = `<div class="text-muted small">Loading…</div>`;
-  empty && (empty.style.display = 'none');
+  list.innerHTML = `<li class="journal-loading text-muted small">Loading journal…</li>`;
+  if (empty) empty.style.display = 'none';
 
   try {
     const res = await fetch(`/api/pets/${petId}/journal`, { credentials: 'include' });
     if (!res.ok) throw new Error('Failed to load journal');
-    const entries = await res.json();
+    const payload = await res.json().catch(() => ({}));
+    const entries = Array.isArray(payload)
+      ? payload
+      : (payload.journal || payload.entries || payload.items || []);
 
-    if (!entries || entries.length === 0) {
-      list.innerHTML = '';
-      if (empty) empty.style.display = '';
-      return;
-    }
-
-    const html = entries.map(e => {
-      const when = e.createdAt ? new Date(e.createdAt).toLocaleString() : '';
-      const moodBadge = e.mood ? `<span class="badge bg-info-subtle text-info-emphasis journal-mood">${escapeHtml(e.mood)}</span>` : '';
-      const tagsBadges = Array.isArray(e.tags) && e.tags.length
-        ? e.tags.map(t => `<span class="badge bg-secondary-subtle text-secondary-emphasis me-1">#${escapeHtml(t)}</span>`).join('')
-        : '';
-      const photo = e.photo
-        ? `<div class="mt-2">
-             <img src="${escapeHtml(e.photo)}" alt="photo" style="max-width:100%;height:auto;max-height:220px;object-fit:cover;" />
-             <div class="mt-1"><button class="btn btn-sm btn-outline-warning" data-action="remove-photo">Remove Photo</button></div>
-           </div>`
-        : '';
-
-      return `
-        <li class="border rounded p-2 mb-2" data-entry-id="${escapeHtml(e.id)}">
-          <div class="d-flex justify-content-between align-items-start">
-            <div>
-              <div class="small text-muted">${when}</div>
-              <div class="mb-1">
-                ${moodBadge}
-                ${tagsBadges ? `<span class="journal-tags ms-1">${tagsBadges}</span>` : ''}
-              </div>
-            </div>
-            <div class="ms-2">
-              <button class="btn btn-sm btn-outline-secondary me-1" data-action="edit-journal">Edit</button>
-              <button class="btn btn-sm btn-outline-danger" data-action="delete-journal">Delete</button>
-            </div>
-          </div>
-          <div class="journal-text mt-1">${escapeHtml(e.text || '')}</div>
-          ${photo}
-        </li>`;
-    }).join('');
-
-    list.innerHTML = html;
-    if (empty) empty.style.display = 'none';
+    JOURNAL_CACHE = (entries || []).map(normalizeJournalEntry);
+    setPetJournalSummary(petId, summarizeJournalEntries(JOURNAL_CACHE));
+    renderJournalTimeline();
   } catch (err) {
     console.error(err);
-    list.innerHTML = `<div class="text-danger small">Failed to load.</div>`;
+    JOURNAL_CACHE = [];
+    setPetJournalSummary(petId, emptyJournalSummary('error'));
+    renderJournalStats([]);
+    list.innerHTML = `<li class="text-danger small">Failed to load journal entries.</li>`;
   }
+}
+
+function renderJournalEditForm(li, entry = {}) {
+  const existing = li.querySelector('[data-journal-edit-form]');
+  if (existing) {
+    existing.remove();
+    return;
+  }
+
+  $all('[data-journal-edit-form]', document.getElementById('journalEntryList')).forEach(form => form.remove());
+
+  const form = document.createElement('form');
+  form.className = 'journal-edit-form';
+  form.setAttribute('data-journal-edit-form', '1');
+  form.innerHTML = `
+    <div class="journal-edit-grid">
+      <div class="journal-field journal-field--wide">
+        <label class="form-label small fw-semibold">Title</label>
+        <input class="form-control" name="title" maxlength="90" value="${escapeHtml(entry.title || '')}" placeholder="${escapeHtml(defaultJournalTitle(entry))}" />
+      </div>
+      <div class="journal-field">
+        <label class="form-label small fw-semibold">Type</label>
+        <select class="form-select" name="entryType">${journalTypeOptions(entry.entryType)}</select>
+      </div>
+      <div class="journal-field">
+        <label class="form-label small fw-semibold">When</label>
+        <input class="form-control" type="datetime-local" name="occurredAt" value="${escapeHtml(formatDateForDatetimeLocal(entry.occurredAt || entry.createdAt))}" />
+      </div>
+      <div class="journal-field">
+        <label class="form-label small fw-semibold">Mood</label>
+        <select class="form-select" name="mood">${journalMoodOptions(entry.mood)}</select>
+      </div>
+      <div class="journal-field">
+        <label class="form-label small fw-semibold">Visibility</label>
+        <select class="form-select" name="visibility">
+          <option value="private"${entry.visibility === 'private' ? ' selected' : ''}>Private</option>
+          <option value="shareable"${entry.visibility === 'shareable' ? ' selected' : ''}>Shareable later</option>
+          <option value="community"${entry.visibility === 'community' ? ' selected' : ''}>Town Square candidate</option>
+          <option value="charm-foundation"${entry.visibility === 'charm-foundation' ? ' selected' : ''}>CHARM care note</option>
+        </select>
+      </div>
+      <div class="journal-field journal-field--wide">
+        <label class="form-label small fw-semibold">Tags</label>
+        <input class="form-control" name="tags" value="${escapeHtml(entry.tags.join(', '))}" placeholder="walk, vet, cozy" />
+      </div>
+      <div class="journal-field journal-field--wide">
+        <label class="form-label small fw-semibold">Memory note</label>
+        <textarea class="form-control" name="text" rows="4" required>${escapeHtml(entry.text || '')}</textarea>
+      </div>
+      <label class="journal-core-toggle journal-core-toggle--edit">
+        <input class="form-check-input" type="checkbox" name="highlighted"${entry.highlighted ? ' checked' : ''} />
+        <span><i class="bi bi-stars" aria-hidden="true"></i> Core Memory</span>
+      </label>
+    </div>
+    <div class="d-flex flex-wrap gap-2 mt-3">
+      <button class="btn btn-primary btn-sm" type="submit"><i class="bi bi-check2-circle" aria-hidden="true"></i> Save memory</button>
+      <button class="btn btn-outline-secondary btn-sm" type="button" data-action="cancel-journal-edit">Cancel</button>
+    </div>
+    <div class="small text-danger mt-2 d-none" data-journal-edit-status role="alert"></div>
+  `;
+
+  const anchor = li.querySelector('.journal-entry-content') || li;
+  anchor.insertAdjacentElement('beforeend', form);
+  form.querySelector('textarea')?.focus();
+}
+
+function setJournalEditStatus(form, message) {
+  const status = form?.querySelector('[data-journal-edit-status]');
+  if (!status) return;
+  status.textContent = message || '';
+  status.classList.toggle('d-none', !message);
 }
 
 const journalListEl = document.getElementById('journalEntryList');
@@ -658,8 +2170,18 @@ if (journalListEl) {
     const entryId = li.getAttribute('data-entry-id');
     const action = btn.getAttribute('data-action');
 
+    if (action === 'cancel-journal-edit') {
+      li.querySelector('[data-journal-edit-form]')?.remove();
+      return;
+    }
+
     if (action === 'delete-journal') {
-      if (!confirm('Delete this journal entry?')) return;
+      const confirmed = await accountConfirm({
+        title: 'Delete journal memory?',
+        message: 'This journal entry will be removed from the pet story trail. Core Memory status and tags on this entry will be deleted too.',
+        confirmLabel: 'Delete memory',
+      });
+      if (!confirmed) return;
       const res = await fetch(`/api/pets/${CURRENT_PET_ID}/journal/${entryId}`, {
         method: 'DELETE',
         credentials: 'include',
@@ -668,7 +2190,9 @@ if (journalListEl) {
         console.error('Delete failed', await res.text());
         return;
       }
-      loadPetJournal(CURRENT_PET_ID).catch(() => {});
+      setAccountAlert('Journal memory deleted.', 'success');
+      await loadPetJournal(CURRENT_PET_ID).catch(() => {});
+      notifyStoryProgress({ source: 'journal-deleted' });
       return;
     }
 
@@ -687,23 +2211,76 @@ if (journalListEl) {
       return;
     }
 
+    if (action === 'toggle-core-memory') {
+      const entry = getJournalEntryById(entryId);
+      const next = li.getAttribute('data-highlighted') !== 'true';
+      const metadata = buildJournalMetadata({
+        ...(entry || {}),
+        highlighted: next,
+      }, entry?.metadata || {});
+      const res = await fetch(`/api/pets/${CURRENT_PET_ID}/journal/${entryId}`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ highlighted: next, metadata }),
+      });
+      if (!res.ok) {
+        console.error('Core Memory update failed', await res.text());
+        return;
+      }
+      await loadPetJournal(CURRENT_PET_ID).catch(() => {});
+      notifyStoryProgress({ source: 'core-memory-updated', highlighted: next });
+      return;
+    }
+
     if (action === 'edit-journal') {
-      const textEl  = li.querySelector('.journal-text');
-      const moodEl  = li.querySelector('.journal-mood');
-      const tagsWrap = li.querySelector('.journal-tags');
+      const entry = getJournalEntryById(entryId);
+      if (!entry) return;
+      renderJournalEditForm(li, entry);
+      return;
+    }
+  });
 
-      const currentText = textEl ? textEl.textContent : '';
-      const currentMood = moodEl ? moodEl.textContent.trim() : '';
-      const currentTags = tagsWrap ? [...tagsWrap.querySelectorAll('.badge')].map(b => b.textContent.replace(/^#/, '').trim()) : [];
+  journalListEl.addEventListener('submit', async (ev) => {
+    const form = ev.target.closest('[data-journal-edit-form]');
+    if (!form) return;
+    ev.preventDefault();
 
-      const newText = prompt('Edit note text:', currentText ?? '');
-      if (newText === null) return;
-      const newMood = prompt('Edit mood (optional):', currentMood ?? '');
-      if (newMood === null) return;
-      const newTags = prompt('Edit tags (comma-separated):', currentTags.join(','));
-      if (newTags === null) return;
+    const li = form.closest('li[data-entry-id]');
+    if (!li || !CURRENT_PET_ID) return;
 
-      const patch = { text: newText, mood: newMood || null, tags: newTags };
+    const entryId = li.getAttribute('data-entry-id');
+    const existingEntry = getJournalEntryById(entryId);
+    const text = form.querySelector('[name="text"]')?.value?.trim() || '';
+    const title = form.querySelector('[name="title"]')?.value?.trim() || '';
+    const entryType = form.querySelector('[name="entryType"]')?.value || 'note';
+    const occurredAt = parseJournalLocalDate(form.querySelector('[name="occurredAt"]')?.value || '');
+    const mood = form.querySelector('[name="mood"]')?.value?.trim() || '';
+    const tags = form.querySelector('[name="tags"]')?.value || '';
+    const tagList = normalizeJournalTags(tags);
+    const visibility = form.querySelector('[name="visibility"]')?.value || 'private';
+    const highlighted = form.querySelector('[name="highlighted"]')?.checked === true;
+    if (!text) {
+      setJournalEditStatus(form, 'Add a note before saving this memory.');
+      return;
+    }
+
+    const saveBtn = form.querySelector('button[type="submit"]');
+    if (saveBtn) saveBtn.disabled = true;
+    setJournalEditStatus(form, '');
+
+    try {
+      const patch = {
+        title,
+        entryType,
+        occurredAt,
+        text,
+        mood: mood || null,
+        tags: tagList,
+        visibility,
+        highlighted,
+        metadata: buildJournalMetadata({ entryType, visibility, highlighted, tags: tagList }, existingEntry?.metadata || {}),
+      };
       const res = await fetch(`/api/pets/${CURRENT_PET_ID}/journal/${entryId}`, {
         method: 'PATCH',
         credentials: 'include',
@@ -712,10 +2289,16 @@ if (journalListEl) {
       });
       if (!res.ok) {
         console.error('Edit failed', await res.text());
+        setJournalEditStatus(form, 'Could not save this memory. Please try again.');
         return;
       }
-      loadPetJournal(CURRENT_PET_ID).catch(() => {});
-      return;
+      await loadPetJournal(CURRENT_PET_ID);
+      notifyStoryProgress({ source: 'journal-updated' });
+    } catch (err) {
+      console.warn('[account.js] journal edit failed:', err);
+      setJournalEditStatus(form, 'Could not save this memory. Please try again.');
+    } finally {
+      if (saveBtn) saveBtn.disabled = false;
     }
   });
 }
@@ -726,33 +2309,72 @@ if (addJournalBtn) {
     if (!CURRENT_PET_ID) return;
 
     const noteEl  = document.getElementById('newJournalNote');
+    const titleEl = document.getElementById('newJournalTitle');
     const tagsEl  = document.getElementById('journalTags');
     const moodEl  = document.getElementById('journalMood');
     const photoEl = document.getElementById('journalPhoto');
+    const typeEl = document.getElementById('journalEntryType');
+    const occurredEl = document.getElementById('journalOccurredAt');
+    const visibilityEl = document.getElementById('journalVisibility');
+    const coreEl = document.getElementById('journalCoreMemory');
 
     const text  = noteEl ? noteEl.value.trim() : '';
-    if (!text) return;
-
-    const tags = tagsEl ? tagsEl.value : '';
-    const mood = moodEl ? moodEl.value : null;
-    const file = photoEl?.files?.[0] || null;
-    const photoDataUrl = file ? await readFileAsDataURL(file) : null;
-
-    const res = await fetch(`/api/pets/${CURRENT_PET_ID}/journal`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, mood, tags, photoDataUrl }),
-    });
-    if (!res.ok) {
-      console.error('Add entry failed', await res.text());
+    if (!text) {
+      setJournalComposerStatus('Add a note before saving this journal entry.', 'danger');
+      noteEl?.focus();
       return;
     }
-    if (noteEl)  noteEl.value = '';
-    if (tagsEl)  tagsEl.value = '';
-    if (moodEl)  moodEl.value = 'Happy';
-    if (photoEl) photoEl.value = '';
-    loadPetJournal(CURRENT_PET_ID).catch(() => {});
+
+    const title = titleEl ? titleEl.value.trim() : '';
+    const tags = tagsEl ? tagsEl.value : '';
+    const tagList = normalizeJournalTags(tags);
+    const mood = moodEl ? moodEl.value : null;
+    const entryType = typeEl ? typeEl.value : 'note';
+    const occurredAt = parseJournalLocalDate(occurredEl?.value || '') || new Date().toISOString();
+    const visibility = visibilityEl ? visibilityEl.value : 'private';
+    const highlighted = coreEl?.checked === true;
+    const file = photoEl?.files?.[0] || null;
+    const photoDataUrl = file ? await readFileAsDataURL(file) : null;
+    const pet = PETS.find(p => String(p.id) === String(CURRENT_PET_ID));
+    const metadata = buildJournalMetadata({ entryType, visibility, highlighted, tags: tagList }, {
+      petName: pet?.name || null,
+    });
+
+    addJournalBtn.disabled = true;
+    setJournalComposerStatus('Saving journal entry...', 'muted');
+    try {
+      const res = await fetch(`/api/pets/${CURRENT_PET_ID}/journal`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          entryType,
+          occurredAt,
+          text,
+          mood,
+          tags: tagList,
+          photo: photoDataUrl,
+          highlighted,
+          visibility,
+          metadata,
+        }),
+      });
+      if (!res.ok) {
+        console.error('Add entry failed', await res.text());
+        setJournalComposerStatus('Could not save this journal entry. Please try again.', 'danger');
+        return;
+      }
+      resetJournalComposer(pet);
+      await loadPetJournal(CURRENT_PET_ID);
+      setJournalComposerStatus('Journal entry saved.', 'success');
+      notifyStoryProgress({ source: 'journal-created' });
+    } catch (err) {
+      console.warn('[account.js] journal create failed:', err);
+      setJournalComposerStatus('Could not save this journal entry. Please try again.', 'danger');
+    } finally {
+      addJournalBtn.disabled = false;
+    }
   });
 }
 
@@ -763,12 +2385,17 @@ if (addJournalBtn) {
 async function loadProfile() {
   try {
     const res = await fetch('/api/account/profile', { credentials: 'include' });
-    if (!res.ok) return;
+    if (!res.ok) {
+      setAccountAlert('Unable to load your profile details right now.', 'warning');
+      return;
+    }
     const p = await res.json();
     $('#profileFirstName') && ($('#profileFirstName').value = p.firstName || '');
     $('#profileLastName')  && ($('#profileLastName').value  = p.lastName || '');
     $('#profileEmail')     && ($('#profileEmail').value     = p.email || '');
-  } catch { /* noop */ }
+  } catch {
+    setAccountAlert('Unable to load your profile details right now.', 'warning');
+  }
 }
 
 // ✅ Wire the Profile form so "Save Changes" actually persists
@@ -837,24 +2464,37 @@ async function loadOrders() {
   container.innerHTML = `<div class="spinner-border text-info" role="status"><span class="visually-hidden">Loading...</span></div>`;
   try {
     const res = await fetch('/api/orders', { credentials: 'include' });
+    if (res.status === 401 || res.status === 403) {
+      container.innerHTML = `<div class="text-muted">Link your Shopify account to see order history.</div>`;
+      return;
+    }
+    if (res.status === 503) {
+      container.innerHTML = `<div class="text-muted">Shopify is temporarily unavailable. Please try again soon.</div>`;
+      setAccountAlert('Shopify is temporarily unavailable. Order history may be delayed.', 'warning');
+      return;
+    }
     if (!res.ok) throw new Error('Orders load failed');
-    const orders = await res.json();
+    const payload = await res.json();
+    const orders = Array.isArray(payload)
+      ? payload
+      : (Array.isArray(payload?.orders) ? payload.orders : []);
     container.innerHTML = Array.isArray(orders) && orders.length
       ? orders.map(o => {
           const when   = o.processedAt ? new Date(o.processedAt).toLocaleString() : '';
           const amount = o.totalPriceV2?.amount ?? '';
           const cur    = o.totalPriceV2?.currencyCode ?? '';
           const items  = (o.lineItems?.edges || []).map(e => `<li>${escapeHtml(e.node.title)} × ${e.node.quantity}</li>`).join('');
+          const statusUrl = safeUrl(o.statusUrl);
           return `
             <div class="card mb-3"><div class="card-body">
               <div class="d-flex justify-content-between">
                 <div>
-                  <div class="fw-semibold">Order #${o.orderNumber ?? o.name ?? ''}</div>
-                  <div class="text-muted small">${when}</div>
+                  <div class="fw-semibold">Order #${escapeHtml(o.orderNumber ?? o.name ?? '')}</div>
+                  <div class="text-muted small">${escapeHtml(when)}</div>
                 </div>
                 <div class="text-end">
-                  <div class="fw-semibold">${amount} ${cur}</div>
-                  ${o.statusUrl ? `<a class="small" href="${o.statusUrl}" target="_blank" rel="noopener">Status</a>`:''}
+                  <div class="fw-semibold">${escapeHtml(amount)} ${escapeHtml(cur)}</div>
+                  ${statusUrl ? `<a class="small" href="${escapeHtml(statusUrl)}" target="_blank" rel="noopener">Status</a>`:''}
                 </div>
               </div>
               <ul class="mt-2 mb-0 small">${items}</ul>
@@ -863,6 +2503,7 @@ async function loadOrders() {
       : `<div class="text-muted">No recent orders</div>`;
   } catch {
     container.innerHTML = `<div class="text-danger">Failed to load orders</div>`;
+    setAccountAlert('Order history is unavailable right now. Please try again shortly.', 'warning');
   }
 }
 
@@ -878,13 +2519,18 @@ async function loadAddresses() {
     const res = await fetch('/api/addresses', { credentials: 'include' });
     if (!res.ok) throw new Error('Failed to load addresses');
     const rows = await res.json();
+    ADDRESSES = Array.isArray(rows) ? rows : [];
 
-    if (!rows || rows.length === 0) {
-      list.innerHTML = `<div class="text-muted small">No addresses yet.</div>`;
+    if (!ADDRESSES.length) {
+      list.innerHTML = `
+        <div class="account-empty-state account-empty-state--compact">
+          <strong>No saved addresses yet.</strong>
+          <p class="mb-0">Add a shipping address when you are ready for Pawket Packs, gifts, and order updates.</p>
+        </div>`;
       return;
     }
 
-    const html = rows.map(a => {
+    const html = ADDRESSES.map(a => {
       const badges = [
         a.isDefaultShipping ? `<span class="badge bg-info-subtle text-info-emphasis me-1">Default Shipping</span>` : '',
         a.isDefaultBilling  ? `<span class="badge bg-success-subtle text-success-emphasis me-1">Default Billing</span>`  : '',
@@ -899,7 +2545,7 @@ async function loadAddresses() {
 
       return `
         <li class="border rounded p-2 mb-2" data-address-id="${escapeHtml(a.id)}">
-          <div class="d-flex justify-content-between alignments-start">
+          <div class="d-flex justify-content-between align-items-start">
             <div class="me-2">
               <div class="fw-semibold">${escapeHtml(a.label || 'Address')}</div>
               <div class="small text-muted">${escapeHtml(nameLine)}</div>
@@ -919,7 +2565,9 @@ async function loadAddresses() {
     list.innerHTML = html;
   } catch (e) {
     console.error(e);
+    ADDRESSES = [];
     list.innerHTML = `<div class="text-danger small">Failed to load addresses.</div>`;
+    setAccountAlert('Address book failed to load. Please refresh or try again later.', 'warning');
   }
 }
 
@@ -972,6 +2620,174 @@ function ensureAddressSection() {
   return true;
 }
 
+function ensureAddressModal() {
+  let modal = document.getElementById('addressModal');
+  if (modal) return modal;
+
+  modal = document.createElement('div');
+  modal.id = 'addressModal';
+  modal.className = 'custom-modal hidden';
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-modal', 'true');
+  modal.setAttribute('aria-hidden', 'true');
+  modal.setAttribute('aria-labelledby', 'addressModalTitle');
+  modal.innerHTML = `
+    <div class="modal-content account-address-modal" data-modal-content>
+      <h3 id="addressModalTitle">Add Address</h3>
+      <p class="text-muted small mb-3">Used for Pawket Pack shipping, gifts, and order updates. You can update defaults anytime.</p>
+      <form id="addressForm">
+        <input type="hidden" name="id" />
+        <div class="row g-3">
+          <div class="col-12 col-sm-6">
+            <label class="form-label" for="addressLabel">Label</label>
+            <input class="form-control" id="addressLabel" name="label" autocomplete="address-line1" placeholder="Home, Work, Family" />
+          </div>
+          <div class="col-12 col-sm-6">
+            <label class="form-label" for="addressName">Recipient</label>
+            <input class="form-control" id="addressName" name="name" autocomplete="name" placeholder="Full name" />
+          </div>
+          <div class="col-12 col-sm-6">
+            <label class="form-label" for="addressPhone">Phone</label>
+            <input class="form-control" id="addressPhone" name="phone" autocomplete="tel" placeholder="Optional" />
+          </div>
+          <div class="col-12">
+            <label class="form-label" for="addressLine1">Address line 1</label>
+            <input class="form-control" id="addressLine1" name="address1" autocomplete="address-line1" required />
+          </div>
+          <div class="col-12">
+            <label class="form-label" for="addressLine2">Address line 2</label>
+            <input class="form-control" id="addressLine2" name="address2" autocomplete="address-line2" placeholder="Apartment, suite, unit" />
+          </div>
+          <div class="col-12 col-sm-5">
+            <label class="form-label" for="addressCity">City</label>
+            <input class="form-control" id="addressCity" name="city" autocomplete="address-level2" required />
+          </div>
+          <div class="col-6 col-sm-3">
+            <label class="form-label" for="addressState">State</label>
+            <input class="form-control" id="addressState" name="state" autocomplete="address-level1" required />
+          </div>
+          <div class="col-6 col-sm-4">
+            <label class="form-label" for="addressPostal">Postal code</label>
+            <input class="form-control" id="addressPostal" name="postalCode" autocomplete="postal-code" required />
+          </div>
+          <div class="col-12 col-sm-6">
+            <label class="form-label" for="addressCountry">Country</label>
+            <input class="form-control" id="addressCountry" name="country" autocomplete="country-name" value="US" required />
+          </div>
+          <div class="col-12">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="addressDefaultShipping" name="isDefaultShipping" />
+              <label class="form-check-label" for="addressDefaultShipping">Default shipping address</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="addressDefaultBilling" name="isDefaultBilling" />
+              <label class="form-check-label" for="addressDefaultBilling">Default billing address</label>
+            </div>
+          </div>
+        </div>
+        <div id="addressFormStatus" class="small text-danger mt-2 d-none" role="alert" aria-live="polite"></div>
+        <div class="d-flex justify-content-between align-items-center gap-2 mt-3">
+          <button type="button" class="btn btn-outline-secondary" data-close="addressModal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Address</button>
+        </div>
+      </form>
+      <button class="close-btn" data-close="addressModal" aria-label="Close address modal">×</button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  const form = modal.querySelector('#addressForm');
+  form?.addEventListener('submit', submitAddressForm);
+  return modal;
+}
+
+function setAddressFormStatus(message) {
+  const status = document.getElementById('addressFormStatus');
+  if (!status) return;
+  status.textContent = message || '';
+  status.classList.toggle('d-none', !message);
+}
+
+function fillAddressForm(address = {}) {
+  const modal = ensureAddressModal();
+  const form = modal.querySelector('#addressForm');
+  if (!form) return;
+  const fields = ['id', 'label', 'name', 'phone', 'address1', 'address2', 'city', 'state', 'postalCode', 'country'];
+  fields.forEach(name => {
+    const input = form.elements[name];
+    if (input) input.value = address?.[name] ?? (name === 'country' ? 'US' : '');
+  });
+  form.elements.isDefaultShipping.checked = !!address?.isDefaultShipping;
+  form.elements.isDefaultBilling.checked = !!address?.isDefaultBilling;
+  setAddressFormStatus('');
+}
+
+function readAddressForm(form) {
+  const value = (name) => form.elements[name]?.value?.trim() || '';
+  const data = {
+    label: value('label') || null,
+    name: value('name') || null,
+    phone: value('phone') || null,
+    address1: value('address1'),
+    address2: value('address2') || null,
+    city: value('city'),
+    state: value('state'),
+    postalCode: value('postalCode'),
+    country: value('country') || 'US',
+    isDefaultShipping: !!form.elements.isDefaultShipping?.checked,
+    isDefaultBilling: !!form.elements.isDefaultBilling?.checked,
+  };
+  if (!data.address1 || !data.city || !data.state || !data.postalCode || !data.country) {
+    setAddressFormStatus('Address line 1, city, state, postal code, and country are required.');
+    return null;
+  }
+  return data;
+}
+
+function openAddressModal(address = {}) {
+  const modal = ensureAddressModal();
+  fillAddressForm(address);
+  const title = modal.querySelector('#addressModalTitle');
+  const submit = modal.querySelector('button[type="submit"]');
+  const editing = !!address?.id;
+  if (title) title.textContent = editing ? 'Edit Address' : 'Add Address';
+  if (submit) submit.textContent = editing ? 'Save Changes' : 'Save Address';
+  openModal('addressModal');
+}
+
+async function submitAddressForm(ev) {
+  ev.preventDefault();
+  const form = ev.currentTarget;
+  const id = form.elements.id?.value || '';
+  const data = readAddressForm(form);
+  if (!data) return;
+
+  const submit = form.querySelector('button[type="submit"]');
+  if (submit) submit.disabled = true;
+  setAddressFormStatus('');
+  try {
+    const res = await fetch(id ? `/api/addresses/${encodeURIComponent(id)}` : '/api/addresses', {
+      method: id ? 'PATCH' : 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const payload = await res.json().catch(() => ({}));
+      setAddressFormStatus(payload?.error || 'Could not save this address. Please check the fields and try again.');
+      return;
+    }
+    closeModal('addressModal');
+    setAccountAlert('Address saved.', 'success');
+    await loadAddresses();
+  } catch (err) {
+    console.warn('[account.js] address save failed:', err);
+    setAddressFormStatus('Could not save this address. Please try again.');
+  } finally {
+    if (submit) submit.disabled = false;
+  }
+}
+
 // Wire address UI once (after ensureAddressSection())
 function wireAddressUI() {
   const listEl = document.getElementById('addressList');
@@ -985,9 +2801,17 @@ function wireAddressUI() {
       const action = btn.getAttribute('data-action');
 
       if (action === 'delete-address') {
-        if (!confirm('Delete this address?')) return;
+        const address = ADDRESSES.find(a => String(a.id) === String(id));
+        const label = address?.label || address?.address1 || 'this address';
+        const confirmed = await accountConfirm({
+          title: 'Delete address?',
+          message: `This will remove ${label} from your saved account addresses.`,
+          confirmLabel: 'Delete address',
+        });
+        if (!confirmed) return;
         const res = await fetch(`/api/addresses/${id}`, { method: 'DELETE', credentials: 'include' });
         if (!res.ok) { console.error('Delete failed', await res.text()); return; }
+        setAccountAlert('Address removed.', 'success');
         loadAddresses();
         return;
       }
@@ -999,6 +2823,7 @@ function wireAddressUI() {
           body: JSON.stringify({ isDefaultShipping: true })
         });
         if (!res.ok) { console.error('Set default ship failed', await res.text()); return; }
+        setAccountAlert('Default shipping address updated.', 'success');
         loadAddresses();
         return;
       }
@@ -1010,21 +2835,14 @@ function wireAddressUI() {
           body: JSON.stringify({ isDefaultBilling: true })
         });
         if (!res.ok) { console.error('Set default bill failed', await res.text()); return; }
+        setAccountAlert('Default billing address updated.', 'success');
         loadAddresses();
         return;
       }
 
       if (action === 'edit-address') {
-        const data = await promptNewAddress({});
-        if (!data) return;
-        const res = await fetch(`/api/addresses/${id}`, {
-          method: 'PATCH',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        });
-        if (!res.ok) { console.error('Edit failed', await res.text()); return; }
-        loadAddresses();
+        const current = ADDRESSES.find(a => String(a.id) === String(id)) || { id };
+        openAddressModal(current);
         return;
       }
     });
@@ -1034,62 +2852,39 @@ function wireAddressUI() {
   if (addBtn && !addBtn.__wiredAddressAdd) {
     addBtn.__wiredAddressAdd = true;
     addBtn.addEventListener('click', async () => {
-      const data = await promptNewAddress();
-      if (!data) return;
-      const makeDefault = confirm('Make this your default shipping address?');
-      const makeDefaultBill = confirm('Make this your default billing address?');
-      data.isDefaultShipping = !!makeDefault;
-      data.isDefaultBilling  = !!makeDefaultBill;
-
-      const res = await fetch('/api/addresses', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      if (!res.ok) { console.error('Create failed', await res.text()); return; }
-      loadAddresses();
+      openAddressModal();
     });
   }
-}
-
-async function promptNewAddress(initial = {}) {
-  const label = prompt('Label (e.g., Home, Work):', initial.label ?? '') ?? null;
-  const name  = prompt('Recipient name:', initial.name ?? '') ?? null;
-  const phone = prompt('Phone:', initial.phone ?? '') ?? null;
-  const address1 = prompt('Address line 1:', initial.address1 ?? '');
-  if (address1 === null || !address1.trim()) return null;
-  const address2 = prompt('Address line 2 (optional):', initial.address2 ?? '') ?? null;
-  const city     = prompt('City:', initial.city ?? '');
-  if (city === null || !city.trim()) return null;
-  const state    = prompt('State/Region:', initial.state ?? '');
-  if (state === null || !state.trim()) return null;
-  const postal   = prompt('Postal code:', initial.postalCode ?? '');
-  if (postal === null || !postal.trim()) return null;
-  const country  = prompt('Country:', initial.country ?? 'US');
-  if (country === null || !country.trim()) return null;
-
-  return {
-    label, name, phone,
-    address1, address2,
-    city, state, postalCode: postal, country
-  };
 }
 
 //
 // -------------------------------
 // Init
 // -------------------------------
-(async function initAccountPage() {
-  const session = await loadSession();
-  if (!session?.signedIn) return;
+let accountInitPromise = null;
 
-  // ✅ Wire the profile form BEFORE we fetch and render current values
-  wireProfileForm();
+async function initAccountPage() {
+  if (accountInitPromise) return accountInitPromise;
+  accountInitPromise = (async () => {
+    const session = await loadSession();
+    if (!session?.signedIn) return;
 
-  // Ensure Address section exists, wire once, then load
-  ensureAddressSection();
-  wireAddressUI();
+    // Wire the profile form before fetching and rendering current values.
+    wireProfileForm();
 
-  await Promise.allSettled([loadProfile(), loadOrders(), loadPets(), loadAddresses()]);
-})();
+    // Ensure Address section exists, wire once, then load.
+    ensureAddressSection();
+    wireAddressUI();
+
+    await Promise.allSettled([loadProfile(), loadOrders(), loadPets(), loadAddresses()]);
+  })();
+  try {
+    return await accountInitPromise;
+  } finally {
+    accountInitPromise = null;
+  }
+}
+
+initAccountPage().catch((err) => console.warn('[account] init failed:', err));
+document.addEventListener('auth:login', () => initAccountPage().catch((err) => console.warn('[account] login init failed:', err)));
+document.addEventListener('auth:signup', () => initAccountPage().catch((err) => console.warn('[account] signup init failed:', err)));

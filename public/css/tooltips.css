@@ -1,0 +1,98 @@
+/* /public/css/tooltips.css */
+:root {
+  --pp-tip-bg: rgba(13, 33, 45, 0.95);
+  --pp-tip-fg: #f5fbff;
+  --pp-tip-border: rgba(120, 219, 255, 0.24);
+  --pp-tip-shadow: 0 12px 24px rgba(0, 0, 0, 0.28);
+}
+
+.pp-tooltip {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: auto;
+  bottom: auto;
+  z-index: 2147483100;
+  display: inline-block;
+  width: max-content;
+  max-width: min(320px, calc(100vw - 20px));
+  max-height: min(38vh, 220px);
+  min-width: 0;
+  padding: 0.5rem 0.66rem;
+  border-radius: 10px;
+  border: 1px solid var(--pp-tip-border);
+  background: var(--pp-tip-bg);
+  color: var(--pp-tip-fg);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.32;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-backdrop-filter: blur(10px) saturate(115%);
+  backdrop-filter: blur(10px) saturate(115%);
+  box-shadow: var(--pp-tip-shadow);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translate3d(0, 6px, 0) scale(0.985);
+  transform-origin: center bottom;
+  transition: opacity 120ms ease, transform 120ms ease, visibility 0s linear 120ms;
+}
+
+.pp-tooltip.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translate3d(0, 0, 0) scale(1);
+  transition-delay: 0s;
+}
+
+.pp-tooltip.is-measuring {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+.pp-tooltip::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: var(--pp-tip-bg);
+  border-left: 1px solid var(--pp-tip-border);
+  border-top: 1px solid var(--pp-tip-border);
+  transform: rotate(45deg);
+}
+
+.pp-tooltip[data-placement="top"]::after {
+  bottom: -6px;
+  left: 50%;
+  margin-left: -5px;
+  border-left: 0;
+  border-top: 0;
+  border-right: 1px solid var(--pp-tip-border);
+  border-bottom: 1px solid var(--pp-tip-border);
+}
+
+.pp-tooltip[data-placement="bottom"]::after {
+  top: -6px;
+  left: 50%;
+  margin-left: -5px;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .pp-tooltip {
+    max-width: min(300px, 88vw);
+    font-size: 0.82rem;
+    padding: 0.56rem 0.72rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pp-tooltip {
+    transition: none;
+  }
+}

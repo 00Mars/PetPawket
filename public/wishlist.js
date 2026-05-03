@@ -71,19 +71,31 @@ function setCached(h, p) { cache.set(h, { t: Date.now(), product: p }); }
 function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function priceUSD(p){const n=Number(p?.variants?.[0]?.price ?? p?.priceRange?.minVariantPrice?.amount ?? p?.price ?? NaN);return Number.isFinite(n)?`$${n.toFixed(2)}`:'';}
 function imgUrl(p){return p?.image?.src || p?.featuredImage?.url || p?.images?.[0]?.src || p?.images?.[0]?.url || ''; }
+function safeImageUrl(value, fallback = '') {
+  const raw = String(value || '').trim();
+  if (!raw) return fallback;
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (raw.startsWith('/') && !raw.startsWith('//')) return raw;
+  return fallback;
+}
 
 function productCard(p){
-  const handle=esc(p.handle||p.slug||''); const title=esc(p.title||p.name||'Product'); const price=priceUSD(p); const img=esc(imgUrl(p));
+  const rawHandle = String(p.handle || p.slug || '');
+  const handle = esc(rawHandle);
+  const handleParam = encodeURIComponent(rawHandle);
+  const title = esc(p.title || p.name || 'Product');
+  const price = priceUSD(p);
+  const img = safeImageUrl(imgUrl(p));
   return `
   <div class="col-6 col-md-4 col-lg-3 mb-3" data-wish-card="${handle}">
     <div class="card h-100">
-      ${img?`<img class="card-img-top" src="${img}" alt="${title}" loading="lazy">`:`<div class="ratio ratio-1x1 bg-light"></div>`}
+      ${img?`<img class="card-img-top" src="${esc(img)}" alt="${title}" loading="lazy">`:`<div class="ratio ratio-1x1 bg-light"></div>`}
       <div class="card-body d-flex flex-column">
-        <a class="stretched-link text-decoration-none mb-1" href="/products/${encodeURIComponent(handle)}?handle=${encodeURIComponent(handle)}">${title}</a>
+        <a class="stretched-link text-decoration-none mb-1" href="/product.html?handle=${handleParam}">${title}</a>
         ${price?`<div class="text-muted mb-2">${price}</div>`:''}
         <div class="mt-auto d-flex gap-2">
           <button class="btn btn-outline-danger btn-sm js-wish-remove" data-handle="${handle}" aria-label="Remove ${title} from wishlist">Remove</button>
-          <a class="btn btn-primary btn-sm" href="/products/${encodeURIComponent(handle)}?handle=${encodeURIComponent(handle)}" aria-label="View ${title}">View</a>
+          <a class="btn btn-primary btn-sm" href="/product.html?handle=${handleParam}" aria-label="View ${title}">View</a>
         </div>
       </div>
     </div>

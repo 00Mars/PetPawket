@@ -1,5 +1,6 @@
 // /public/featuredGrid.js
 // Featured grid — runs only when #pp-featured has data-auto="1"
+import { getSession } from './auth.js';
 
 const money = (v, c) => {
   const n = Number(v);
@@ -8,6 +9,21 @@ const money = (v, c) => {
 
 const debounce = (fn, ms = 200) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
 const escapeHtml = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const safeImageUrl = (value, fallback = '/assets/images/placeholder.png') => {
+  const raw = String(value || '').trim();
+  if (!raw) return fallback;
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (raw.startsWith('/') && !raw.startsWith('//')) return raw;
+  return fallback;
+};
+
+async function ensureSignedInForWishlist() {
+  const session = await getSession();
+  if (session?.signedIn) return true;
+  if (typeof window.PP_openAuthModal === 'function') window.PP_openAuthModal('login');
+  else document.querySelector('[data-toggle="login-modal"]')?.click();
+  return false;
+}
 
 // ---- Data ----
 async function fetchFeatured(limit = 24) {
@@ -16,6 +32,13 @@ async function fetchFeatured(limit = 24) {
   const data = await r.json();
   const list = Array.isArray(data) ? data : (data?.items ?? data?.products ?? data?.products?.nodes ?? []);
   return list;
+}
+
+function resolveFeaturedLimit(opts = {}) {
+  const desktopLimit = Number(opts.limit) || 12;
+  const mobileLimit = Number(opts.mobileLimit) || desktopLimit;
+  const isMobile = window.matchMedia?.('(max-width: 720px)')?.matches;
+  return isMobile ? mobileLimit : desktopLimit;
 }
 
 // ---- Skeleton ----
@@ -32,32 +55,42 @@ function renderSkeleton(grid, count = 8) {
 }
 
 // ---- Cards ----
-function cardHTML(p) {
-  const img = p.featuredImage?.url || '/assets/images/placeholder.png';
+function cardHTML(p, index = 0) {
+  const img = safeImageUrl(p.featuredImage?.url);
   const title = p.title || '';
   const handle = p.handle || '';
   const id = p.id || '';
+  const category = p.productType || 'Featured';
   const minp = p.priceRange?.minVariantPrice, maxp = p.priceRange?.maxVariantPrice;
-  const priceText = minp
-    ? (minp.amount === maxp?.amount
-      ? money(minp.amount, minp.currencyCode)
-      : `${money(minp.amount, minp.currencyCode)} – ${money(maxp.amount, maxp.currencyCode)}`)
-    : '';
+  const minAmount = Number(minp?.amount);
+  const maxAmount = Number(maxp?.amount);
+  const minValid = Number.isFinite(minAmount);
+  const maxValid = Number.isFinite(maxAmount);
+  const priceText = minValid && maxValid
+    ? (minAmount === maxAmount
+      ? money(minAmount, minp.currencyCode)
+      : `${money(minAmount, minp.currencyCode)} – ${money(maxAmount, maxp.currencyCode)}`)
+    : (minValid ? money(minAmount, minp.currencyCode) : '');
+  const spotlight = index < 3 ? '<span class="pp-card-badge">Top pick</span>' : '';
 
   return `
     <article class="pp-card" data-product-id="${escapeHtml(id)}" data-product-handle="${escapeHtml(handle)}" data-category="${escapeHtml(p.productType || '')}">
-      <a class="pp-link" href="/products/${encodeURIComponent(handle)}" aria-label="${escapeHtml(title)}">
+      <a class="pp-link" href="/product.html?handle=${encodeURIComponent(handle)}" aria-label="${escapeHtml(title)}">
         <div class="pp-thumb">
           <img src="${escapeHtml(img)}" alt="${escapeHtml(p.featuredImage?.altText || title)}" loading="lazy">
+          ${spotlight}
         </div>
       </a>
       <div class="pp-body">
-        <a class="pp-link" href="/products/${encodeURIComponent(handle)}">
+        <div class="pp-card-top">
+          <span class="pp-card-type">${escapeHtml(category)}</span>
+        </div>
+        <a class="pp-link" href="/product.html?handle=${encodeURIComponent(handle)}">
           <div class="pp-title" title="${escapeHtml(title)}">${escapeHtml(title)}</div>
         </a>
         <div class="pp-price">${escapeHtml(priceText)}</div>
         <div class="pp-row">
-          <a class="pp-link" href="/products/${encodeURIComponent(handle)}">View</a>
+          <a class="pp-link" href="/product.html?handle=${encodeURIComponent(handle)}">View</a>
           <button class="pp-wish" data-action="wishlist-add" data-product-id="${escapeHtml(id)}" data-product-handle="${escapeHtml(handle)}" aria-label="Add to wishlist">
             <span class="bi bi-heart"></span><span>Save</span>
           </button>
@@ -142,6 +175,45 @@ function buildControls(container, state) {
   q.addEventListener('input', debounce(run, 180));
   sort.addEventListener('change', run);
   cat.addEventListener('change', run);
+
+  return { q, sort, cat, catWrap, categories: cats };
+}
+
+function renderQuickFilters(container, state, controlsRef) {
+  if (!container || !controlsRef) return;
+  const categories = Array.isArray(controlsRef.categories) ? controlsRef.categories : [];
+  if (!categories.length || controlsRef.catWrap.style.display === 'none') {
+    container.innerHTML = '';
+    container.classList.add('d-none');
+    return;
+  }
+
+  const options = ['all', ...categories.slice(0, 7)];
+  container.classList.remove('d-none');
+  container.innerHTML = options.map((value) => `
+    <button class="pp-quick-chip${state.cat === value ? ' is-active' : ''}" data-quick-cat="${escapeHtml(value)}" type="button">
+      ${value === 'all' ? 'All picks' : escapeHtml(value)}
+    </button>
+  `).join('');
+
+  if (container.dataset.bound !== '1') {
+    container.dataset.bound = '1';
+    container.addEventListener('click', (event) => {
+      const chip = event.target.closest('[data-quick-cat]');
+      if (!chip) return;
+      const value = chip.getAttribute('data-quick-cat') || 'all';
+      state.cat = value;
+      if (controlsRef.cat) controlsRef.cat.value = value;
+      state.apply();
+    });
+  }
+}
+
+function updateFeaturedMeta(mount, state, showing) {
+  const count = mount.querySelector('[data-featured-count]');
+  if (!count) return;
+  const total = Array.isArray(state.raw) ? state.raw.length : 0;
+  count.textContent = `${showing} of ${total} showing`;
 }
 
 // ---- Wishlist wiring ----
@@ -150,8 +222,10 @@ function wireWishlist(root) {
     const btn = e.target.closest('[data-action="wishlist-add"]');
     if (!btn) return;
     e.preventDefault();
+    e.stopPropagation();
     const productId = btn.getAttribute('data-product-id') || '';
     const handle = btn.getAttribute('data-product-handle') || '';
+    if (!(await ensureSignedInForWishlist())) return;
     btn.disabled = true;
     try {
       const r = await fetch('/api/wishlist', {
@@ -167,7 +241,7 @@ function wireWishlist(root) {
       btn.firstElementChild?.classList.add('bi-heart-fill');
     } catch (err) {
       console.error('[wishlist] add error:', err);
-      alert('Could not add to wishlist. Are you signed in?');
+      btn.setAttribute('aria-label', 'Could not save to wishlist yet');
     } finally {
       btn.disabled = false;
     }
@@ -177,7 +251,7 @@ function wireWishlist(root) {
 // ---- Init ----
 export async function initFeaturedGrid(opts = {}) {
   const mountSel = opts.mount || '#pp-featured';
-  const limit = Number(opts.limit) || 12;
+  const limit = resolveFeaturedLimit(opts);
 
   const mount = document.querySelector(mountSel);
   if (!mount) return;
@@ -185,17 +259,35 @@ export async function initFeaturedGrid(opts = {}) {
   mount.classList.add('pp-featured');
   mount.innerHTML = `
     <div class="container">
-      <div class="pp-controls" id="pp-controls"></div>
+      <header class="pp-featured-head">
+        <div class="pp-featured-head-copy">
+          <span class="pp-featured-kicker">Pawket Picks</span>
+          <h2 class="pp-featured-title">A curated shelf for the next care moment.</h2>
+          <p class="pp-featured-sub">Featured products sit between the subscription box and the story layer: useful add-ons, seasonal rewards, and easy saves for each pet profile.</p>
+        </div>
+        <div class="pp-featured-head-meta">
+          <span class="pp-featured-count" data-featured-count>0 showing</span>
+          <a class="pp-featured-shop-link" href="/shop.html">Open full shop</a>
+        </div>
+      </header>
+      <div class="pp-featured-story" aria-label="Featured product lanes">
+        <span><i class="bi bi-box-seam" aria-hidden="true"></i> Pack add-ons</span>
+        <span><i class="bi bi-gift" aria-hidden="true"></i> Threshold rewards</span>
+        <span><i class="bi bi-heart-pulse" aria-hidden="true"></i> CHARM-friendly picks</span>
+      </div>
+      <div class="pp-controls-wrap" id="pp-controls"></div>
+      <div class="pp-featured-quick d-none" id="pp-featured-quick"></div>
       <div class="pp-grid" id="pp-grid" aria-live="polite"></div>
       <div class="pp-empty d-none" id="pp-empty">No products match your filters.</div>
     </div>
   `;
 
   const controls = mount.querySelector('#pp-controls');
+  const quick = mount.querySelector('#pp-featured-quick');
   const grid = mount.querySelector('#pp-grid');
   const empty = mount.querySelector('#pp-empty');
 
-  renderSkeleton(grid, 8);
+  renderSkeleton(grid, Math.min(8, limit));
 
   const state = {
     raw: [],
@@ -207,17 +299,21 @@ export async function initFeaturedGrid(opts = {}) {
       if (!filtered.length) {
         grid.innerHTML = '';
         empty.classList.remove('d-none');
+        updateFeaturedMeta(mount, state, 0);
+        renderQuickFilters(quick, state, state.controlsRef);
         return;
       }
       empty.classList.add('d-none');
-      grid.innerHTML = filtered.map(cardHTML).join('');
+      grid.innerHTML = filtered.map((product, idx) => cardHTML(product, idx)).join('');
+      updateFeaturedMeta(mount, state, filtered.length);
+      renderQuickFilters(quick, state, state.controlsRef);
     }
   };
 
   try {
     const list = await fetchFeatured(limit);
     state.raw = list;
-    buildControls(controls, state);
+    state.controlsRef = buildControls(controls, state);
     state.apply();
   } catch (err) {
     console.error('[featured] fetch error:', err);

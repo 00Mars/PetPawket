@@ -10,12 +10,12 @@
     <div class="pp-nav-inner">
       <!-- LEFT RAIL -->
       <div class="pp-nav-left">
-        <button class="pp-icon-btn" type="button" data-pp="search" aria-label="Search">
+        <button class="pp-icon-btn" type="button" data-pp="search" aria-label="Search" aria-controls="searchOverlay" aria-expanded="false" data-tooltip="Search products, pets, and journal entries.">
           <i class="bi bi-search"></i>
         </button>
 
         <div class="pp-dropdown">
-        <button class="pp-icon-btn" type="button" aria-label="Account" id="nav-account-toggle" data-action="open-account">
+        <button class="pp-icon-btn" type="button" aria-label="Account" id="nav-account-toggle" data-action="open-account" data-tooltip="Open account options.">
           <i class="bi bi-person-circle"></i>
         </button>
         <div class="dropdown-menu icon-dropdown-menu dropdown-menu-end" aria-labelledby="nav-account-toggle" hidden>
@@ -38,6 +38,7 @@
             aria-label="Wishlist"
             id="nav-wish-toggle"
             aria-controls="pp-wish-menu"
+            data-tooltip="View your saved favorites."
           >
             <i class="bi bi-heart"></i>
           </button>
@@ -78,6 +79,7 @@
             aria-label="Cart"
             id="nav-cart-toggle"
             aria-controls="cart-menu"
+            data-tooltip="Open cart and checkout."
           >
             <i class="bi bi-cart3"></i>
           </button>
@@ -97,6 +99,7 @@
             aria-label="Orders"
             id="nav-orders-toggle"
             aria-controls="orders-menu"
+            data-tooltip="Track and review your orders."
           >
             <i class="bi bi-truck"></i>
           </button>
@@ -107,11 +110,11 @@
             aria-labelledby="nav-orders-toggle"
             hidden
           >
-            <button type="button" class="dropdown-item" data-toggle="order-tracker-modal">Track Order</button>
+            <a class="dropdown-item" href="/order-tracker.html">Track Order</a>
           </div>
         </div>
 
-        <a href="/cart.html" class="pp-cart-pill" aria-label="Items in cart">
+        <a href="/cart.html" class="pp-cart-pill" aria-label="Items in cart" data-tooltip="Go to your cart.">
           <span id="cart-count" aria-live="polite">0</span>
         </a>
       </div>
@@ -122,19 +125,109 @@
 <!-- the subnav we actually want (still the pp version) -->
 <nav class="pp-subnav" aria-label="Secondary">
   <div class="pp-subnav-inner">
-    <a href="/shop.html" class="active">All</a>
-    <a href="/shop.html" data-shop-cat="dog">Dogs</a>
-    <a href="/shop.html" data-shop-cat="cat">Cats</a>
-    <a href="/shop.html" data-shop-cat="bird">Birds</a>
-    <a href="/shop.html" data-shop-cat="fish">Fish</a>
-    <a href="/shop.html" data-shop-cat="reptiles">Reptiles</a>
-    <a href="/shop.html" data-shop-cat="small-pet">Small Pets</a>
-    <a href="/about.html">About</a>
-    <a href="/community.html">Community</a>
-    <a href="/events.html">Events</a>
-    <a href="/charm.html">CHARM Foundation</a>
-    <a href="/contact.html">Contact</a>
-    <a href="/privacy.html">Privacy &amp; Terms</a>
+    <div class="pp-subnav-group" data-group="shop">
+      <button class="pp-subnav-label" type="button" data-subnav-toggle aria-expanded="false" data-tooltip="Browse products and pet-specific picks.">Shop</button>
+      <div class="pp-subnav-links">
+        <details class="pp-subnav-drop">
+          <summary>Shop basics</summary>
+          <div class="pp-subnav-drop-links">
+            <a href="/shop.html" class="active">All</a>
+            <a href="/shop.html?pet=dog" data-shop-cat="dog">Dogs</a>
+            <a href="/shop.html?pet=cat" data-shop-cat="cat">Cats</a>
+            <a href="/shop.html?pet=bird" data-shop-cat="bird">Birds</a>
+            <a href="/shop.html?pet=fish" data-shop-cat="fish">Fish</a>
+            <a href="/shop.html?pet=reptile" data-shop-cat="reptile">Reptiles</a>
+            <a href="/shop.html?pet=small-pet" data-shop-cat="small-pet">Small Pets</a>
+            <a href="/pettypes.html">All pet types</a>
+          </div>
+        </details>
+        <details class="pp-subnav-drop">
+          <summary>Packs &amp; boxes</summary>
+          <div class="pp-subnav-drop-links">
+            <a href="/packs.html">Pawket Packs</a>
+            <a href="/packets.html">Pawket Packets</a>
+            <a href="/picks.html">Pawket Picks</a>
+            <a href="/shop.html?subscribe=1">Pack-eligible shop shelf</a>
+          </div>
+        </details>
+        <button class="pp-subnav-close" type="button" data-subnav-close>× Close</button>
+      </div>
+    </div>
+
+    <div class="pp-subnav-group" data-group="impact">
+      <button class="pp-subnav-label" type="button" data-subnav-toggle aria-expanded="false" data-tooltip="Pawket Passes, CHARM impact, and rescue care receipts.">Impact</button>
+      <div class="pp-subnav-links">
+        <details class="pp-subnav-drop">
+          <summary>Programs</summary>
+          <div class="pp-subnav-drop-links">
+            <a href="/loop.html">Pawket Passes</a>
+            <a href="/charm.html">CHARM Foundation</a>
+          </div>
+        </details>
+        <details class="pp-subnav-drop">
+          <summary>Foundation</summary>
+          <div class="pp-subnav-drop-links">
+            <a href="/charm.html">CHARM Foundation preview</a>
+          </div>
+        </details>
+        <button class="pp-subnav-close" type="button" data-subnav-close>× Close</button>
+      </div>
+    </div>
+
+    <div class="pp-subnav-group" data-group="community">
+      <button class="pp-subnav-label" type="button" data-subnav-toggle aria-expanded="false" data-tooltip="Events, stories, and community news.">Community</button>
+      <div class="pp-subnav-links">
+        <details class="pp-subnav-drop">
+          <summary>Community</summary>
+          <div class="pp-subnav-drop-links">
+            <a href="/community.html">Community</a>
+            <a href="/pawket-network.html">Pawket Network</a>
+            <a href="/partner-portal.html">Partner Portal</a>
+            <a href="/events.html">Events</a>
+          </div>
+        </details>
+        <details class="pp-subnav-drop">
+          <summary>Updates</summary>
+          <div class="pp-subnav-drop-links">
+            <a href="/news.html">News</a>
+          </div>
+        </details>
+        <button class="pp-subnav-close" type="button" data-subnav-close>× Close</button>
+      </div>
+    </div>
+
+    <div class="pp-subnav-group" data-group="support">
+      <button class="pp-subnav-label" type="button" data-subnav-toggle aria-expanded="false" data-tooltip="Help, contact, and order support.">Support</button>
+      <div class="pp-subnav-links">
+        <details class="pp-subnav-drop">
+          <summary>Help</summary>
+          <div class="pp-subnav-drop-links">
+            <a href="/contact.html">Contact</a>
+            <a href="/order-tracker.html">Track Order</a>
+          </div>
+        </details>
+        <details class="pp-subnav-drop">
+          <summary>About</summary>
+          <div class="pp-subnav-drop-links">
+            <a href="/about.html">About</a>
+            <a href="/privacy.html">Privacy &amp; Terms</a>
+          </div>
+        </details>
+        <button class="pp-subnav-close" type="button" data-subnav-close>× Close</button>
+      </div>
+    </div>
+
+    <div class="pp-subnav-group" data-group="links">
+      <button class="pp-subnav-label" type="button" data-subnav-toggle aria-expanded="false" data-tooltip="External project sites.">Links</button>
+      <div class="pp-subnav-links pp-subnav-links--links">
+        <a href="/pals.html" data-tooltip="Preview Pawket Pals inside the Pet Pawket world." data-tooltip-tap-hold="true">
+          Pawket Pals
+        </a>
+        <a href="/charm.html" data-tooltip="Preview CHARM Foundation impact inside Pet Pawket." data-tooltip-tap-hold="true">
+          CHARM Foundation
+        </a>
+      </div>
+    </div>
   </div>
 </nav>
 
@@ -143,29 +236,49 @@
   <div class="mobile-content"></div>
 </div>
 
-<!-- search overlay: keep the legacy id the JS already wires to -->
-<div id="searchOverlay" class="search-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="searchLabel">
+<!-- search overlay: keep legacy ids because navbar.js/main.js wire to them -->
+<div id="searchOverlay" class="search-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="searchLabel" aria-describedby="searchSummary">
   <div class="search-card" role="document">
     <div class="search-head">
+      <div class="search-title-wrap">
+        <span class="search-kicker">Pawket Search</span>
+        <h2 id="searchLabel">Search Pet Pawket</h2>
+      </div>
+      <button id="searchCloseBtn" class="search-close" type="button" title="Close" aria-label="Close search">
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
+      </button>
+    </div>
+
+    <div class="search-entry">
       <div class="input-wrap">
         <i class="bi bi-search" aria-hidden="true"></i>
-        <input id="searchInput" type="text" placeholder="Search your pets, journal &amp; products…" aria-label="Search" />
+        <input id="searchInput" type="search" placeholder="Search products, pets, journals, CHARM, partners..." aria-label="Search Pet Pawket" autocomplete="off" spellcheck="false" />
       </div>
-      <div class="search-hints">
-        <span class="d-none d-md-inline">Press</span><span class="kbd">/</span><span class="d-none d-md-inline">or</span><span class="kbd">⌘K</span>
-        <button id="searchCloseBtn" class="search-close" title="Close" aria-label="Close">×</button>
-      </div>
+      <p id="searchSummary">Products, pet care, impact, partners, and story pages in one place.</p>
     </div>
-    <div class="search-tools">
-      <select id="searchCategory" aria-label="Category">
-        <option value="all" selected>All Categories</option>
-        <option value="products">Products</option>
+
+    <div class="search-tools" aria-label="Search filters">
+      <select id="searchCategory" class="search-category-select" aria-label="Search category" tabindex="-1" aria-hidden="true">
+        <option value="all" selected>All</option>
+        <option value="products">Shop</option>
         <option value="pets">Pets</option>
-        <option value="journal">Journal</option>
+        <option value="journal">Journals</option>
+        <option value="impact">Impact</option>
       </select>
-      <button id="searchGo" type="button">Search</button>
+      <div class="search-filter-group" role="group" aria-label="Search category">
+        <button class="search-chip is-active" type="button" data-search-category-button="all">All</button>
+        <button class="search-chip" type="button" data-search-category-button="products">Shop</button>
+        <button class="search-chip" type="button" data-search-category-button="pets">Pets</button>
+        <button class="search-chip" type="button" data-search-category-button="journal">Journals</button>
+        <button class="search-chip" type="button" data-search-category-button="impact">Impact</button>
+      </div>
+      <button id="searchGo" class="search-go" type="button">
+        <i class="bi bi-arrow-right" aria-hidden="true"></i>
+        <span>Search</span>
+      </button>
     </div>
-    <div class="search-results" id="searchResults" role="listbox" aria-live="polite" aria-label="Search results"></div>
+
+    <div class="search-results" id="searchResults" role="list" aria-live="polite" aria-label="Search results"></div>
   </div>
 </div>
 

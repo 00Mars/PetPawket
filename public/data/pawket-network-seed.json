@@ -1,0 +1,157 @@
+[
+  {
+    "id": "pawsome-grooming-oxford-ma",
+    "slug": "pawsome-grooming-oxford-ma",
+    "name": "Pawsome Grooming",
+    "category_primary": "groomer",
+    "categories": ["groomer"],
+    "location": {
+      "address_line1": "42 Main Street",
+      "city": "Oxford",
+      "state": "MA",
+      "postal_code": "01540",
+      "lat": 42.116,
+      "lng": -71.864,
+      "service_area_radius_mi": 20
+    },
+    "contact": {
+      "phone": "(555) 010-1101",
+      "website_url": "https://example.com/pawsome-grooming"
+    },
+    "status": "partner",
+    "short_description": "Gentle grooming for dogs and cats with rescue-friendly packages.",
+    "description": "Pawsome Grooming helps pet parents maintain healthy coats and calm routines. New clients can request a Pawket Network welcome offer and ask for rescue support bundles.",
+    "hours_text": "Mon-Fri 9-5, Sat 10-2",
+    "partner_tier": "partner_plus",
+    "partner_since": "2026-03-02",
+    "verification": {
+      "verified_identity": true,
+      "verified_business": true,
+      "verified_license": true
+    },
+    "manual_review_passed": true,
+    "features": {
+      "enable_lead_form": true,
+      "enable_offers": true,
+      "enable_priority_rank": true,
+      "enable_featured_slots": false
+    },
+    "lead_destination": "email",
+    "lead_email": "bookings@example.com",
+    "portal_mode": "internal_profile",
+    "charm_support": {
+      "enabled": true,
+      "program_type": "matches",
+      "public_blurb": "Matches CHARM donations up to $100/mo.",
+      "receipt_url": "https://example.com/charm-receipts/pawsome",
+      "match_cap_monthly": 100
+    },
+    "featured_rank": 1,
+    "cover_image_url": "https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?auto=format&fit=crop&w=1200&q=80",
+    "services": [
+      { "name": "Full Groom", "price_from": 65, "notes": "Includes nails + ears" },
+      { "name": "Bath + Brush", "price_from": 40 },
+      { "name": "Puppy Intro", "price_from": 35 }
+    ],
+    "faqs": [
+      { "question": "Do you take anxious pets?", "answer": "Yes, we schedule slower transitions and one-pet-at-a-time sessions." },
+      { "question": "Do you have cat grooming?", "answer": "Yes, by appointment with a pre-visit intake." }
+    ],
+    "offers": [
+      { "title": "10% off first groom", "code": "PAWKET10", "details": "New clients only.", "is_active": true }
+    ],
+    "photos": [
+      "https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?auto=format&fit=crop&w=1200&q=80"
+    ]
+  },
+  {
+    "id": "oak-street-animal-clinic-providence-ri",
+    "slug": "oak-street-animal-clinic-providence-ri",
+    "name": "Oak Street Animal Clinic",
+    "category_primary": "vet",
+    "categories": ["vet"],
+    "location": {
+      "address_line1": "221 Oak Street",
+      "city": "Providence",
+      "state": "RI",
+      "postal_code": "02903",
+      "lat": 41.824,
+      "lng": -71.412,
+      "service_area_radius_mi": 35
+    },
+    "contact": {
+      "phone": "(555) 010-2202",
+      "website_url": "https://example.com/oak-street-clinic"
+    },
+    "status": "claimed",
+    "short_description": "Family veterinary practice for wellness, urgent care, and diagnostics.",
+    "description": "Oak Street Animal Clinic supports preventive care and urgent interventions with transparent treatment plans.",
+    "hours_text": "Mon-Sat 8-6",
+    "verification": {
+      "verified_identity": true,
+      "verified_business": true,
+      "verified_license": false
+    },
+    "manual_review_passed": false,
+    "features": {
+      "enable_lead_form": true,
+      "enable_offers": false,
+      "enable_priority_rank": false,
+      "enable_featured_slots": false
+    },
+    "lead_destination": "email",
+    "lead_email": "care@example.com",
+    "portal_mode": "external_site",
+    "external_site_url": "https://example.com/oak-street-clinic/request",
+    "services": [
+      { "name": "Wellness Exams", "price_from": 85 },
+      { "name": "Urgent Visit", "price_from": 120 }
+    ],
+    "faqs": [
+      { "question": "Do you offer same-day visits?", "answer": "Same-day slots are available for urgent concerns based on triage." }
+    ],
+    "photos": [
+      "https://images.unsplash.com/photo-1601758125946-6ec2ef64daf8?auto=format&fit=crop&w=1200&q=80"
+    ]
+  },
+  {
+    "id": "harbor-haven-shelter-new-bedford-ma",
+    "slug": "harbor-haven-shelter-new-bedford-ma",
+    "name": "Harbor Haven Shelter",
+    "category_primary": "shelter",
+    "categories": ["shelter", "rescue"],
+    "location": {
+      "address_line1": "11 Wharf Lane",
+      "city": "New Bedford",
+      "state": "MA",
+      "postal_code": "02740",
+      "lat": 41.636,
+      "lng": -70.934,
+      "service_area_radius_mi": 50
+    },
+    "contact": {
+      "phone": "(555) 010-3303",
+      "website_url": "https://example.com/harbor-haven"
+    },
+    "status": "unclaimed",
+    "short_description": "Municipal shelter focused on placement, foster coordination, and adoption readiness.",
+    "description": "Harbor Haven Shelter serves local rescue intake and placement support for dogs and cats.",
+    "hours_text": "Tue-Sun 11-5",
+    "features": {
+      "enable_lead_form": false,
+      "enable_offers": false,
+      "enable_priority_rank": false,
+      "enable_featured_slots": false
+    },
+    "portal_mode": "internal_profile",
+    "charm_support": {
+      "enabled": true,
+      "program_type": "campaign_partner",
+      "public_blurb": "Runs seasonal foster and care-kit drives with CHARM-aligned campaigns.",
+      "receipt_url": "https://example.com/charm-receipts/harbor-haven"
+    },
+    "photos": [
+      "https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&w=1200&q=80"
+    ]
+  }
+]

@@ -1,0 +1,40 @@
+{
+  "isPlaceholder": false,
+  "howCharmWorks": "Every order reserves $0.50 + 1% (cap $5) for urgent rescue care, and Pawket Passes help that kindness travel from one pet family to the next.",
+  "storyPlaceholder": {
+    "title": "Protected memorial origin",
+    "body": "CHARM honors the love behind Pet Pawket while public rescue stories, medical updates, and memorial submissions stay consent-aware and carefully reviewed.",
+    "petName": "",
+    "imageUrl": ""
+  },
+  "whereFundsGo": [
+    { "label": "Urgent medical care", "percent": 52 },
+    { "label": "Rescue missions", "percent": 28 },
+    { "label": "Placement support", "percent": 20 }
+  ],
+  "fundedThisMonth": {
+    "monthLabel": "Spring rescue care",
+    "currency": "USD",
+    "items": [
+      { "label": "Emergency vet visits", "amount": 1200 },
+      { "label": "Recovery kits + meds", "amount": 850 },
+      { "label": "Foster support", "amount": 650 }
+    ],
+    "total": 2700
+  },
+  "charmEditions": [
+    "CHARM Editions reserve a portion of each pack for rescue care.",
+    "Limited drops help fund urgent cases and memorial support."
+  ],
+  "receiptHighlight": {
+    "title": "CHARM care fund",
+    "label": "Spring rescue care",
+    "amount": 2700,
+    "note": "Funded urgent visits, recovery kits, foster support, and comfort supplies."
+  },
+  "supportLinks": {
+    "supportCharm": "/shop.html",
+    "seeCase": "#charm-glance",
+    "exploreStories": "#charm-stories"
+  }
+}

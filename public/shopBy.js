@@ -6,7 +6,7 @@ export async function injectShopBy() {
   const mount = document.getElementById('shop-by');
   if (!mount) return;
 
-  const SHOP_PATH = mount.dataset.shopPath || window.__SHOP_PAGE_PATH || '/shop';
+  const SHOP_PATH = safeShopPath(mount.dataset.shopPath || window.__SHOP_PAGE_PATH || '/shop.html');
 
   const TYPES = [
     { key: 'all',   label: 'All',        icon: 'bi-stars' },
@@ -14,9 +14,9 @@ export async function injectShopBy() {
     { key: 'cat',   label: 'Cats',       icon: 'bi-emoji-smile' },
     { key: 'bird',  label: 'Birds',      icon: 'bi-feather' },
     { key: 'fish',  label: 'Fish',       icon: 'bi-droplet' },
-    { key: 'rept',  label: 'Reptiles',   icon: 'bi-eye' },
-    { key: 'small', label: 'Small Pets', icon: 'bi-heart' },
-    { key: 'acc',   label: 'Accessories',icon: 'bi-bag' },
+    { key: 'reptile', label: 'Reptiles',   icon: 'bi-eye' },
+    { key: 'small-pet', label: 'Small Pets', icon: 'bi-heart' },
+    { key: 'accessories', label: 'Accessories',icon: 'bi-bag' },
     { key: 'treat', label: 'Treats',     icon: 'bi-cookie' },
     { key: 'toy',   label: 'Toys',       icon: 'bi-emoji-laughing' },
   ];
@@ -77,4 +77,14 @@ export async function injectShopBy() {
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); go(Math.min(chips.length - 1, i + 1)); }
     if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   { e.preventDefault(); go(Math.max(0, i - 1)); }
   });
+}
+
+function safeShopPath(value) {
+  try {
+    const url = new URL(String(value || '/shop.html'), location.origin);
+    if (!['http:', 'https:'].includes(url.protocol)) return '/shop.html';
+    return `${url.pathname || '/shop.html'}${url.search || ''}`;
+  } catch {
+    return '/shop.html';
+  }
 }

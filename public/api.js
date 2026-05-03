@@ -8,6 +8,8 @@
    - Robust get/send wrappers (never throw; always return { ok, status, body }).
 */
 
+import { getSession } from './auth.js';
+
 export const api = (() => {
   // ---------- Internal helpers ----------
   const caps = {
@@ -25,7 +27,12 @@ const j = async (res) => {
 // Central request wrapper — never throws; always returns { ok, status, body }
 async function request(url, opts = {}) {
   try {
-    const res = await fetch(url, { credentials: 'include', ...opts });
+    const { authRequired = false, ...fetchOpts } = opts || {};
+    if (authRequired) {
+      const session = await getSession();
+      if (!session?.signedIn) return { ok: false, status: 401, body: null, authSkipped: true };
+    }
+    const res = await fetch(url, { credentials: 'include', ...fetchOpts });
     return j(res);
   } catch {
     return { ok: false, status: 0, body: null };
@@ -41,18 +48,31 @@ const send = (url, method, data) =>
 
   // ---------- Pets CRUD ----------
   async function petsList() {
-    const r = await get('/api/pets');
+    const r = await request('/api/pets', { authRequired: true });
     const arr = Array.isArray(r.body) ? r.body : (r.body?.pets || []);
     return { ok: r.ok, pets: arr, status: r.status };
   }
   async function petsCreate({ name, species, birthday }) {
-    return send('/api/pets', 'POST', { name, species, birthday });
+    return request('/api/pets', {
+      authRequired: true,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, species, birthday }),
+    });
   }
   async function petsUpdate(id, patch) {
-    return send(`/api/pets/${encodeURIComponent(id)}`, 'PATCH', patch);
+    return request(`/api/pets/${encodeURIComponent(id)}`, {
+      authRequired: true,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch),
+    });
   }
   async function petsDelete(id) {
-    return send(`/api/pets/${encodeURIComponent(id)}`, 'DELETE');
+    return request(`/api/pets/${encodeURIComponent(id)}`, {
+      authRequired: true,
+      method: 'DELETE',
+    });
   }
 
   // ---------- Products (search/list/detail) ----------
@@ -66,6 +86,14 @@ const send = (url, method, data) =>
     const products = Array.isArray(r.body?.items) ? r.body.items : [];
     return { ok: r.ok, products, status: r.status };
   }
+  async function allProducts(limit = 250) {
+    const r = await get(`/api/products/all?limit=${limit}`);
+    const products =
+      Array.isArray(r.body?.items) ? r.body.items
+      : Array.isArray(r.body?.products) ? r.body.products
+      : [];
+    return { ok: r.ok, products, status: r.status };
+  }
   // Used by wishlist UIs and nav menus
   async function productByHandle(handle) {
     const h = String(handle || '').trim();
@@ -77,7 +105,7 @@ const send = (url, method, data) =>
   // ---------- Wishlist ----------
   // List handles (shape tolerant: returns both "items" and "wishlist")
   async function wishlistList() {
-    const r = await get('/api/wishlist');
+    const r = await request('/api/wishlist', { authRequired: true });
     const list =
       Array.isArray(r.body?.wishlist) ? r.body.wishlist
       : Array.isArray(r.body?.items)  ? r.body.items
@@ -86,11 +114,19 @@ const send = (url, method, data) =>
     return { ok: r.ok, items: list, wishlist: list, status: r.status };
   }
   async function wishlistAdd(handle) {
-    const r = await send('/api/wishlist', 'POST', { handle });
+    const r = await request('/api/wishlist', {
+      authRequired: true,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ handle }),
+    });
     return { ok: r.ok, wishlist: r.body?.wishlist || [], status: r.status };
   }
   async function wishlistRemove(handle) {
-    const r = await send(`/api/wishlist/${encodeURIComponent(handle)}`, 'DELETE');
+    const r = await request(`/api/wishlist/${encodeURIComponent(handle)}`, {
+      authRequired: true,
+      method: 'DELETE',
+    });
     return { ok: r.ok, wishlist: r.body?.wishlist || [], status: r.status };
   }
 
@@ -99,6 +135,11 @@ const send = (url, method, data) =>
 
   // If the server route 404s once, cache caps.prefs=false to avoid future calls.
   async function prefsGetForMyPets() {
+    const session = await getSession();
+    if (!session?.signedIn) {
+      const raw = localStorage.getItem(LS_PANE);
+      return { ok: true, on: raw === null ? false : raw === '1' };
+    }
     if (caps.prefs === false) {
       const raw = localStorage.getItem(LS_PANE);
       return { ok: true, on: raw === null ? false : raw === '1' };
@@ -111,6 +152,11 @@ const send = (url, method, data) =>
   }
 
   async function prefsSetForMyPets(on) {
+    const session = await getSession();
+    if (!session?.signedIn) {
+      localStorage.setItem(LS_PANE, on ? '1' : '0');
+      return { ok: true };
+    }
     if (caps.prefs === false) {
       localStorage.setItem(LS_PANE, on ? '1' : '0');
       return { ok: true };
@@ -152,7 +198,7 @@ const send = (url, method, data) =>
     // Pets
     petsList, petsCreate, petsUpdate, petsDelete,
     // Products
-    searchProducts, featuredProducts, productByHandle,
+    searchProducts, featuredProducts, allProducts, productByHandle,
     // Wishlist
     wishlistList, wishlistAdd, wishlistRemove,
     // Prefs

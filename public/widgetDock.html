@@ -1,0 +1,62 @@
+<!-- widgetDock.html -->
+<div class="pp-widget-shell" data-widget-shell>
+  <div class="pp-widget-dock" data-widget-dock></div>
+  <div class="pp-help-pill" data-help-pill>
+    <button
+      class="pp-help-toggle"
+      type="button"
+      data-help-toggle
+      aria-expanded="false"
+      aria-label="Open Help Center"
+      aria-controls="pp-help-panel"
+      data-tooltip="Need help fast? Open support tools and quick actions."
+    >
+      <i class="bi bi-question-circle" aria-hidden="true"></i>
+      <span class="pp-help-toggle-label">Support</span>
+    </button>
+    <div class="pp-help-panel" id="pp-help-panel" role="dialog" aria-label="Help Center">
+      <div class="pp-help-header">
+        <div class="pp-help-header-main">
+          <div class="pp-help-kicker">Care & Support Hub</div>
+          <div class="pp-help-title">Find help fast.</div>
+          <div class="pp-help-sub">Orders, returns, account help, and care guidance in one place.</div>
+        </div>
+        <div class="pp-help-presence">
+          <span class="pp-help-presence-dot"></span>
+          <span>Avg reply 2h</span>
+        </div>
+      </div>
+      <label class="pp-help-search" aria-label="Search help">
+        <i class="bi bi-search" aria-hidden="true"></i>
+        <input
+          type="search"
+          placeholder="Search orders, returns, care tips…"
+          data-tooltip="Search help topics like tracking, returns, and care guidance."
+        />
+      </label>
+      <div class="pp-help-quick" data-help-quick></div>
+      <div class="pp-help-quest">
+        <div class="pp-help-quest-head">
+          <span>Support path</span>
+          <span class="pp-help-quest-chip">Helpful next step</span>
+        </div>
+        <div class="pp-help-quest-bar"><span data-help-streak-bar></span></div>
+        <div class="pp-help-quest-meta" data-help-streak>Choose the next support step</div>
+      </div>
+      <div class="pp-help-items" data-help-items></div>
+      <div class="pp-help-tip">
+        <span data-help-tip>Tip: A 10‑minute play break boosts calm focus.</span>
+        <button class="pp-help-tip-btn" type="button" data-help-tip-refresh>New tip</button>
+      </div>
+      <div class="pp-help-footer">
+        <a
+          class="pp-help-footer-link"
+          href="/contact.html"
+          data-tooltip="Open the full support center and contact options."
+        >Explore full Help Center</a>
+      </div>
+    </div>
+  </div>
+  <div class="pp-widget-app-layer" data-widget-app-layer></div>
+  <div class="pp-widget-panel" id="pp-widget-panel" data-widget-panel></div>
+</div>

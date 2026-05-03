@@ -15,7 +15,7 @@
   <!-- New cart polish -->
   <link rel="stylesheet" href="/css/cart.css"/>
 
-  <link rel="icon" href="/favicon.ico"/>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
 </head>
 <body class="shop-page cart-page">
   <!-- Modular navbar/footer are injected into these containers (kept from your current setup) -->
@@ -96,10 +96,6 @@
   <script type="module" src="main.js"></script>
   <script type="module" src="/navbar.js"></script>
   <script type="module" src="/cart.js"></script>
-
-  <script type="module">
-  import('/wishlist.js').then(()=>console.info('[pp:test] wishlist direct import ok')).catch(e=>console.error('[pp:test] wishlist direct import failed', e));
-</script>
 
 </body>
 </html>

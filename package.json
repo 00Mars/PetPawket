@@ -12,7 +12,19 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "echo \"No tests yet\" && exit 0",
+    "migrate": "node scripts/migrate.js",
+    "db:test:setup": "node scripts/create-test-db.js --write-env",
+    "seed:network": "node scripts/network-seed.js",
+    "grant:network-ops": "node scripts/network-ops-grant.js",
+    "start:charm": "node apps/charmfoundation/server.js",
+    "dev:charm": "node --watch apps/charmfoundation/server.js",
+    "migrate:charm": "node apps/charmfoundation/scripts/migrate.js",
+    "dev:all": "node scripts/dev-all.js",
+    "start:gateway": "node scripts/site-gateway.js",
+    "dev:gateway": "node scripts/site-gateway.js",
+    "test": "node --test tests/networkRoutes.test.js",
+    "test:networkdb": "node --test tests/networkDB.integration.test.js",
+    "test:networkdb:ci": "node scripts/network-test-ci.js",
     "lint:css": "stylelint \"**/*.css\" --ignore-path .stylelintignore",
     "lint:css:fix": "stylelint \"**/*.css\" --fix --ignore-path .stylelintignore"
   },
@@ -26,7 +38,7 @@
     "multer": "^1.4.5-lts.2",
     "node-fetch": "^3.3.2",
     "pg": "^8.16.0",
-    "sharp": "^0.34.1",
+    "sharp": "^0.34.5",
     "uuid": "^11.1.0"
   },
   "devDependencies": {

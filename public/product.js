@@ -1,5 +1,8 @@
 // /public/product.js
 // PDP logic (scoped to this page)
+import { getSession } from './auth.js';
+import { getLoopAvailability } from './loopState.js';
+import { addToCart, updateCartBadge } from './cartUtils.js';
 
 /* -------------------------- URL / Money helpers -------------------------- */
 function getHandleFromUrl() {
@@ -12,43 +15,108 @@ function getHandleFromUrl() {
 
 const moneyFmt = new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' });
 const money = (n) => moneyFmt.format(Number(n || 0));
+const moneyFor = (n, currency = 'USD') => {
+  try {
+    return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(Number(n || 0));
+  } catch {
+    return `$${Number(n || 0).toFixed(2)}`;
+  }
+};
+
+function esc(value = '') {
+  return String(value ?? '').replace(/[&<>"']/g, (char) => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]
+  ));
+}
+
+function safeImageUrl(value, fallback = '/assets/images/placeholder.png') {
+  const raw = String(value || '').trim();
+  if (!raw) return fallback;
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (raw.startsWith('/') && !raw.startsWith('//')) return raw;
+  return fallback;
+}
+
+function safeHref(value, fallback = '#') {
+  const raw = String(value || '').trim();
+  if (!raw) return fallback;
+  if (/^(javascript|data|vbscript):/i.test(raw)) return fallback;
+  if (raw.startsWith('//')) return fallback;
+  try {
+    const url = new URL(raw, window.location.origin);
+    if (url.protocol === 'http:' || url.protocol === 'https:') return raw;
+  } catch {}
+  return fallback;
+}
+
+async function ensureSignedInForWishlist() {
+  const session = await getSession();
+  if (session?.signedIn) return true;
+  if (typeof window.PP_openAuthModal === 'function') window.PP_openAuthModal('login');
+  else document.querySelector('[data-toggle="login-modal"]')?.click();
+  return false;
+}
+
+function sanitizeDescriptionHtml(html = '') {
+  const template = document.createElement('template');
+  template.innerHTML = String(html || '');
+  template.content.querySelectorAll('script, iframe, object, embed, link, meta').forEach((node) => node.remove());
+  template.content.querySelectorAll('*').forEach((node) => {
+    Array.from(node.attributes).forEach((attr) => {
+      const name = attr.name.toLowerCase();
+      if (name.startsWith('on')) {
+        node.removeAttribute(attr.name);
+        return;
+      }
+      if (['href', 'src', 'xlink:href'].includes(name) && safeHref(attr.value, '') === '') {
+        node.removeAttribute(attr.name);
+      }
+    });
+  });
+  return template.innerHTML;
+}
 
 async function j(url, init){ const r = await fetch(url, init); if(!r.ok) throw new Error(`${r.status} ${r.statusText}`); return r.json(); }
 
 /* ------------------------------- Data load ------------------------------- */
 async function loadProduct(handle){
-  // local first
-  for (const url of [
-    `/api/products/by-handle?handle=${encodeURIComponent(handle)}`,
-    `/api/products/${encodeURIComponent(handle)}`,
-    `/api/product?handle=${encodeURIComponent(handle)}`
-  ]) { try { return await j(url, { credentials:'include' }); } catch {} }
+  const url = `/api/products/handle/${encodeURIComponent(handle)}`;
+  const payload = await j(url, { credentials:'include' });
+  const raw = payload?.product || payload;
+  if (!raw) throw new Error(payload?.error || 'Product not found');
 
-  // Shopify fallback (.js exposes cents)
-  const shop = document.querySelector('meta[name="shop-origin"]')?.content?.replace(/\/+$/,'') || '';
-  if (!shop) throw new Error('Shop origin missing.');
-  const data = await j(`${shop}/products/${encodeURIComponent(handle)}.js`);
+  const images = (raw.images?.edges || raw.images || []).map(e => {
+    const n = e?.node || e;
+    return { url: n?.url || n, altText: n?.altText || raw.title || '' };
+  }).filter(i => i?.url);
 
-  const variants = (data.variants || []).map(v => ({
-    id: v.id,
-    title: v.title,
-    price: Number(v.price || 0) / 100,
-    available: v.available !== false && v.available !== 'false',
-  }));
+  if (!images.length && raw.featuredImage?.url) {
+    images.push({ url: raw.featuredImage.url, altText: raw.title || '' });
+  }
 
-  const min = variants.reduce((m,v)=>Math.min(m,v.price), Number.POSITIVE_INFINITY);
-  const max = variants.reduce((m,v)=>Math.max(m,v.price), 0);
+  const variants = (raw.variants?.edges || raw.variants || []).map(e => {
+    const n = e?.node || e;
+    const price = Number(n?.price?.amount ?? n?.price ?? 0);
+    return {
+      id: n?.id,
+      title: n?.title || 'Default',
+      price,
+      available: n?.availableForSale !== false && n?.available !== false
+    };
+  }).filter(v => v.id);
+
+  const minFromRange = Number(raw?.priceRange?.minVariantPrice?.amount ?? NaN);
+  const maxFromRange = Number(raw?.priceRange?.maxVariantPrice?.amount ?? NaN);
+  const min = Number.isFinite(minFromRange) ? minFromRange : Math.min(...variants.map(v => v.price || Infinity));
+  const max = Number.isFinite(maxFromRange) ? maxFromRange : Math.max(...variants.map(v => v.price || 0));
 
   return {
-    id: data.id,
-    title: data.title,
-    handle: data.handle,
-    descriptionHtml: data.description || '',
-    images: (data.images || []).map(url => ({ url, altText: data.title })),
+    ...raw,
+    images,
     variants,
     priceRange: {
-      minVariantPrice: { amount: min, currencyCode: 'USD' },
-      maxVariantPrice: { amount: max, currencyCode: 'USD' },
+      minVariantPrice: { amount: Number.isFinite(min) ? min : 0, currencyCode: raw?.priceRange?.minVariantPrice?.currencyCode || 'USD' },
+      maxVariantPrice: { amount: Number.isFinite(max) ? max : Number.isFinite(min) ? min : 0, currencyCode: raw?.priceRange?.maxVariantPrice?.currencyCode || 'USD' },
     }
   };
 }
@@ -98,11 +166,11 @@ function throttle(fn, ms=150){
 
 /* --------------------------------- Render -------------------------------- */
 function render(root, p){
-  const hero = p.images?.[0]?.url || '/assets/images/placeholder.png';
+  const hero = safeImageUrl(p.images?.[0]?.url);
   const thumbs = (p.images || []).slice(0, 8);
 
   const variantOptions = (p.variants || []).map(v =>
-    `<option value="${String(v.id)}" ${v.available ? '' : 'disabled'}>${v.title} — ${money(v.price)}</option>`
+    `<option value="${esc(v.id)}" ${v.available ? '' : 'disabled'}>${esc(v.title)} — ${esc(money(v.price))}</option>`
   ).join('');
 
   const minp = p.priceRange?.minVariantPrice?.amount ?? null;
@@ -116,10 +184,10 @@ function render(root, p){
       <!-- LEFT: gallery, then sticky buy box -->
       <div class="pdp-col-left">
         <div class="pdp-card pdp-gallery">
-          <img class="pdp-media-hero" src="${hero}" alt="${p.title || ''}">
+          <img class="pdp-media-hero" src="${esc(hero)}" alt="${esc(p.title || '')}">
           ${thumbs.length ? `
             <div class="pdp-thumbs">
-              ${thumbs.map((t,i)=>`<img src="${t.url}" alt="${p.title || ''}" data-role="thumb" ${i===0?'aria-current="true"':''}>`).join('')}
+              ${thumbs.map((t,i)=>`<img src="${esc(safeImageUrl(t.url))}" alt="${esc(t.altText || p.title || '')}" data-role="thumb" ${i===0?'aria-current="true"':''}>`).join('')}
             </div>` : ``}
         </div>
 
@@ -142,6 +210,15 @@ function render(root, p){
             <button class="btn btn-outline-secondary" id="pdp-wish"><i class="bi bi-heart"></i> Wishlist</button>
           </div>
 
+          <div class="pdp-impact">
+            <div class="pdp-impact-head">
+              <span>CHARM preview</span>
+              <strong id="pdp-impact-amount">CHARM care stories</strong>
+            </div>
+            <div class="pdp-impact-case" id="pdp-impact-case">This product can connect into Pet Pawket's growing receipt, rescue story, and Pawket Pass ecosystem.</div>
+            <button class="pp-impact-btn pdp-impact-btn" type="button" data-loop-open hidden>Share Pawket Pass</button>
+          </div>
+
           <div class="pdp-trust">
             <span><i class="bi bi-shield-lock"></i> Secure payments</span>
             <span><i class="bi bi-box-seam"></i> Ships in 24–48h</span>
@@ -154,7 +231,7 @@ function render(root, p){
       <div class="pdp-col-right">
         <div class="pdp-card pdp-desc-top">
           <h2 class="pdp-section-title">Details</h2>
-          <article id="pdp-desc-html">${p.descriptionHtml || ''}</article>
+          <article id="pdp-desc-html">${sanitizeDescriptionHtml(p.descriptionHtml || '')}</article>
         </div>
       </div>
     </div>
@@ -184,39 +261,114 @@ function render(root, p){
   }
   variantSel?.addEventListener('change', updatePriceFromVariant);
 
+  updateLoopShareAvailability(root);
+
   // Add to cart
-  document.getElementById('pdp-add')?.addEventListener('click', async () => {
+  document.getElementById('pdp-add')?.addEventListener('click', () => {
     const qty = Math.max(1, Number(document.getElementById('pdp-qty')?.value || 1));
     const variantId = variantSel ? variantSel.value : (p.variants?.[0]?.id || '');
+    const variant = (p.variants || []).find(x => String(x.id) === String(variantId));
     if (!variantId) return alert('No variant available.');
-    try{
-      const r = await fetch('/api/cart', {
-        method:'POST', credentials:'include',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({ lines:[{ variantId, quantity: qty }] })
-      });
-      if(!r.ok) throw new Error(await r.text());
-      const btn = document.getElementById('pdp-add');
-      if (btn) { btn.innerHTML = '<i class="bi bi-check-lg"></i> Added'; btn.classList.replace('btn-primary','btn-success'); }
-    }catch{
-      const shop = document.querySelector('meta[name="shop-origin"]')?.content?.replace(/\/+$/,'');
-      if (shop) location.href = `${shop}/cart/add?id=${encodeURIComponent(variantId)}&quantity=${encodeURIComponent(qty)}`;
+    if (variant?.available === false) return alert('This option is not available.');
+
+    addToCart({
+      productId: p.id,
+      handle: p.handle,
+      variantId,
+      title: p.title || 'Product',
+      price: variant?.price ?? Number(p.priceRange?.minVariantPrice?.amount || 0),
+      image: hero,
+      variantTitle: variant?.title || ''
+    }, qty);
+    updateCartBadge();
+
+    const btn = document.getElementById('pdp-add');
+    if (btn) {
+      btn.innerHTML = '<i class="bi bi-check-lg"></i> Added';
+      btn.classList.replace('btn-primary','btn-success');
+      setTimeout(() => {
+        btn.textContent = 'Add to cart';
+        btn.classList.replace('btn-success','btn-primary');
+      }, 1600);
     }
   });
 
   // Wishlist
   document.getElementById('pdp-wish')?.addEventListener('click', async (e) => {
     e.preventDefault();
+    if (!(await ensureSignedInForWishlist())) return;
     try{
-      await fetch('/api/wishlist', {
+      const res = await fetch('/api/wishlist', {
         method:'POST', credentials:'include',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({ productId: p.id, handle: p.handle })
       });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const btn = e.currentTarget;
       btn.innerHTML = '<i class="bi bi-heart-fill"></i> Wishlisted';
       btn.classList.replace('btn-outline-secondary','btn-secondary');
-    }catch{ alert('Could not add to wishlist. Are you signed in?'); }
+    } catch {
+      const status = document.getElementById('pdp-status');
+      if (status) status.textContent = 'Could not save this item yet. Please sign in and try again.';
+    }
+  });
+}
+
+async function updateLoopShareAvailability(root) {
+  const btn = root?.querySelector?.('[data-loop-open]');
+  if (!btn) return;
+  const state = await getLoopAvailability();
+  const show = !!state?.available;
+  btn.hidden = !show;
+  btn.setAttribute('aria-hidden', String(!show));
+  if (!btn.dataset.loopAvailabilityWired) {
+    btn.dataset.loopAvailabilityWired = '1';
+    document.addEventListener('pp:loop:summary', (e) => {
+      const avail = !!e.detail?.available;
+      btn.hidden = !avail;
+      btn.setAttribute('aria-hidden', String(!avail));
+    });
+  }
+}
+
+function renderProductFinder(root, statusEl, options = {}) {
+  const mode = options.mode || 'missing';
+  const isError = mode === 'error';
+  const title = isError ? 'Product unavailable' : 'Find a product';
+  const body = isError
+    ? 'We could not load that product right now. You can keep shopping or search for another Pet Pawket item.'
+    : 'Choose a product from the shop to view details, options, and add it to your cart.';
+
+  document.getElementById('pdp-title').textContent = title;
+  document.title = `${title} • Pet Pawket`;
+  if (statusEl) statusEl.textContent = '';
+  if (!root) return;
+
+  root.innerHTML = `
+    <div class="pdp-card pdp-product-finder${isError ? ' is-error' : ''}">
+      <div class="pdp-product-finder-icon"><i class="bi ${isError ? 'bi-exclamation-circle' : 'bi-search-heart'}" aria-hidden="true"></i></div>
+      <div>
+        <h2>${esc(title)}</h2>
+        <p>${esc(body)}</p>
+        <form class="pdp-product-search" data-pdp-product-search>
+          <label class="visually-hidden" for="pdp-product-search-input">Search products</label>
+          <input id="pdp-product-search-input" type="search" placeholder="Search toys, treats, care goods..." autocomplete="off" />
+          <button class="btn btn-primary" type="submit">Search Shop</button>
+        </form>
+        <div class="pdp-product-actions">
+          <a class="btn btn-outline-secondary" href="/shop.html">Browse all products</a>
+          <a class="btn btn-outline-secondary" href="/packs.html">Explore Pawket Packs</a>
+        </div>
+      </div>
+    </div>
+  `;
+
+  root.querySelector('[data-pdp-product-search]')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const q = root.querySelector('#pdp-product-search-input')?.value?.trim() || '';
+    const url = new URL('/shop.html', window.location.origin);
+    if (q) url.searchParams.set('q', q);
+    window.location.assign(url.toString());
   });
 }
 
@@ -241,7 +393,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   const root = document.getElementById('pdp-root');
 
   try{
-    if(!handle) throw new Error('Missing product handle in URL.');
+    if(!handle) {
+      renderProductFinder(root, statusEl);
+      updateStickyOffsets();
+      return;
+    }
     statusEl.textContent = 'Loading…';
     const product = await loadProduct(handle);
     render(root, product);
@@ -251,7 +407,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateStickyOffsets();
   }catch(e){
     console.error('[PDP] load error:', e);
-    statusEl.textContent = 'Sorry — we couldn’t load this product.';
-    root.innerHTML = `<div class="alert alert-danger">${e?.message || 'Unknown error'}</div>`;
+    renderProductFinder(root, statusEl, { mode: 'error' });
   }
 });

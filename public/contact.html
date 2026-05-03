@@ -29,6 +29,7 @@
       <select id="contactType">
         <option value="">-- Choose One --</option>
         <option value="general">General Contact</option>
+        <option value="order-tracker">Order Tracking</option>
         <option value="partner">Partner / Product Submission</option>
       </select>
 
@@ -44,7 +45,6 @@
     import { injectFooter } from './footer.js';
     import { setupHueyAnimation } from './navbarAnimation.js';
     import { setupNavbarOverlayHandlers } from './navbarOverlay.js';
-    import { logout } from './middleware/requireAuth.js';
     
 
     injectNavbar(() => {
@@ -63,6 +63,15 @@
           <input type="email" name="email" placeholder="Your Email" required />
           <textarea name="message" rows="5" placeholder="Your Message" required></textarea>
           <button type="submit">Send Message</button>
+        </form>
+      `,
+      'order-tracker': `
+        <form id="orderTrackerFormInline">
+          <input type="text" name="name" placeholder="Your Name" required />
+          <input type="email" name="email" placeholder="Your Email" required />
+          <input type="text" name="orderNumber" placeholder="Order Number" required />
+          <textarea name="message" rows="4" placeholder="Anything else we should know?" required></textarea>
+          <button type="submit">Request Order Help</button>
         </form>
       `,
       partner: `
@@ -92,8 +101,14 @@
         });
       }
     });
+
+    const params = new URLSearchParams(window.location.search);
+    const topic = (params.get('topic') || '').toLowerCase();
+    if (topic === 'order' || topic === 'order-tracker' || topic === 'track-order') {
+      contactType.value = 'order-tracker';
+      contactType.dispatchEvent(new Event('change'));
+    }
   </script>
-  <script type="module" src="/contact.js"></script>
   <script type="module" src="main.js"></script>
 </body>
 </html>

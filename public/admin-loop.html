@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pawket Pass Admin | Pet Pawket</title>
+  <link rel="stylesheet" href="/css/core.css" />
+  <link rel="stylesheet" href="/css/loop.css" />
+  <link rel="stylesheet" href="/css/admin-loop.css" />
+</head>
+<body>
+  <header id="navbar-container"></header>
+
+  <main class="pp-admin-loop">
+    <div class="pp-admin-card">
+      <h1>Pawket Pass Admin</h1>
+      <p class="text-muted">Manage Pawket Passes, rewards, and impact stories.</p>
+
+      <div class="pp-admin-actions">
+        <button class="pp-loop-share-btn" id="refreshAdmin">Refresh</button>
+        <div class="pp-admin-award">
+          <input type="text" id="awardMonth" placeholder="YYYY-MM (optional)" />
+          <button class="pp-loop-share-btn secondary" id="awardMonthly">Award Monthly Rewards</button>
+        </div>
+      </div>
+
+      <div id="adminStatus" class="text-muted"></div>
+    </div>
+
+    <div class="pp-admin-grid">
+      <section class="pp-admin-card">
+        <h2>Leaderboard Snapshot</h2>
+        <div id="adminLeaderboard" class="loop-leaderboard-grid"></div>
+      </section>
+
+      <section class="pp-admin-card">
+        <h2>Recent Pawket Passes</h2>
+        <div id="adminTokens"></div>
+      </section>
+    </div>
+
+    <section class="pp-admin-card">
+      <h2>Impact Cases</h2>
+      <p class="text-muted">Track active rescue missions, update goals, and switch the live case.</p>
+      <div id="impactCases" class="pp-admin-impact-cases"></div>
+    </section>
+
+    <section class="pp-admin-card">
+      <h2>Add Impact Case</h2>
+      <form id="impactForm" class="pp-admin-form">
+        <input type="text" id="impactTitle" placeholder="Title" required />
+        <textarea id="impactBody" placeholder="Story body" rows="4" required></textarea>
+        <input type="text" id="impactPetName" placeholder="Pet name (optional)" />
+        <input type="text" id="impactImageUrl" placeholder="Image URL (optional)" />
+        <div class="pp-admin-form-row">
+          <input type="number" step="0.01" id="impactGoal" placeholder="Goal amount (USD)" />
+          <input type="text" id="impactCurrency" placeholder="Currency (USD)" />
+          <input type="number" id="impactPriority" placeholder="Priority (lower is sooner)" />
+          <select id="impactStatus">
+            <option value="active">Active</option>
+            <option value="paused">Paused</option>
+            <option value="funded">Funded</option>
+          </select>
+          <label class="pp-admin-checkbox">
+            <input type="checkbox" id="impactActive" />
+            Set as active
+          </label>
+        </div>
+        <button class="pp-loop-share-btn" type="submit">Add Impact Case</button>
+      </form>
+    </section>
+  </main>
+
+  <div id="footer-container"></div>
+
+  <script type="module" src="/navbar.js"></script>
+  <script type="module" src="/main.js"></script>
+  <script type="module" src="/adminLoop.js"></script>
+</body>
+</html>

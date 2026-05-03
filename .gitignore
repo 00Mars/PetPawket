@@ -19,7 +19,13 @@ build/
 # Caches
 .cache/
 .parcel-cache/
+.expo/
 coverage/
+
+# Local QA artifacts
+.playwright-cli/
+output/
+tmp-hero-check/
 
 # Env / local
 .env

@@ -3,10 +3,12 @@
  * - Runs after account.js
  * - Fills first/last/email ONLY if inputs are empty
  * - Tries in order:
- *    1) /api/account/profile (then /api/me, /api/profile as fallbacks)
+ *    1) /api/account/profile (then /api/me as fallback)
  *    2) /api/addresses (default address or first item)
  *    3) Derive name from email if it looks like first.last@...
  */
+import { getSession } from './auth.js';
+
 (function () {
   const $ = (s, r = document) => r.querySelector(s);
   const fName = $('#profileFirstName');
@@ -67,7 +69,7 @@
   }
 
   async function firstProfile() {
-    const urls = ['/api/account/profile', '/api/me', '/api/profile'];
+    const urls = ['/api/account/profile', '/api/me'];
     for (const u of urls) {
       try {
         const j = await getJson(u);
@@ -79,7 +81,7 @@
   }
 
   async function firstAddress() {
-    const urls = ['/api/addresses', '/api/account/addresses'];
+    const urls = ['/api/addresses'];
     for (const u of urls) {
       try {
         const j = await getJson(u);
@@ -119,6 +121,9 @@
 
     // If account.js already set names, do nothing
     if (fName.value?.trim() && lName.value?.trim()) return;
+
+    const session = await getSession();
+    if (!session?.signedIn) return;
 
     // Profile endpoints
     const prof = await firstProfile();

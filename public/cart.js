@@ -1,5 +1,5 @@
 // /public/cart.js
-// LocalStorage cart + Shopify checkout (permalink redirect), plus
+// LocalStorage cart + canonical Pet Pawket checkout, plus
 // dynamic navbar offset so content never hides behind fixed bars.
 
 import { getCart, saveCart, updateCartBadge } from './cartUtils.js';
@@ -18,6 +18,14 @@ function throttle(fn, ms=150){ let t=null, lastArgs=null; return (...a)=>{ lastA
 function measureNavOffset(){
   const root = T.navWrap();
   if (!root) return 0;
+  const ppHeader = root.querySelector('.pp-header');
+  const ppSubnav = root.querySelector('.pp-subnav');
+  if (ppHeader || ppSubnav) {
+    const headerH = ppHeader?.getBoundingClientRect?.().height || ppHeader?.offsetHeight || 0;
+    const subnavH = ppSubnav?.getBoundingClientRect?.().height || ppSubnav?.offsetHeight || 0;
+    const total = Math.round(headerH + subnavH);
+    if (total > 0) return total;
+  }
   // Try common parts in your navbar stack
   const bar = root.querySelector('.announcement-bar');
   const nav = root.querySelector('.custom-navbar') || root.querySelector('.navbar') || root.firstElementChild;
@@ -47,6 +55,15 @@ function initNavOffsetWatcher(){
 
 /* ---------- Status helper ---------- */
 function setStatus(msg=''){ const el = T.status(); if (el) el.textContent = msg; }
+let checkoutInFlight = false;
+
+function setCheckoutAvailability(hasItems) {
+  const btn = T.checkoutBtn();
+  if (!btn) return;
+  btn.hidden = !hasItems;
+  btn.disabled = !hasItems;
+  btn.setAttribute('aria-disabled', String(!hasItems));
+}
 
 /* ---------- Render ---------- */
 function renderCart() {
@@ -59,11 +76,26 @@ function renderCart() {
   let total = 0;
 
   if (!Array.isArray(cartItems) || cartItems.length === 0) {
-    container.innerHTML = '<tr><td colspan="6" class="text-center py-4">Your cart is empty.</td></tr>';
+    container.innerHTML = `
+      <tr class="cart-empty-row">
+        <td colspan="6" class="text-center py-4">
+          <div class="cart-empty-state">
+            <strong>Your cart is empty.</strong>
+            <span>Start with everyday care goods, a Pawket Pack, or a quick Packet trial.</span>
+            <div class="cart-empty-actions">
+              <a class="btn btn-primary btn-sm" href="/shop.html">Shop products</a>
+              <a class="btn btn-outline-secondary btn-sm" href="/packs.html">Explore Packs</a>
+            </div>
+          </div>
+        </td>
+      </tr>`;
     totalEl.textContent = '$0.00';
+    setCheckoutAvailability(false);
     updateCartBadge();
     return;
   }
+
+  setCheckoutAvailability(true);
 
   cartItems.forEach((item, index) => {
     const price = Number(item?.price) || 0;
@@ -71,7 +103,7 @@ function renderCart() {
     total += price * qty;
     const row = document.createElement('tr');
     row.innerHTML = `
-      <td><img src="${escape(item?.image||'')}" alt="" class="cart-thumb" loading="lazy" decoding="async"></td>
+      <td><img src="${escape(safeImageUrl(item?.image || ''))}" alt="" class="cart-thumb" loading="lazy" decoding="async"></td>
       <td>
         <p class="cart-title mb-1">${escape(item?.title||'Item')}</p>
         ${item?.variantTitle ? `<div class="cart-meta">${escape(item.variantTitle)}</div>` : ''}
@@ -129,10 +161,17 @@ function setupCartListeners() {
   });
 }
 
-/* ---------- Checkout (Permalink redirect — reliable on localhost & prod) ---------- */
+/* ---------- Checkout (server-created Shopify cart) ---------- */
 async function redirectToCheckout() {
+  if (checkoutInFlight) return;
+  checkoutInFlight = true;
+  const btn = T.checkoutBtn();
   try {
     setStatus('Preparing checkout…');
+    if (btn) {
+      btn.disabled = true;
+      btn.setAttribute('aria-busy', 'true');
+    }
 
     const cartItems = getCart();
     if (!Array.isArray(cartItems) || cartItems.length === 0) {
@@ -140,48 +179,80 @@ async function redirectToCheckout() {
       return;
     }
 
-    // Normalize a variant id to the numeric form Shopify cart permalinks expect.
-    const toVariantNumber = (id) => {
-      if (!id) return '';
-      const s = String(id);
-      // gid://shopify/ProductVariant/1234567890 → 1234567890
-      const m = s.match(/ProductVariant\/(\d+)/);
-      if (m) return m[1];
-      // Already numeric-ish: keep only digits
-      const digits = s.replace(/[^\d]/g, '');
-      return digits;
-    };
-
-    // Build "id:qty" segments, skipping any lines that failed normalization.
-    const segments = cartItems
+    const lines = cartItems
       .map(item => {
-        const vid = toVariantNumber(item?.variantId);
+        const merchandiseId = String(item?.variantId || '').trim();
         const qty = Math.max(1, Number(item?.quantity) || 1);
-        return vid ? `${vid}:${qty}` : null;
+        return merchandiseId ? { merchandiseId, quantity: qty } : null;
       })
       .filter(Boolean);
 
-    if (!segments.length) {
+    if (!lines.length) {
       console.error('[checkout] No valid variant ids in cart:', cartItems);
       alert('Checkout failed: your cart items are missing variant IDs.');
       return;
     }
 
-    const base = 'https://yx0ksi-xv.myshopify.com/cart/';
-    const query = segments.join(',');
-    // Optional: append attributes/discounts
-    // const extra = '?checkout[attributes][source]=site';
-    window.location.href = base + query; // e.g., .../cart/123:1,456:2
+    const loopToken = getLoopToken();
+    const res = await fetch('/api/cart/create', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        lines,
+        loopToken,
+        source: 'petpawket_cart_page',
+        attributes: loopToken ? [{ key: 'loop_token', value: loopToken }] : []
+      })
+    });
+
+    let data = null;
+    try { data = await res.json(); } catch {}
+    if (!res.ok || !data?.checkoutUrl) {
+      console.error('[checkout] create failed:', data);
+      const details = Array.isArray(data?.details) && data.details.length
+        ? ` ${data.details.map(d => d.message).filter(Boolean).join(' ')}`
+        : '';
+      alert(`Could not start checkout.${details}`.trim());
+      return;
+    }
+
+    setStatus('Opening secure checkout…');
+    window.location.assign(data.checkoutUrl);
   } catch (e) {
     console.error('[checkout] error', e);
     alert('Could not start checkout. Please try again.');
   } finally {
     setStatus('');
+    if (btn) {
+      btn.disabled = false;
+      btn.removeAttribute('aria-busy');
+    }
+    checkoutInFlight = false;
   }
 }
 
 /* ---------- Utils ---------- */
 function escape(s=''){ return String(s).replace(/[&<>"']/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+function safeImageUrl(value, fallback = '/assets/images/placeholder.png') {
+  const raw = String(value || '').trim();
+  if (!raw) return fallback;
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (raw.startsWith('/') && !raw.startsWith('//')) return raw;
+  return fallback;
+}
+function getLoopToken() {
+  try {
+    const ls = localStorage.getItem('pp_loop_token');
+    if (ls) return String(ls).trim();
+  } catch {}
+  try {
+    const raw = document.cookie || '';
+    const m = raw.match(/(?:^|;\s*)pp_loop_token=([^;]+)/);
+    if (m) return decodeURIComponent(m[1] || '').trim();
+  } catch {}
+  return '';
+}
 
 /* ---------- Boot ---------- */
 document.addEventListener('DOMContentLoaded', () => {
@@ -193,11 +264,15 @@ document.addEventListener('DOMContentLoaded', () => {
     try { updateCartBadge(); } catch(e){}
 
     const btn = T.checkoutBtn();
-    if (btn) btn.addEventListener('click', (e) => { e.preventDefault(); redirectToCheckout(); });
+    if (btn && btn.dataset.checkoutWired !== '1') {
+      btn.dataset.checkoutWired = '1';
+      btn.addEventListener('click', (e) => { e.preventDefault(); redirectToCheckout(); });
+    }
 
     // Fallback delegation in case the button id/class changes
     document.addEventListener('click', (e) => {
       const b = e.target.closest('#checkout-button, .btn-checkout');
+      if (b === btn) return;
       if (b) { e.preventDefault(); redirectToCheckout(); }
     }, { capture: true });
   }, 0);

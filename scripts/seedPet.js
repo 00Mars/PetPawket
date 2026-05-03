@@ -3,7 +3,7 @@
 // Usage:
 //   SEED_CUSTOMER_EMAIL="you@example.com" node scripts/seedPet.js
 // Optional env:
-//   SEED_PET_NAME="Luna" SEED_PET_SPECIES="dog" SEED_PET_BREED="Husky" SEED_PET_BIRTHDAY="2019-04-01"
+//   SEED_PET_NAME="Sample Pet" SEED_PET_SPECIES="dog" SEED_PET_BREED="Mixed" SEED_PET_BIRTHDAY="2019-04-01"
 
 import 'dotenv/config';
 import { ensureUser, addPet, getPetsByUserId } from '../userDB.pg.js';
@@ -14,7 +14,7 @@ if (!EMAIL) {
   process.exit(1);
 }
 
-const PET_NAME     = process.env.SEED_PET_NAME     || 'Luna';
+const PET_NAME     = process.env.SEED_PET_NAME     || 'Sample Pet';
 const PET_SPECIES  = process.env.SEED_PET_SPECIES  || 'dog';
 const PET_BREED    = process.env.SEED_PET_BREED    || null;
 const PET_BIRTHDAY = process.env.SEED_PET_BIRTHDAY || null; // 'YYYY-MM-DD' or null

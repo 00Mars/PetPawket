@@ -19,23 +19,92 @@
   <div id="navbar-container"></div>
 
   <main class="shop-surface" data-allow-offline="false" aria-describedby="pp-status">
-    <div class="shop-surface-inner">
-      <!-- Header -->
-      <section class="shop-head" aria-labelledby="shop-title">
-        <div class="container head-card" role="region">
-          <header class="head-card-inner">
-            <h1 id="shop-title" class="shop-title">Shop</h1>
-            <p class="shop-subtitle">
-              Bright, friendly finds for pets and their people. Use categories, search &amp; sort as usual — then layer on <em>For My Pets</em> for guidance and tailored picks.
-            </p>
-          </header>
+    <div class="shop-page-shell">
+      <section class="shop-hero" aria-labelledby="shop-title">
+        <div class="shop-hero-copy">
+          <span class="shop-kicker">Pet Pawket Market</span>
+          <h1 id="shop-title" class="shop-title">A calmer shop for the pets behind every cart.</h1>
+          <p class="shop-subtitle">
+            Browse live Shopify inventory inside the Pet Pawket world: pet profiles tune the shelves, pack-eligible add-ons can support future box planning, and CHARM/partner paths stay close without turning the catalog into everything at once.
+          </p>
+          <div class="shop-hero-actions" aria-label="Primary shop actions">
+            <a class="btn btn-primary" href="/shop.html?mypets=1"><i class="bi bi-person-heart" aria-hidden="true"></i> For My Pets</a>
+            <a class="btn btn-outline-secondary" href="#shop-products"><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i> Browse catalog</a>
+            <a class="btn btn-outline-secondary" href="/account.html#account-pets"><i class="bi bi-stars" aria-hidden="true"></i> Add pet profile</a>
+          </div>
+          <div class="shop-hero-trail" aria-label="Pet Pawket shop path">
+            <span><i class="bi bi-bag-heart" aria-hidden="true"></i> Shop</span>
+            <span><i class="bi bi-person-heart" aria-hidden="true"></i> Profiles</span>
+            <span><i class="bi bi-box2-heart" aria-hidden="true"></i> Packs</span>
+            <span><i class="bi bi-shield-heart" aria-hidden="true"></i> CHARM</span>
+          </div>
         </div>
+
+        <aside class="shop-hero-panel" aria-label="Live shop summary">
+          <div class="shop-status-grid">
+            <div>
+              <span>Inventory</span>
+              <strong data-shop-total>Loading</strong>
+              <small data-shop-source>Live product catalog</small>
+            </div>
+            <div>
+              <span>Cart</span>
+              <strong data-shop-cart-count>0 items</strong>
+              <small data-shop-cart-total>$0.00 ready</small>
+            </div>
+            <a href="/packs.html">
+              <i class="bi bi-box2-heart" aria-hidden="true"></i>
+              <span>Pack studio</span>
+              <small>Curated box paths live outside the catalog</small>
+            </a>
+          </div>
+          <div class="shop-product-mosaic" data-shop-preview aria-label="Featured live products"></div>
+        </aside>
       </section>
 
-      <!-- Products -->
-      <section class="shop-grid" aria-label="Product Gallery">
-        <div class="container">
-          <!-- Quick chips (normal categories only) -->
+      <nav class="shop-route-grid" aria-label="Shop paths">
+        <a class="shop-route-card shop-route-card--primary" href="/shop.html?mypets=1">
+          <i class="bi bi-person-heart" aria-hidden="true"></i>
+          <span>For My Pets</span>
+          <small>Profile-tuned shelves</small>
+        </a>
+        <a class="shop-route-card" href="/shop.html?q=care">
+          <i class="bi bi-heart-pulse" aria-hidden="true"></i>
+          <span>Care shelf</span>
+          <small>Health, hygiene, routine goods</small>
+        </a>
+        <a class="shop-route-card" href="/packs.html">
+          <i class="bi bi-box-seam" aria-hidden="true"></i>
+          <span>Pawket Packs</span>
+          <small>Curated subscription path</small>
+        </a>
+        <a class="shop-route-card" href="/packets.html">
+          <i class="bi bi-gift" aria-hidden="true"></i>
+          <span>Packets</span>
+          <small>Trial and partner boxes</small>
+        </a>
+        <a class="shop-route-card" href="/charm.html">
+          <i class="bi bi-shield-heart" aria-hidden="true"></i>
+          <span>CHARM</span>
+          <small>Impact layer</small>
+        </a>
+        <a class="shop-route-card" href="/pawket-network.html">
+          <i class="bi bi-patch-check" aria-hidden="true"></i>
+          <span>Network</span>
+          <small>Trusted pet partners</small>
+        </a>
+      </nav>
+
+      <section class="shop-workbench" id="shop-products" aria-label="Product Gallery">
+        <header class="shop-workbench-head">
+          <div>
+            <span class="shop-kicker">Catalog</span>
+            <h2>Find the right shelf.</h2>
+          </div>
+          <p>Filter normally, or turn on For My Pets to let saved profiles reshape the catalog around real pet needs.</p>
+        </header>
+
+        <div class="shop-command-card">
           <div class="pp-chips" role="group" aria-label="Quick category filters">
             <button type="button" class="chip" data-chip="" aria-pressed="true">All</button>
             <button type="button" class="chip" data-chip="dog" aria-pressed="false">Dog</button>
@@ -43,25 +112,30 @@
             <button type="button" class="chip" data-chip="small-pet" aria-pressed="false">Small Pet</button>
             <button type="button" class="chip" data-chip="bird" aria-pressed="false">Bird</button>
             <button type="button" class="chip" data-chip="fish" aria-pressed="false">Fish</button>
+            <button type="button" class="chip" data-chip="reptile" aria-pressed="false">Reptile</button>
+            <button type="button" class="chip" data-chip="toy" aria-pressed="false">Toy</button>
+            <button type="button" class="chip" data-chip="treat" aria-pressed="false">Treat</button>
             <button type="button" class="chip" data-chip="accessories" aria-pressed="false">Accessories</button>
           </div>
 
-          <!-- Controls -->
           <nav class="pp-controls" aria-label="Shop controls">
-            <div class="control">
+            <div class="control control--search">
               <label for="pp-search">Search</label>
-              <input id="pp-search" name="search" type="search" placeholder="Find toys, treats, collars..." autocomplete="off" />
+              <input id="pp-search" name="search" type="search" placeholder="Search care goods, toys, treats..." autocomplete="off" />
             </div>
 
             <div class="control">
-              <label for="pp-category">Category</label>
+              <label for="pp-category">Shelf</label>
               <select id="pp-category" name="category">
-                <option value="">All</option>
+                <option value="">All shelves</option>
                 <option value="dog">Dog</option>
                 <option value="cat">Cat</option>
                 <option value="small-pet">Small Pet</option>
                 <option value="bird">Bird</option>
                 <option value="fish">Fish</option>
+                <option value="reptile">Reptile</option>
+                <option value="toy">Toy</option>
+                <option value="treat">Treat</option>
                 <option value="accessories">Accessories</option>
               </select>
             </div>
@@ -72,48 +146,46 @@
                 <option value="relevance">Relevance</option>
                 <option value="price-asc">Price: Low to High</option>
                 <option value="price-desc">Price: High to Low</option>
-                <option value="title-asc">Title: A → Z</option>
-                <option value="title-desc">Title: Z → A</option>
+                <option value="title-asc">Title: A -> Z</option>
+                <option value="title-desc">Title: Z -> A</option>
               </select>
             </div>
           </nav>
 
-          <div class="d-flex align-items-center gap-3 mt-2 flex-wrap">
-            <label for="pp-page-size" class="mb-0">Items per page</label>
-            <select id="pp-page-size">
-              <option value="24">24</option>
-              <option value="48">48</option>
-              <option value="96">96</option>
-              <option value="192">192</option>
-              <option value="0">All</option>
-            </select>
+          <div class="shop-command-row">
+            <label class="shop-page-size" for="pp-page-size">
+              <span>Show</span>
+              <select id="pp-page-size">
+                <option value="24">24</option>
+                <option value="48">48</option>
+                <option value="96">96</option>
+                <option value="192">192</option>
+                <option value="0">All</option>
+              </select>
+            </label>
 
-            <!-- Subscribe toggle -->
-            <div class="form-check ms-auto">
-              <input class="form-check-input" type="checkbox" id="pp-subscribe-toggle">
-              <label class="form-check-label" for="pp-subscribe-toggle">
-                Subscribe &amp; Save
-              </label>
-            </div>
-
-            <!-- For My Pets toggle -->
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="pp-my-pets-toggle">
-              <label class="form-check-label" for="pp-my-pets-toggle">
-                For My Pets
-              </label>
+            <div class="shop-switch-group" aria-label="Shop modes">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="pp-subscribe-toggle">
+                <label class="form-check-label" for="pp-subscribe-toggle">Pack-eligible</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="pp-my-pets-toggle">
+                <label class="form-check-label" for="pp-my-pets-toggle">For My Pets</label>
+              </div>
             </div>
           </div>
 
-          <!-- My Pets guidance & recs pane (visible when toggle is on) -->
-          <section id="pp-my-pane" class="pp-my-pane d-none" aria-label="Guidance & recommendations for your pets"></section>
-
-          <!-- Grid -->
-          <ul id="pp-grid" class="pp-grid" aria-label="Products"></ul>
-
-          <div id="pp-status" class="pp-status" aria-live="polite"></div>
+          <div id="shop-active-filters" class="shop-active-filters" aria-live="polite"></div>
         </div>
+
+        <section id="pp-my-pane" class="pp-my-pane d-none" aria-label="Guidance & recommendations for your pets"></section>
+        <section id="shop-curated" class="shop-curated" aria-label="Curated shelves"></section>
+        <ul id="pp-grid" class="pp-grid" aria-label="Products"></ul>
+        <div id="pp-status" class="pp-status" aria-live="polite"></div>
       </section>
+
+      <p class="shop-platform-note">Checkout and order processing are handled through Shopify.</p>
     </div>
   </main>
 
@@ -122,20 +194,20 @@
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="pp-subscribe-title">Subscribe &amp; Save</h5>
+          <h5 class="modal-title" id="pp-subscribe-title">Save for box planning</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
           <div id="pp-subscribe-summary" class="mb-3"></div>
           <div class="mb-3">
-            <label for="pp-subscribe-interval" class="form-label">Delivery frequency</label>
+            <label for="pp-subscribe-interval" class="form-label">Planning rhythm</label>
             <select id="pp-subscribe-interval" class="form-select"></select>
           </div>
           <div class="small text-muted" id="pp-subscribe-price"></div>
         </div>
         <div class="modal-footer">
           <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button class="btn btn-primary" id="pp-subscribe-confirm">Start Subscription</button>
+          <button class="btn btn-primary" id="pp-subscribe-confirm">Save add-on</button>
         </div>
       </div>
     </div>

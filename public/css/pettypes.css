@@ -16,6 +16,9 @@
 .pp-shopby {
   position: relative;
   z-index: 30;
+  width: 100%;
+  max-width: 1040px;
+  box-sizing: border-box;
   padding: 1.25rem 0;
   background: var(--sb-glass-bg);
   border-top: 1px solid var(--sb-accent);       /* translucent blue edge */
@@ -45,17 +48,21 @@
 /* Horizontal chip rail */
 .pp-chip-rail {
   position: relative;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .pp-chip-scroll {
-  display: grid;
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   overflow-x: auto;
-  grid-auto-columns: max-content;
-  grid-auto-flow: column;
   gap: .6rem;
-  padding: .25rem 0 .25rem .25rem;
+  padding: .25rem .45rem .35rem;
   overscroll-behavior-x: contain;
   scroll-snap-type: x proximity;
+  scroll-padding-inline: .45rem;
 }
 .pp-chip-scroll::-webkit-scrollbar { height: 8px; }
 .pp-chip-scroll::-webkit-scrollbar-thumb { border-radius: 999px; background: rgb(0 0 0 / 10%); }
@@ -103,4 +110,25 @@
   width: 0; height: 0;
   opacity: 0;
   pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .pp-shopby {
+    padding: 1rem 0;
+  }
+
+  .pp-shopby .container {
+    max-width: 100%;
+    min-width: 0;
+    padding-inline: 0;
+  }
+
+  .pp-shopby-head {
+    padding-inline: 1rem;
+  }
+
+  .pp-chip-scroll {
+    padding-inline: 1rem;
+    scroll-padding-inline: 1rem;
+  }
 }

@@ -17,6 +17,34 @@
     const accountActions = document.getElementById('accountActions');
     const logoutBtn = document.getElementById('logoutBtn');
     const token = localStorage.getItem("authToken");
+
+function esc(value = '') {
+  return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  }[char]));
+}
+
+function safeImageUrl(value, fallback = '/images/default-pet.png') {
+  const raw = String(value || '').trim();
+  if (!raw) return fallback;
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (raw.startsWith('/') && !raw.startsWith('//')) return raw;
+  if (/^data:image\/(?:png|jpe?g|webp|gif);base64,/i.test(raw)) return raw;
+  return fallback;
+}
+
+function safeExternalUrl(value) {
+  try {
+    const url = new URL(String(value || ''), window.location.origin);
+    return ['http:', 'https:'].includes(url.protocol) ? url.href : '#';
+  } catch {
+    return '#';
+  }
+}
 if (token) {
   fetch("/api/me", {
     headers: {
@@ -143,19 +171,19 @@ if (token) {
 
     function renderOrders(orders, container) {
       orders.forEach(order => {
-        const items = order.lineItems.edges.map(edge => `
-          <li>${edge.node.quantity}× ${edge.node.title}</li>
+        const items = (order.lineItems?.edges || []).map(edge => `
+          <li>${esc(edge.node?.quantity || 0)}× ${esc(edge.node?.title || 'Item')}</li>
         `).join('');
 
         const card = document.createElement('div');
         card.className = "card mb-3";
         card.innerHTML = `
           <div class="card-body">
-            <h5 class="card-title">Order #${order.orderNumber}</h5>
-            <p class="card-subtitle text-muted">${new Date(order.processedAt).toLocaleString()}</p>
-            <p><strong>Total:</strong> ${order.totalPriceV2.amount} ${order.totalPriceV2.currencyCode}</p>
+            <h5 class="card-title">Order #${esc(order.orderNumber)}</h5>
+            <p class="card-subtitle text-muted">${esc(new Date(order.processedAt).toLocaleString())}</p>
+            <p><strong>Total:</strong> ${esc(order.totalPriceV2?.amount)} ${esc(order.totalPriceV2?.currencyCode)}</p>
             <ul>${items}</ul>
-            <a class="btn btn-outline-primary btn-sm" href="${order.statusUrl}" target="_blank">View Status</a>
+            <a class="btn btn-outline-primary btn-sm" href="${esc(safeExternalUrl(order.statusUrl))}" target="_blank" rel="noopener noreferrer">View Status</a>
           </div>
         `;
         container.appendChild(card);
@@ -174,17 +202,17 @@ function renderPetCards(pets) {
 
   pets.forEach((pet, index) => {
     const card = document.createElement("div");
-    const avatarUrl = pet.avatar || "/images/default-pet.png";
+    const avatarUrl = safeImageUrl(pet.avatar);
 
     card.innerHTML = `
       <div class="card-body d-flex align-items-center">
-        <img src="${avatarUrl}" class="rounded me-3" style="height: 60px; width: 60px; object-fit: cover;" />
+        <img src="${esc(avatarUrl)}" class="rounded me-3" style="height: 60px; width: 60px; object-fit: cover;" />
         <div>
-          <h5 class="card-title mb-1">${pet.name || 'Unnamed Pet'}</h5>
+          <h5 class="card-title mb-1">${esc(pet.name || 'Unnamed Pet')}</h5>
           <p class="card-subtitle text-muted mb-1">
-            ${pet.type || 'Unknown'}${pet.breed ? ` – ${pet.breed}` : ''} • ${pet.birthday || 'No birthday set'}
+            ${esc(pet.type || 'Unknown')}${pet.breed ? ` – ${esc(pet.breed)}` : ''} • ${esc(pet.birthday || 'No birthday set')}
           </p>
-          <p class="mb-1">Mood: <strong>${pet.mood || 'Unknown'}</strong> | Persona: ${pet.persona || 'Unset'}</p>
+          <p class="mb-1">Mood: <strong>${esc(pet.mood || 'Unknown')}</strong> | Persona: ${esc(pet.persona || 'Unset')}</p>
           <button class="btn btn-sm btn-outline-primary me-2" onclick="editPet(${index})">Edit</button>
           <button class="btn btn-sm btn-outline-secondary me-2" onclick="openJournal(${index})">Journal</button>
           <button class="btn btn-sm btn-outline-danger" onclick="deletePet(${index})">Delete</button>
@@ -222,16 +250,16 @@ function renderPetCards(pets) {
 
     pets.forEach((pet, index) => {
       const card = document.createElement('div');
-      const avatarUrl = pet.avatar || '/images/default-pet.png';
+      const avatarUrl = safeImageUrl(pet.avatar);
       card.innerHTML = `
         <div class="card-body d-flex align-items-center">
-          <img src="${avatarUrl}" class="rounded me-3" style="height: 60px; width: 60px; object-fit: cover;" />
+          <img src="${esc(avatarUrl)}" class="rounded me-3" style="height: 60px; width: 60px; object-fit: cover;" />
           <div>
-            <h5 class="card-title mb-1">${pet.name || 'Unnamed Pet'}</h5>
+            <h5 class="card-title mb-1">${esc(pet.name || 'Unnamed Pet')}</h5>
             <p class="card-subtitle text-muted mb-1">
-              ${pet.type || 'Unknown'}${pet.breed ? ` – ${pet.breed}` : ''} • ${pet.birthday || 'No birthday set'}
+              ${esc(pet.type || 'Unknown')}${pet.breed ? ` – ${esc(pet.breed)}` : ''} • ${esc(pet.birthday || 'No birthday set')}
             </p>
-            <p class="mb-1">Mood: <strong>${pet.mood || 'Unknown'}</strong> | Persona: ${pet.persona || 'Unset'}</p>
+            <p class="mb-1">Mood: <strong>${esc(pet.mood || 'Unknown')}</strong> | Persona: ${esc(pet.persona || 'Unset')}</p>
             <button class="btn btn-sm btn-outline-primary me-2" onclick="editPet(${index})">Edit</button>
             <button class="btn btn-sm btn-outline-secondary me-2" onclick="openJournal(${index})">Journal</button>
             <button class="btn btn-sm btn-outline-danger" onclick="deletePet(${index})">Delete</button>
@@ -597,6 +625,7 @@ function renderJournal(pet, petIndex) {
   reversed.forEach((entry, i) => {
     const originalIndex = pet.journal.length - 1 - i;
     const isLast = i === reversed.length - 1;
+    const formattedDate = entry.displayDate?.trim() || entry.date?.trim() || '';
 
     const li = document.createElement("li");
     li.className = isLast ? 'pb-2' : 'pb-2 border-bottom mb-3';
@@ -610,8 +639,8 @@ function renderJournal(pet, petIndex) {
         </button>
       </div>
       <div class="ps-1 journal-entry-content">
-  <div class="journal-entry-date"><strong>${formattedDate}:</strong></div>
-  <div class="journal-entry-note">${entry.note}</div>
+  <div class="journal-entry-date"><strong>${esc(formattedDate)}:</strong></div>
+  <div class="journal-entry-note">${esc(entry.note)}</div>
 </div>
     `;
     journal.appendChild(li);
@@ -745,11 +774,11 @@ function renderJournalEntries(entries) {
     const emoji = moodEmojiMap[entry.mood] || '📝';
 
     const tagsHtml = (entry.tags || []).map(tag =>
-      `<span class="journal-tag">#${tag.replace(/^#/, '')}</span>`
+      `<span class="journal-tag">#${esc(String(tag).replace(/^#/, ''))}</span>`
     ).join('');
 
     const photoHtml = entry.photo
-      ? `<img src="${entry.photo}" alt="Journal Photo" class="img-fluid rounded mt-2" style="max-height: 200px;" />`
+      ? `<img src="${esc(safeImageUrl(entry.photo, ''))}" alt="Journal Photo" class="img-fluid rounded mt-2" style="max-height: 200px;" />`
       : '';
 
     const li = document.createElement("li");
@@ -758,13 +787,13 @@ function renderJournalEntries(entries) {
     li.innerHTML = `
     
       <div class="journal-entry-wrapper" 
-           data-mood="${entry.mood || 'Happy'}" 
+           data-mood="${esc(entry.mood || 'Happy')}"
            data-highlighted="${entry.highlighted === true}">
            
         <div class="ps-1 journal-entry-content">
           <div class="mb-2 d-flex justify-content-end">${tagsHtml}</div>
-          <div class="journal-entry-date mb-3"><strong>${formattedDate} ${emoji}</strong></div>
-          <div class="journal-note text-muted">${entry.note}</div>
+          <div class="journal-entry-date mb-3"><strong>${esc(formattedDate)} ${esc(emoji)}</strong></div>
+          <div class="journal-note text-muted">${esc(entry.note)}</div>
           
           ${photoHtml}  
         </div>

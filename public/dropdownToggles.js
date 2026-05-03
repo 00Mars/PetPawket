@@ -36,9 +36,23 @@ export function setupDropdownToggles(root = document) {
     const trigger = getTrigger(dropdown);
     if (trigger) trigger.setAttribute('aria-expanded', 'false');
     if (menu) {
+      menu.style.transform = '';
       // Use setAttribute for proper hidden attribute handling
       menu.setAttribute('hidden', '');
     }
+  }
+
+  function clampMenuToViewport(menu) {
+    if (!menu) return;
+    menu.style.transform = '';
+    const pad = 8;
+    const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+    if (!vw) return;
+    const rect = menu.getBoundingClientRect();
+    let shift = 0;
+    if (rect.left < pad) shift = pad - rect.left;
+    else if (rect.right > vw - pad) shift = (vw - pad) - rect.right;
+    if (shift) menu.style.transform = `translateX(${shift}px)`;
   }
 
   function openDropdown(dropdown) {
@@ -50,6 +64,7 @@ export function setupDropdownToggles(root = document) {
     if (menu) {
       // Use removeAttribute for proper hidden attribute handling
       menu.removeAttribute('hidden');
+      clampMenuToViewport(menu);
     }
   }
 

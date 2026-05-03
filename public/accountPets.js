@@ -41,6 +41,11 @@ async function refreshPets() {
       renderSignInCallout();
       return;
     }
+    if (r.status === 404) {
+      renderError('Pets feature is temporarily unavailable (404).');
+      console.warn('[acct-pets] /api/pets 404 — route not mounted.');
+      return;
+    }
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const j = await r.json();
     pets = Array.isArray(j?.pets) ? j.pets : (Array.isArray(j) ? j : []);
@@ -56,6 +61,21 @@ function parseCSV(v) {
   if (!v) return [];
   if (Array.isArray(v)) return v.map(s => String(s).trim()).filter(Boolean);
   return String(v).split(',').map(s => s.trim()).filter(Boolean);
+}
+
+function safeUrl(v) {
+  const raw = String(v || '').trim();
+  if (!raw) return '';
+  if (raw.startsWith('#')) return raw;
+  try {
+    const url = new URL(raw, window.location.origin);
+    if (!['http:', 'https:'].includes(url.protocol)) return '';
+    return url.origin === window.location.origin
+      ? `${url.pathname}${url.search}${url.hash}`
+      : url.href;
+  } catch {
+    return '';
+  }
 }
 
 /* -----------------------------
@@ -78,7 +98,7 @@ function renderPetList() {
     elList.innerHTML = `
       <div class="alert alert-light border d-flex align-items-center gap-2">
         <i class="bi bi-heart"></i>
-        <div><strong>No pets yet.</strong> Add a pet to get tailored guidance and subscription picks.</div>
+        <div><strong>No pets yet.</strong> Add a pet to get tailored guidance and Pawket Pack picks.</div>
       </div>`;
     elDetail.innerHTML = '';
     return;
@@ -143,8 +163,12 @@ function petDetailHTML(pet, journal, subs) {
   const dob     = escapeHtml(pet.dob || '');
   const traits = pet.traits || {};
   const weight  = escapeHtml((traits.weightLb != null ? String(traits.weightLb) : (pet.weight || '')));
-  const likes   = Array.isArray(traits.flavors) ? traits.flavors.join(', ') : (Array.isArray(pet.likes) ? pet.likes.join(', ') : escapeHtml(pet.likes || ''));
-  const allergies = Array.isArray(traits.allergies) ? traits.allergies.join(', ') : (Array.isArray(pet.allergies) ? pet.allergies.join(', ') : escapeHtml(pet.allergies || ''));
+  const likes = escapeHtml(Array.isArray(traits.flavors)
+    ? traits.flavors.join(', ')
+    : (Array.isArray(pet.likes) ? pet.likes.join(', ') : (pet.likes || '')));
+  const allergies = escapeHtml(Array.isArray(traits.allergies)
+    ? traits.allergies.join(', ')
+    : (Array.isArray(pet.allergies) ? pet.allergies.join(', ') : (pet.allergies || '')));
 
   return `
     <!-- Profile -->
@@ -216,7 +240,7 @@ function petDetailHTML(pet, journal, subs) {
 
     <!-- Subscriptions -->
     <section class="pp-section" aria-labelledby="pp-subs-title">
-      <h2 id="pp-subs-title" class="h5 mb-2">Recommended subscriptions</h2>
+      <h2 id="pp-subs-title" class="h5 mb-2">Recommended Pawket Packs</h2>
       <div id="pp-subs-list">${subsListHTML(subs)}</div>
     </section>
   `;
@@ -361,16 +385,19 @@ function subsListHTML(items) {
   if (!Array.isArray(items) || !items.length) {
     return `<div class="text-muted">No recommendations yet.</div>`;
   }
-  return items.map(i => `
-    <div class="card mb-2">
-      <div class="card-body d-flex align-items-center justify-content-between">
-        <div class="me-2">
-          <div class="fw-semibold">${escapeHtml(i.title || '')}</div>
-          <div class="small text-muted">${escapeHtml(i.reason || '')}</div>
+  return items.map((i) => {
+    const url = safeUrl(i.url) || '#';
+    return `
+      <div class="card mb-2">
+        <div class="card-body d-flex align-items-center justify-content-between">
+          <div class="me-2">
+            <div class="fw-semibold">${escapeHtml(i.title || '')}</div>
+            <div class="small text-muted">${escapeHtml(i.reason || '')}</div>
+          </div>
+          <a class="btn btn-sm btn-outline-primary" href="${escapeHtml(url)}">View</a>
         </div>
-        <a class="btn btn-sm btn-outline-primary" href="${escapeHtml(i.url || '#')}">View</a>
-      </div>
-    </div>`).join('');
+      </div>`;
+  }).join('');
 }
 
 /* -----------------------------
@@ -383,7 +410,7 @@ function wireShopBridge(pet) {
     const species = String(pet.species || '').toLowerCase();
     const flavors = Array.isArray(pet.traits?.flavors) ? pet.traits.flavors : [];
     const q = encodeURIComponent(flavors.join(', '));
-    const speciesCat = species || 'pet';
+    const speciesCat = encodeURIComponent(species || 'pet');
     location.href = `/shop.html?mypets=1&pet=${speciesCat}&q=${q}`;
   });
 }

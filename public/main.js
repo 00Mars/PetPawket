@@ -9,13 +9,15 @@ const cssFiles = [
   'https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;700&display=swap',
   '/css/core.css',
   '/css/hero.css',
+  '/css/loop.css',
   '/css/pettypes.css',
   '/css/pets-traits.css',
   '/css/wishlist.css',
   '/css/ambient-mesh.css',
   '/css/fonts.css',
   '/css/footer.css',
-  '/css/navbar.css?v=1' 
+  '/css/navbar.css?v=1',
+  '/css/tooltips.css?v=2'
 ];
 
 function isAbsoluteUrl(u) {
@@ -76,6 +78,28 @@ function addCssIfMissing(file) {
 }
 cssFiles.forEach(addCssIfMissing);
 
+// ====== TEMPLATE PREFETCH (navbar/footer) ======
+const __PP_PREFETCH = (window.__PP_PREFETCH = window.__PP_PREFETCH || {});
+function prefetchTemplate(key, paths, opts = {}) {
+  if (__PP_PREFETCH[key]) return __PP_PREFETCH[key];
+  const promise = (async () => {
+    for (const p of paths) {
+      try {
+        const res = await fetch(p, { credentials: opts.credentials || 'include' });
+        if (res.ok) return await res.text();
+      } catch {}
+    }
+    throw new Error(`[pp:prefetch] ${key} not found`);
+  })();
+  __PP_PREFETCH[key] = promise;
+  return promise;
+}
+
+// Kick off early template fetches for smoother injection
+prefetchTemplate('navbar', ['/navbar.html']).catch(() => {});
+prefetchTemplate('footer', ['/footer.html', '/partials/footer.html', 'footer.html'], { credentials: 'same-origin' }).catch(() => {});
+prefetchTemplate('widgetDock', ['/widgetDock.html', '/partials/widgetDock.html', 'widgetDock.html']).catch(() => {});
+
 // ====== OPTIONAL MODULE LOADER ======
 async function tryImport(path) {
   try {
@@ -88,6 +112,28 @@ async function tryImport(path) {
   }
 }
 
+// Preload modules in parallel so we can wire critical UI earlier.
+const modulePromises = {
+  products: tryImport('./products.js'),
+  navbar: tryImport('./navbar.js'),
+  footer: tryImport('./footer.js'),
+  search: tryImport('./searchLogic.js'),
+  hero: tryImport('./hero.js'),
+  mission: tryImport('./mission.js'),
+  navOverlay: tryImport('./navbarOverlay.js'),
+  navAnim: tryImport('./navbarAnimation.js'),
+  auth: tryImport('./auth.js'),
+  news: (async () => (await tryImport('./newsModule.js')) || (await tryImport('./news.js')))(),
+  loopModal: tryImport('./loopModal.js'),
+  loopTracker: tryImport('./loopTracker.js'),
+  loop: tryImport('./loop.js'),
+  widgetDock: tryImport('./widgetDock.js'),
+  impactRibbon: tryImport('./impactRibbon.js'),
+  storyHub: tryImport('./storyHub.js'),
+  tooltips: tryImport('./tooltips.js'),
+  sectionScroll: tryImport('./sectionScroll.js'),
+};
+
 // ====== UTILITIES ======
 const hasEl = (sel) => document.querySelector(sel);
 
@@ -98,6 +144,21 @@ function highlightActiveNav() {
     const norm = (target || '/').replace(/\/+$/, '') || '/';
     if (norm === path) a.classList.add('active');
     else a.classList.remove('active');
+  });
+}
+
+function resolveCharmFoundationBase() {
+  const host = location.hostname;
+  if (host === 'localhost' || host === '127.0.0.1') return 'http://localhost:3011';
+  return 'https://thecharmfoundation.com';
+}
+
+function applyCharmFoundationLinks(root = document) {
+  const base = resolveCharmFoundationBase().replace(/\/+$/, '');
+  root.querySelectorAll('[data-charm-foundation-link]').forEach((el) => {
+    const path = el.getAttribute('data-charm-foundation-link') || '/';
+    const next = path.startsWith('http') ? path : `${base}${path.startsWith('/') ? path : `/${path}`}`;
+    el.setAttribute('href', next);
   });
 }
 
@@ -173,6 +234,15 @@ export function updateCartBadgeCompat() {
 /* ======================================================================== */
 function ensureSearchOverlayStyles() {
   if (document.getElementById('pp-search-overlay-styles')) return;
+  const hasSearchStyles = Array.from(document.querySelectorAll('link[rel="stylesheet"]')).some((link) => {
+    try {
+      const path = new URL(link.href, location.href).pathname;
+      return /\/css\/(?:core|navbar)\.css$/i.test(path);
+    } catch {
+      return false;
+    }
+  });
+  if (hasSearchStyles) return;
   const style = document.createElement('style');
   style.id = 'pp-search-overlay-styles';
   style.textContent = `
@@ -240,6 +310,45 @@ function ensureSearchOverlayStyles() {
   .sk-line{ height:14px; border-radius:6px; }
   .sk-thumb{ width:56px; height:56px; border-radius:10px; }
   @keyframes sk { from{background-position:0% 0;} to{background-position:100% 0;} }
+  @media (max-width:560px){
+    #search-overlay, #searchOverlay, .search-overlay, .searchOverlay{
+      padding:max(16px, env(safe-area-inset-top, 0px)) 10px 16px!important;
+      align-items:flex-start!important;
+    }
+    .search-card{
+      width:min(100%, calc(100vw - 20px))!important;
+      max-height:calc(100dvh - 32px);
+      border-radius:16px;
+    }
+    .search-head{
+      gap:.5rem!important;
+      padding:.6rem .65rem!important;
+    }
+    .search-head .input-wrap{
+      min-width:0;
+    }
+    .search-head input{
+      min-width:0;
+      padding-right:.65rem!important;
+      text-overflow:ellipsis;
+    }
+    .search-hints{
+      flex:0 0 auto;
+      gap:.25rem!important;
+      margin-left:0!important;
+    }
+    .search-hints .kbd,
+    .search-hints > span:not(:last-child){
+      display:none!important;
+    }
+    .search-tools{
+      top:47px!important;
+      padding:.55rem .65rem!important;
+    }
+    .search-results{
+      max-height:calc(100dvh - 156px)!important;
+    }
+  }
   `;
   document.head.appendChild(style);
 }
@@ -254,6 +363,109 @@ function setNavOffset() {
     const h = Math.round((sticky?.getBoundingClientRect?.().height || 170));
     document.documentElement.style.setProperty('--nav-offset', h + 'px');
   } catch {}
+}
+
+function getViewportWidthTier(width) {
+  if (width <= 480) return 'xs';
+  if (width <= 680) return 'sm';
+  if (width <= 980) return 'md';
+  if (width <= 1280) return 'lg';
+  return 'xl';
+}
+
+function getViewportHeightTier(height) {
+  if (height <= 620) return 'hxs';
+  if (height <= 760) return 'hs';
+  if (height <= 920) return 'hm';
+  return 'hl';
+}
+
+function hasCoarsePointer() {
+  try {
+    return window.matchMedia('(pointer: coarse)').matches || (navigator.maxTouchPoints || 0) > 0;
+  } catch {
+    return (navigator.maxTouchPoints || 0) > 0;
+  }
+}
+
+function computeViewportState() {
+  const html = document.documentElement;
+  const vv = window.visualViewport;
+  const width = Math.round(vv?.width || window.innerWidth || html.clientWidth || 0);
+  const height = Math.round(vv?.height || window.innerHeight || html.clientHeight || 0);
+  const offsetTop = Math.round(vv?.offsetTop || 0);
+  const offsetLeft = Math.round(vv?.offsetLeft || 0);
+  const scale = Number((vv?.scale || 1).toFixed(3));
+  const viewportBottom = offsetTop + height;
+  const safeBottom = Math.max(0, Math.round((window.innerHeight || height) - viewportBottom));
+
+  return {
+    ts: new Date().toISOString(),
+    width,
+    height,
+    widthTier: getViewportWidthTier(width),
+    heightTier: getViewportHeightTier(height),
+    short: height <= 760,
+    xshort: height <= 620,
+    touch: hasCoarsePointer(),
+    visualViewport: {
+      width,
+      height,
+      offsetTop,
+      offsetLeft,
+      scale
+    },
+    cssVars: {
+      vh: `${height}px`,
+      safeBottom: `${safeBottom}px`
+    }
+  };
+}
+
+function applyViewportState(state) {
+  const html = document.documentElement;
+  html.setAttribute('data-vp-width-tier', state.widthTier);
+  html.setAttribute('data-vp-height-tier', state.heightTier);
+  html.setAttribute('data-vp-short', state.short ? '1' : '0');
+  html.setAttribute('data-vp-xshort', state.xshort ? '1' : '0');
+  html.setAttribute('data-vp-touch', state.touch ? '1' : '0');
+  html.style.setProperty('--pp-vh', state.cssVars.vh);
+  html.style.setProperty('--pp-safe-bottom', state.cssVars.safeBottom);
+
+  // Read-only debug snapshot for diagnostics.
+  window.PP_viewportState = Object.freeze({ ...state });
+}
+
+let viewportStateRaf = 0;
+function queueViewportStateUpdate() {
+  if (viewportStateRaf) return;
+  viewportStateRaf = requestAnimationFrame(() => {
+    viewportStateRaf = 0;
+    applyViewportState(computeViewportState());
+  });
+}
+
+function initViewportStateContract() {
+  if (window.__PP_VIEWPORT_STATE_WIRED) {
+    queueViewportStateUpdate();
+    return;
+  }
+  window.__PP_VIEWPORT_STATE_WIRED = true;
+  queueViewportStateUpdate();
+  window.addEventListener('resize', queueViewportStateUpdate, { passive: true });
+  window.addEventListener('orientationchange', queueViewportStateUpdate, { passive: true });
+  window.visualViewport?.addEventListener('resize', queueViewportStateUpdate, { passive: true });
+  window.visualViewport?.addEventListener('scroll', queueViewportStateUpdate, { passive: true });
+}
+
+initViewportStateContract();
+
+function runIdle(cb, timeout = 1200) {
+  if (typeof window === 'undefined') return;
+  if ('requestIdleCallback' in window) {
+    return window.requestIdleCallback(cb, { timeout });
+  }
+  return setTimeout(() => cb({ didTimeout: true, timeRemaining: () => 0 }), 1);
 }
 
 /* ======================================================================== */
@@ -337,6 +549,8 @@ function navMini_find(el) {
 
 async function navMini_fetchWishlistHandles() {
   try {
+    const signedIn = await navMini_hasSession();
+    if (!signedIn) return { auth: false, handles: [] };
     const r = await fetch('/api/wishlist', { credentials: 'include' });
     if (r.status === 401) return { auth: false, handles: [] };
     const j = await r.json().catch(() => ({}));
@@ -347,6 +561,20 @@ async function navMini_fetchWishlistHandles() {
     return { auth: true, handles };
   } catch {
     return { auth: true, handles: [], error: true };
+  }
+}
+
+async function navMini_hasSession() {
+  const attr = document.body?.getAttribute('data-auth') || document.documentElement?.getAttribute('data-auth');
+  if (attr === 'signed-out') return false;
+  if (attr === 'signed-in') return true;
+  try {
+    const r = await fetch('/api/session', { credentials: 'include', cache: 'no-store' });
+    if (!r.ok) return false;
+    const j = await r.json().catch(() => ({}));
+    return !!j?.signedIn;
+  } catch {
+    return false;
   }
 }
 
@@ -373,6 +601,28 @@ function navMini_money(n) {
     ? new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(v)
     : '';
 }
+function navMini_escape(s = '') {
+  return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+}
+function navMini_safeImageUrl(value, fallback = '') {
+  const raw = String(value || '').trim();
+  if (!raw) return fallback;
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (raw.startsWith('/') && !raw.startsWith('//')) return raw;
+  return fallback;
+}
+function navMini_clampMenu(menuEl) {
+  if (!menuEl || menuEl.hasAttribute('hidden')) return;
+  menuEl.style.transform = '';
+  const pad = 8;
+  const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+  if (!vw) return;
+  const rect = menuEl.getBoundingClientRect();
+  let shift = 0;
+  if (rect.left < pad) shift = pad - rect.left;
+  else if (rect.right > vw - pad) shift = (vw - pad) - rect.right;
+  if (shift) menuEl.style.transform = `translateX(${shift}px)`;
+}
 
 async function navMini_renderCart(menuEl) {
   if (!menuEl) return;
@@ -381,9 +631,10 @@ async function navMini_renderCart(menuEl) {
     if (!Array.isArray(cart) || cart.length === 0) {
       menuEl.innerHTML = `
         <div class="p-3 text-center">
-          <div class="text-muted small">Sign in to view your wishlist.</div>
-          <a class="btn btn-sm btn-primary mt-2" href="/login.html" data-toggle="login-modal">Sign in</a>
+          <div class="text-muted small">Your cart is empty.</div>
+          <a class="btn btn-sm btn-primary mt-2" href="/shop.html">Shop products</a>
         </div>`;
+      navMini_clampMenu(menuEl);
       return;
     }
     const max = 6;
@@ -391,9 +642,9 @@ async function navMini_renderCart(menuEl) {
     const subtotal = items.reduce((s, it) => s + (Number(it.price) || 0) * (Number(it.quantity) || 0), 0);
     const lines = items.map(it => `
       <div class="d-flex align-items-center gap-2 p-2">
-        ${it.image ? `<img src="${it.image}" alt="" class="flex-shrink-0 rounded" style="width:48px;height:48px;object-fit:cover;">` : ''}
+        ${it.image ? `<img src="${navMini_escape(navMini_safeImageUrl(it.image))}" alt="" class="flex-shrink-0 rounded" style="width:48px;height:48px;object-fit:cover;">` : ''}
         <div class="flex-grow-1 small">
-          <div class="fw-semibold text-truncate" title="${it.title || ''}">${it.title || ''}</div>
+          <div class="fw-semibold text-truncate" title="${navMini_escape(it.title || '')}">${navMini_escape(it.title || '')}</div>
           <div class="text-muted">${navMini_money(it.price)} × ${Number(it.quantity)||1}</div>
         </div>
       </div>`).join('');
@@ -406,6 +657,7 @@ async function navMini_renderCart(menuEl) {
       <div class="p-2 d-grid gap-2">
         <a class="btn btn-sm btn-primary" href="/cart.html">Go to cart</a>
       </div>`;
+    navMini_clampMenu(menuEl);
   } catch (e) {
     console.warn('[navMini] cart render error:', e);
   }
@@ -420,35 +672,43 @@ async function navMini_renderWishlist(menuEl) {
         <div class="text-muted small">Sign in to view your wishlist.</div>
         <a class="btn btn-sm btn-primary mt-2" href="#" data-toggle="login-modal">Sign in</a>
       </div>`;
+    navMini_clampMenu(menuEl);
     return;
   }
   const handles = state.handles.slice(0, 8);
   if (!handles.length) {
     menuEl.innerHTML = `<div class="p-3 text-center text-muted small">Wishlist is empty.</div>`;
+    navMini_clampMenu(menuEl);
     return;
   }
   const products = [];
   for (const h of handles) {
     const cached = navMini_getCached(h);
-    if (cached) { products.push(cached); continue; }
+    if (cached) { products.push({ ...cached, __wishHandle: h }); continue; }
     try {
       const p = await navMini_fetchProductByHandle(h);
       navMini_setCached(h, p);
-      products.push(p);
-    } catch { /* ignore single failures */ }
+      products.push({ ...(p && typeof p === 'object' ? p : {}), __wishHandle: h });
+    } catch {
+      products.push({ handle: h, title: `Saved item: ${h}`, __wishHandle: h });
+    }
   }
   menuEl.innerHTML = products.map(p => {
-    const img = p?.featuredImage?.url || p?.image || '/assets/images/placeholder.png';
+    const img = navMini_escape(navMini_safeImageUrl(p?.featuredImage?.url || p?.image, '/assets/images/placeholder.png'));
     const price = p?.price?.amount ?? p?.variants?.[0]?.price ?? p?.priceRange?.minVariantPrice?.amount;
+    const rawHandle = p?.handle || p?.slug || p?.__wishHandle || '';
+    const handle = encodeURIComponent(rawHandle);
+    const title = navMini_escape(p?.title || rawHandle || 'Product');
     return `
-      <a class="d-flex align-items-center gap-2 p-2 text-decoration-none text-reset" href="/products/${encodeURIComponent(p?.handle || '')}">
+      <a class="d-flex align-items-center gap-2 p-2 text-decoration-none text-reset" href="/product.html?handle=${handle}">
         <img src="${img}" alt="" class="flex-shrink-0 rounded" style="width:40px;height:40px;object-fit:cover;">
         <div class="flex-grow-1 small text-truncate">
-          <div class="fw-semibold text-truncate">${p?.title || 'Product'}</div>
+          <div class="fw-semibold text-truncate">${title}</div>
           <div class="text-muted">${price ? navMini_money(price) : ''}</div>
         </div>
       </a>`;
   }).join('');
+  navMini_clampMenu(menuEl);
 }
 
 function navMini_wire() {
@@ -485,66 +745,63 @@ function enhanceShopBy() {
 // ====== BOOT ======
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('[BOOT] main.js starting…');
+  initViewportStateContract();
   brBoot();
 
-  // Load required/primary modules. Use dynamic imports to avoid hard failures.
-  const [
-    productsMod,
-    navbarMod,
-    footerMod,
-    searchMod,
-    heroMod,
-    missionMod,
-    navOverlayMod,
-    navAnimMod,
-    authMod,
-  ] = await Promise.all([
-    tryImport('./products.js'),
-    tryImport('./navbar.js'),
-    tryImport('./footer.js'),
-    tryImport('./searchLogic.js'),
-    tryImport('./hero.js'),
-    tryImport('./mission.js'),
-    tryImport('./navbarOverlay.js'),
-    tryImport('./navbarAnimation.js'),
-    tryImport('./auth.js'),
-  ]);
-  const newsMod = (await tryImport('./newsModule.js')) || (await tryImport('./news.js'));
+  const navbarPromise = modulePromises.navbar;
+  const footerPromise = modulePromises.footer;
+  const productsPromise = modulePromises.products;
+  const searchPromise = modulePromises.search;
+  const heroPromise = modulePromises.hero;
+  const missionPromise = modulePromises.mission;
+  const navOverlayPromise = modulePromises.navOverlay;
+  const navAnimPromise = modulePromises.navAnim;
+  const authPromise = modulePromises.auth;
+  const newsPromise = modulePromises.news;
+  const widgetDockPromise = modulePromises.widgetDock;
+  const impactRibbonPromise = modulePromises.impactRibbon;
+  const storyHubPromise = modulePromises.storyHub;
+  const tooltipsPromise = modulePromises.tooltips;
+  const sectionScrollPromise = modulePromises.sectionScroll;
 
-  const fetchFeaturedProducts = productsMod?.fetchFeaturedProducts;
-  const setupEventListeners   = productsMod?.setupEventListeners;
-  const allProducts           = productsMod?.allProducts || [];
-  const injectNavbar                = navbarMod?.injectNavbar;
-  const injectFooter                = footerMod?.injectFooter;
-  const setupSearchFunctionality    = searchMod?.setupSearchFunctionality;
-  const injectHero                  = heroMod?.injectHero;
-  const injectMission               = missionMod?.injectMission;
-  const injectNews                  = newsMod?.injectNews || newsMod?.initNews;
-  const setupNavbarOverlayHandlers  = navOverlayMod?.setupNavbarOverlayHandlers;
-  const setupHueyAnimation          = navAnimMod?.setupHueyAnimation;
-  const wireAuthUI                  = authMod?.wireAuthUI;
-  const updateAuthDisplay           = authMod?.updateAuthDisplay;
+  const navbarMod = await navbarPromise;
+  const footerMod = await footerPromise;
+  const widgetDockMod = await widgetDockPromise;
+  const impactRibbonMod = await impactRibbonPromise;
+
+  let navReadyResolve;
+  const navReady = new Promise((resolve) => { navReadyResolve = resolve; });
+  let navInjectPromise = null;
 
   // === NAVBAR ===
   try {
-    if (typeof injectNavbar === 'function') {
+    if (typeof navbarMod?.injectNavbar === 'function') {
       console.log('[Navbar] Injecting…');
       const afterNavbar = async () => {
         console.log('[Navbar] Ready. Initializing features…');
         try {
           setNavOffset();
           window.addEventListener('resize', setNavOffset, { passive: true });
-          setupNavbarOverlayHandlers?.();
-          setupHueyAnimation?.();
+
+          const [navOverlayMod, navAnimMod, productsMod, searchMod, authMod] = await Promise.all([
+            navOverlayPromise,
+            navAnimPromise,
+            productsPromise,
+            searchPromise,
+            authPromise,
+          ]);
+
+          navOverlayMod?.setupNavbarOverlayHandlers?.();
+          navAnimMod?.setupHueyAnimation?.();
           ensureSearchOverlayStyles();
 
           // Only wire searchLogic (page search) if a page-level container exists.
           try {
             const pageSearchContainer = document.querySelector('#search-results-container, [data-search-results]');
-            if (pageSearchContainer && setupSearchFunctionality) {
+            if (pageSearchContainer && searchMod?.setupSearchFunctionality) {
               try { await productsMod?.fetchAllProducts?.(); } catch {}
-              const products = productsMod?.allProducts || allProducts || [];
-              setupSearchFunctionality(products);
+              const products = productsMod?.allProducts || [];
+              searchMod.setupSearchFunctionality(products);
               console.info('[Search] page search wired with', products.length, 'products');
             } else {
               console.debug('[Search] no page search container; overlay will use its own renderer.');
@@ -555,9 +812,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
           updateCartBadge();
           highlightActiveNav();
+          applyCharmFoundationLinks();
           wiresearchOverlay();
-          wireAuthUI?.();
-          await updateAuthDisplay?.();
+          authMod?.wireAuthUI?.();
+          await authMod?.updateAuthDisplay?.();
 
           // Wire inlined nav mini after navbar is present
           navMini_wire();
@@ -569,78 +827,179 @@ document.addEventListener('DOMContentLoaded', async () => {
           brTryLoad();
         } catch (e) {
           console.warn('[Navbar] post-inject setup warning:', e);
+        } finally {
+          navReadyResolve?.();
         }
       };
-      const maybe = injectNavbar(afterNavbar);
-      if (maybe && typeof maybe.then === 'function') await maybe;
-      else await afterNavbar();
+
+      navInjectPromise = navbarMod.injectNavbar(afterNavbar);
+      if (navInjectPromise && typeof navInjectPromise.catch === 'function') {
+        navInjectPromise.catch((err) => {
+          console.error('[Navbar] Injection error:', err);
+          navReadyResolve?.();
+        });
+      }
     } else {
       console.warn('[Navbar] injector missing — navbar will not render.');
+      navReadyResolve?.();
     }
   } catch (e) {
     console.error('[Navbar] Injection error:', e);
+    navReadyResolve?.();
   }
 
-  // === HERO ===
+  // === WIDGET DOCK (sticky widgets + help) ===
   try {
-    if (hasEl('#hero-container') && typeof injectHero === 'function') {
-      console.log('[Hero] Injecting…');
-      await injectHero();
+    if (typeof widgetDockMod?.injectWidgetDock === 'function') {
+      widgetDockMod.injectWidgetDock();
     }
   } catch (e) {
-    console.warn('[Hero] warning:', e);
+    console.warn('[widgetDock] warning:', e);
   }
 
-  // === MISSION ===
+  // === IMPACT RIBBON (rescue progress + CTA) ===
   try {
-    if (hasEl('#mission-container') && typeof injectMission === 'function') {
-      console.log('[Mission] Injecting…');
-      await injectMission();
+    if (typeof impactRibbonMod?.initImpactRibbon === 'function') {
+      impactRibbonMod.initImpactRibbon();
     }
   } catch (e) {
-    console.warn('[Mission] warning:', e);
+    console.warn('[impact] ribbon warning:', e);
   }
 
-  // === PRODUCTS ===
+  // === FOOTER (inject early so it doesn't "pop" at the end) ===
   try {
-    if (hasEl('#featured-products') || hasEl('#featuredProducts')) {
-      console.log('[Products] Fetching & rendering featured…');
-      await fetchFeaturedProducts?.();
-      setupEventListeners?.();
-    } else {
-      console.debug('[Products] No featured container on this page — skipping.');
-    }
-  } catch (e) {
-    console.warn('[Products] warning:', e);
-  }
-
-  // === NEWS ===
-  try {
-    if (hasEl('#news-container')) {
-      console.log('[News] Injecting…');
-      if (typeof injectNews === 'function') {
-        await injectNews();
-      } else {
-        console.debug('[News] injector not found (no news module present).');
-      }
-    } else {
-      console.debug('[News] No #news-container on this page — skipping.');
-    }
-  } catch (e) {
-    console.warn('[News] warning:', e);
-  }
-
-  // === FOOTER ===
-  try {
-    if (hasEl('#footer-container') && typeof injectFooter === 'function') {
+    if (hasEl('#footer-container') && typeof footerMod?.injectFooter === 'function') {
       console.log('[Footer] Injecting…');
-      await injectFooter();
+      footerMod.injectFooter();
+      applyCharmFoundationLinks();
     } else if (hasEl('#footer-container')) {
       console.warn('[Footer] injector missing — footer will not render.');
     }
   } catch (e) {
     console.warn('[Footer] warning:', e);
   }
+
+  // === TOOLTIPS (progressive hints for hover/focus/tap) ===
+  try {
+    const tooltipsMod = await tooltipsPromise;
+    tooltipsMod?.initTooltips?.(document);
+  } catch (e) {
+    console.warn('[tooltips] init warning:', e);
+  }
+
+  // === Non-critical sections (idle) ===
+  runIdle(async () => {
+    await navReady;
+
+    const [heroMod, missionMod, productsMod, newsMod, sectionScrollMod] = await Promise.all([
+      heroPromise,
+      missionPromise,
+      productsPromise,
+      newsPromise,
+      sectionScrollPromise,
+    ]);
+    const [loopModalMod, loopTrackerMod, loopMod] = await Promise.all([
+      modulePromises.loopModal,
+      modulePromises.loopTracker,
+      modulePromises.loop,
+    ]);
+    const storyHubMod = await storyHubPromise;
+
+    const injectHero     = heroMod?.injectHero;
+    const injectMission  = missionMod?.injectMission;
+    const injectNews     = newsMod?.injectNews || newsMod?.initNews;
+    const fetchFeaturedProducts = productsMod?.fetchFeaturedProducts;
+    const setupEventListeners   = productsMod?.setupEventListeners;
+
+    try {
+      sectionScrollMod?.initSectionScroll?.();
+    } catch (e) {
+      console.warn('[Sections] init warning:', e);
+    }
+
+    // === HERO ===
+    try {
+      if (hasEl('#hero-container') && typeof injectHero === 'function') {
+        console.log('[Hero] Injecting…');
+        await injectHero();
+        sectionScrollMod?.refreshSectionScroll?.();
+      }
+    } catch (e) {
+      console.warn('[Hero] warning:', e);
+    }
+
+    // === MISSION ===
+    try {
+      if (hasEl('#mission-container') && typeof injectMission === 'function') {
+        console.log('[Mission] Injecting…');
+        await injectMission();
+        sectionScrollMod?.refreshSectionScroll?.();
+      }
+    } catch (e) {
+      console.warn('[Mission] warning:', e);
+    }
+
+    // === PRODUCTS ===
+    try {
+      if (hasEl('#featured-products') || hasEl('#featuredProducts')) {
+        console.log('[Products] Fetching & rendering featured…');
+        await fetchFeaturedProducts?.();
+        setupEventListeners?.();
+      } else {
+        console.debug('[Products] No featured container on this page — skipping.');
+      }
+    } catch (e) {
+      console.warn('[Products] warning:', e);
+    }
+
+    // === NEWS ===
+    try {
+      if (hasEl('#news-container')) {
+        console.log('[News] Injecting…');
+        if (typeof injectNews === 'function') {
+          await injectNews();
+          sectionScrollMod?.refreshSectionScroll?.();
+        } else {
+          console.debug('[News] injector not found (no news module present).');
+        }
+      } else {
+        console.debug('[News] No #news-container on this page — skipping.');
+      }
+    } catch (e) {
+      console.warn('[News] warning:', e);
+    }
+
+    // === PAWKET PASSES (modal + landing + tracker) ===
+    try {
+      if (typeof loopModalMod?.initLoopModal === 'function') {
+        loopModalMod.initLoopModal();
+      }
+    } catch (e) {
+      console.warn('[Loop] modal init warning:', e);
+    }
+    try {
+      if (hasEl('[data-loop-landing]') && typeof loopMod?.initLoopLanding === 'function') {
+        loopMod.initLoopLanding();
+      }
+    } catch (e) {
+      console.warn('[Loop] landing init warning:', e);
+    }
+    try {
+      if (hasEl('[data-loop-tracker]') && typeof loopTrackerMod?.initLoopTracker === 'function') {
+        loopTrackerMod.initLoopTracker();
+      }
+    } catch (e) {
+      console.warn('[Loop] tracker init warning:', e);
+    }
+
+    try {
+      if (typeof storyHubMod?.initStoryHub === 'function') {
+        storyHubMod.initStoryHub();
+      }
+    } catch (e) {
+      console.warn('[Story] hub init warning:', e);
+    }
+  });
 
   console.log('[BOOT] main.js complete.');
 });
@@ -677,41 +1036,63 @@ window.addEventListener('unhandledrejection', (e) => {
     const n = Number(v);
     return (Number.isFinite(n) ? n.toFixed(2) : '0.00') + (c ? ` ${c}` : '');
   };
+  const escapeHtml = (value = '') => String(value ?? '').replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  }[char]));
+  const safeImageUrl = (value, fallback = '/assets/images/placeholder.png') => {
+    const raw = String(value || '').trim();
+    if (!raw) return fallback;
+    if (/^https?:\/\//i.test(raw)) return raw;
+    if (raw.startsWith('/') && !raw.startsWith('//')) return raw;
+    return fallback;
+  };
 
   function card(p) {
-    const img = p.featuredImage?.url || '/assets/images/placeholder.png';
+    const img = safeImageUrl(p.featuredImage?.url);
     const title = p.title || '';
-    const handle = p.handle || '';
+    const handle = String(p.handle || '');
     const id = p.id || '';
     const minp = p.priceRange?.minVariantPrice, maxp = p.priceRange?.maxVariantPrice;
-    const price = minp
-      ? (minp.amount === maxp?.amount
-          ? money(minp.amount, minp.currencyCode)
-          : `${money(minp.amount, minp.currencyCode)} – ${money(maxp.amount, maxp.currencyCode)}`)
-      : '';
+    const minAmount = Number(minp?.amount);
+    const maxAmount = Number(maxp?.amount);
+    const minValid = Number.isFinite(minAmount);
+    const maxValid = Number.isFinite(maxAmount);
+    const price = minValid && maxValid
+      ? (minAmount === maxAmount
+          ? money(minAmount, minp.currencyCode)
+          : `${money(minAmount, minp.currencyCode)} – ${money(maxAmount, maxp.currencyCode)}`)
+      : (minValid ? money(minAmount, minp.currencyCode) : '');
+    const safeTitle = escapeHtml(title);
+    const safeHandle = escapeHtml(handle);
+    const handleParam = encodeURIComponent(handle);
+    const safeId = escapeHtml(id);
 
     return `
       <div class="col-6 col-md-3">
-        <div class="card h-100" data-product-id="${id}" data-product-handle="${handle}">
-          <a href="/products/${encodeURIComponent(handle)}"
+        <div class="card h-100" data-product-id="${safeId}" data-product-handle="${safeHandle}">
+          <a href="/product.html?handle=${handleParam}"
              class="text-decoration-none text-reset product-link d-block"
-             data-handle="${handle}" aria-label="${title}">
+             data-handle="${safeHandle}" aria-label="${safeTitle}">
             <div class="ratio ratio-1x1 mb-2">
-              <img src="${img}" class="card-img-top" alt="${title}" loading="lazy" style="object-fit:cover;height:190px;">
+              <img src="${escapeHtml(img)}" class="card-img-top" alt="${safeTitle}" loading="lazy" style="object-fit:cover;height:190px;">
             </div>
           </a>
           <div class="card-body d-flex flex-column">
-            <a href="/products/${encodeURIComponent(handle)}"
+            <a href="/product.html?handle=${handleParam}"
                class="stretched-link text-decoration-none text-reset product-link"
-               data-handle="${handle}">
-              <div class="fw-semibold text-truncate" title="${title}">${title}</div>
+               data-handle="${safeHandle}">
+              <div class="fw-semibold text-truncate" title="${safeTitle}">${safeTitle}</div>
             </a>
-            <div class="text-muted small mt-1">${price}</div>
+            <div class="text-muted small mt-1">${escapeHtml(price)}</div>
             <div class="mt-auto">
               <button class="btn btn-sm btn-outline-primary mt-2"
                       data-action="wishlist-add"
-                      data-product-id="${id}"
-                      data-product-handle="${handle}">
+                      data-product-id="${safeId}"
+                      data-product-handle="${safeHandle}">
                 <i class="bi bi-heart"></i> Wishlist
               </button>
             </div>
@@ -736,6 +1117,12 @@ window.addEventListener('unhandledrejection', (e) => {
     if (!btn) return;
     const productId = btn.getAttribute('data-product-id') || '';
     const handle = btn.getAttribute('data-product-handle') || '';
+    const signedIn = await navMini_hasSession();
+    if (!signedIn) {
+      if (typeof window.PP_openAuthModal === 'function') window.PP_openAuthModal('login');
+      else document.querySelector('[data-toggle="login-modal"]')?.click();
+      return;
+    }
     try {
       const r = await fetch('/api/wishlist', {
         method: 'POST',
@@ -749,7 +1136,7 @@ window.addEventListener('unhandledrejection', (e) => {
       btn.classList.add('btn-primary');
     } catch (err) {
       console.error('[wishlist] add error:', err);
-      alert('Could not add to wishlist. Are you signed in?');
+      btn.setAttribute('aria-label', 'Could not save to wishlist yet');
     }
   });
 

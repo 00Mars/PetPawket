@@ -6,73 +6,161 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 </head>
 <body>
-  <!-- Page content above ... -->
+  <footer class="footer-section" role="contentinfo" aria-labelledby="footer-title" data-footer-root>
+    <div class="footer-shell">
+      <section class="footer-command" aria-labelledby="footer-command-title">
+        <div class="footer-command-copy">
+          <span class="footer-kicker"><i class="bi bi-compass" aria-hidden="true"></i> Pet Pawket guide</span>
+          <h2 id="footer-command-title">Find the next useful stop.</h2>
+          <p>Jump into care, shopping, impact, partners, or account tools without hunting through the page.</p>
+        </div>
 
-  <footer class="footer-section" role="contentinfo" aria-labelledby="footer-title">
-    <div class="footer-header">
-      <h4 id="footer-title">Pet Pawket</h4>
-    </div>
+        <form class="footer-jump" data-footer-jump>
+          <label for="footerJumpSelect">I want to</label>
+          <div class="footer-jump-control">
+            <select id="footerJumpSelect" data-footer-jump-select>
+              <option value="/shop.html">Shop pet care essentials</option>
+              <option value="/packs.html">Explore Pawket Packs</option>
+              <option value="/shop.html?subscribe=1">Browse pack-eligible add-ons</option>
+              <option value="/account.html#account-pets">Build my pet profile</option>
+              <option value="/account.html#account-story-trail">Review my Story Trail</option>
+              <option value="/pawket-network.html">Find trusted pet services</option>
+              <option value="/charm.html">See CHARM impact</option>
+              <option value="/order-tracker.html">Track an order</option>
+              <option value="/contact.html">Contact support</option>
+            </select>
+            <button type="submit"><i class="bi bi-arrow-right" aria-hidden="true"></i><span>Go</span></button>
+          </div>
+          <p class="footer-jump-status" data-footer-jump-status role="status" aria-live="polite"></p>
+        </form>
+      </section>
 
-    <div class="container footer-content">
-      <!-- Column 1: Large Logo -->
-      <div class="footer-logo-col">
-        <img
-          src="logos/PetPawketLogo.png"
-          alt="Pet Pawket logo"
-          class="footer-logo-large"
-          loading="lazy"
-          decoding="async"
-        />
+      <div class="footer-content">
+        <section class="footer-brand-panel" aria-labelledby="footer-title">
+          <div class="footer-brand-mark">
+            <img
+              src="/logos/PetPawketLogo.png"
+              alt="Pet Pawket logo"
+              class="footer-logo-large"
+              loading="lazy"
+              decoding="async"
+            />
+            <div>
+              <span class="footer-kicker">Pet-first lifestyle ecosystem</span>
+              <h2 id="footer-title">Pet Pawket</h2>
+            </div>
+          </div>
+          <p class="footer-tagline">
+            Care goods, Pawket Packs, real pet stories, digital companions, trusted partners, and CHARM-backed impact for the animals we love most.
+          </p>
+          <ul class="footer-social" role="list" aria-label="Pet Pawket social links">
+            <li>
+              <a href="https://instagram.com/petpawket" target="_blank" rel="noopener noreferrer" aria-label="Pet Pawket on Instagram">
+                <img src="/icons/Instagram-icon.png" alt="" loading="lazy" decoding="async" />
+              </a>
+            </li>
+            <li>
+              <a href="https://facebook.com/petpawket" target="_blank" rel="noopener noreferrer" aria-label="Pet Pawket on Facebook">
+                <img src="/icons/Facebook-icon.png" alt="" loading="lazy" decoding="async" />
+              </a>
+            </li>
+            <li>
+              <a href="https://x.com/petpawket" target="_blank" rel="noopener noreferrer" aria-label="Pet Pawket on X">
+                <img src="/icons/X-icon.png" alt="" loading="lazy" decoding="async" />
+              </a>
+            </li>
+          </ul>
+        </section>
+
+        <nav class="footer-paths" aria-label="Footer paths">
+          <h3>Paths</h3>
+          <div class="footer-path-grid">
+            <a class="footer-path-card" href="/shop.html" data-footer-path>
+              <i class="bi bi-bag-heart" aria-hidden="true"></i>
+              <span>Shop</span>
+              <small>Products and pack-eligible add-ons</small>
+            </a>
+            <a class="footer-path-card" href="/packs.html" data-footer-path>
+              <i class="bi bi-box-seam" aria-hidden="true"></i>
+              <span>Pawket Packs</span>
+              <small>Subscription box preview</small>
+            </a>
+            <a class="footer-path-card" href="/account.html" data-footer-path>
+              <i class="bi bi-person-heart" aria-hidden="true"></i>
+              <span>Account</span>
+              <small>Pets, journals, progress</small>
+            </a>
+            <a class="footer-path-card" href="/charm.html" data-footer-path>
+              <i class="bi bi-shield-heart" aria-hidden="true"></i>
+              <span>CHARM</span>
+              <small>Rescue care and impact</small>
+            </a>
+            <a class="footer-path-card" href="/pawket-network.html" data-footer-path>
+              <i class="bi bi-patch-check" aria-hidden="true"></i>
+              <span>Network</span>
+              <small>Verified pet partners</small>
+            </a>
+            <a class="footer-path-card" href="/community.html" data-footer-path>
+              <i class="bi bi-stars" aria-hidden="true"></i>
+              <span>Community</span>
+              <small>Pals, Pawprints, stories</small>
+            </a>
+          </div>
+        </nav>
+
+        <section class="footer-trail-panel" aria-labelledby="footer-trail-title">
+          <h3 id="footer-trail-title">Your quick trail</h3>
+          <a class="footer-trail-row" href="/cart.html" data-footer-cart-link>
+            <span>
+              <i class="bi bi-cart3" aria-hidden="true"></i>
+              <span>Cart</span>
+              <small data-footer-cart-copy>Ready when you are</small>
+            </span>
+            <strong data-footer-cart-count>0</strong>
+          </a>
+          <a class="footer-trail-row" href="/account.html">
+            <span>
+              <i class="bi bi-journal-richtext" aria-hidden="true"></i>
+              <span>Account</span>
+              <small data-footer-account-state>Pets, journals, and passes</small>
+            </span>
+            <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+          </a>
+          <a class="footer-trail-row" href="/" data-footer-last-link>
+            <span>
+              <i class="bi bi-clock-history" aria-hidden="true"></i>
+              <span>Last stop</span>
+              <small data-footer-last-label>Home</small>
+            </span>
+            <i class="bi bi-arrow-return-left" aria-hidden="true"></i>
+          </a>
+          <div class="footer-action-row">
+            <button type="button" data-footer-top><i class="bi bi-arrow-up" aria-hidden="true"></i><span>Top</span></button>
+            <a href="/contact.html"><i class="bi bi-chat-dots" aria-hidden="true"></i><span>Help</span></a>
+          </div>
+        </section>
       </div>
 
-      <!-- Column 2: Brand Mission -->
-      <div class="footer-brand">
-        <h4>Our Mission</h4>
-        <p class="footer-tagline">
-          Where pets meet purpose. Clean, safe, American-made essentials for the animals we love most.
-        </p>
+      <section class="footer-impact" aria-label="CHARM Foundation impact">
+        <div class="pp-impact-ribbon pp-impact-ribbon--compact footer-impact-ribbon" data-impact-ribbon data-impact-steps="1" data-impact-orb-share="1">
+          <div class="footer-impact-fallback">
+            <strong>CHARM impact trail</strong>
+            <span>Verified rescue care receipts, Pawket Pass impact loops, and partner-supported stories are being prepared for launch.</span>
+            <a href="/charm.html">See impact</a>
+          </div>
+        </div>
+      </section>
+
+      <div class="footer-bottom">
+        <nav class="footer-legal" aria-label="Footer legal and support links">
+          <a href="/privacy.html">Privacy &amp; Terms</a>
+          <a href="/contact.html">Support</a>
+          <a href="/order-tracker.html">Track Order</a>
+          <a href="/partner-portal.html">Partner Portal</a>
+        </nav>
+        <p>&copy; 2026 Pet Pawket. All rights reserved.</p>
       </div>
-
-      <!-- Column 3: Quick Links + Social -->
-      <nav class="footer-links" aria-label="Footer quick links">
-        <h4>Quick Links</h4>
-        <ul>
-          <li><a href="/about.html">About</a></li>
-          <li><a href="/contact.html">Contact</a></li>
-        </ul>
-
-        <ul class="footer-social" role="list" aria-label="Pet Pawket social links">
-          <li role="listitem" class="social-icons">
-            <a href="https://instagram.com/petpawket" target="_blank" rel="noopener noreferrer" aria-label="Pet Pawket on Instagram">
-              <img src="icons/Instagram-icon.png" alt="Instagram" loading="lazy" decoding="async" />
-            </a>
-          </li>
-          <li role="listitem" class="social-icons">
-            <a href="https://facebook.com/petpawket" target="_blank" rel="noopener noreferrer" aria-label="Pet Pawket on Facebook">
-              <img src="icons/Facebook-icon.png" alt="Facebook" loading="lazy" decoding="async" />
-            </a>
-          </li>
-          <li role="listitem" class="social-icons">
-            <a href="https://x.com/petpawket" target="_blank" rel="noopener noreferrer" aria-label="Pet Pawket on X (Twitter)">
-              <img src="icons/X-icon.png" alt="X (Twitter)" loading="lazy" decoding="async" />
-            </a>
-          </li>
-        </ul>
-      </nav>
     </div>
-
-    <!-- Bottom Bar -->
-    <div class="footer-bottom">
-      <p>&copy; 2025 Pet Pawket. All rights reserved.</p>
-    </div>
-
-    <details class="footer-note text-center mt-2 small">
-      <summary>Privacy &amp; Terms</summary>
-      <p>
-        We use cookies and standard tracking for site performance and analytics. Your data is never sold or shared with third parties for advertising.
-        Learn more via our support team.
-      </p>
-    </details>
   </footer>
 </body>
 </html>

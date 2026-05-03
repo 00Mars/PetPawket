@@ -7,20 +7,21 @@
 
 #editPetModal .modal-content {
   /* wider breathing room without exceeding viewport */
-  width: min(100%, 980px);
+  width: min(980px, calc(100vw - 32px));
   max-width: 980px;
+  height: min(90vh, 820px);
+  max-height: min(90vh, 820px);
   border-radius: 16px;
   box-shadow: 0 12px 40px rgba(16,24,40,.12);
-  padding: clamp(16px, 2.2vw, 28px);
+  padding: 0;
   overflow: hidden;            /* clip inner scroller to rounded corners */
 }
 
 #editPetModal .scrollable-modal {
-  max-height: calc(100vh - 96px); /* keep header/footer visible */
+  max-height: none;
   overflow-y: auto;
   overflow-x: hidden;             /* kill accidental horizontal scroll */
   overscroll-behavior: contain;
-  padding-right: .25rem;          /* room for vertical scrollbar */
 }
 
 /* Some templates use a custom width helper on the file input; cap it safely */
@@ -176,7 +177,7 @@
 }
 
 #editPetModal .remove-avatar-btn {
-  display: none;                 /* hide the old red X button */
+  display: inline-flex !important;
 }
 
 /* ---------------- Footer buttons ---------------- */

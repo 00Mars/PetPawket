@@ -1,7 +1,14 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 
-const SECRET = process.env.JWT_SECRET || 'supersecretkey';
+const DEFAULT_DEV_SECRET = 'supersecretkey';
+const IS_PROD = process.env.NODE_ENV === 'production';
+const SECRET = process.env.JWT_SECRET || (IS_PROD ? '' : DEFAULT_DEV_SECRET);
+
+if (!SECRET || (IS_PROD && SECRET === DEFAULT_DEV_SECRET)) {
+  throw new Error('JWT_SECRET is required in production.');
+}
+
 // Separate reset secret; falls back to JWT_SECRET for convenience
 const RESET_SECRET = process.env.JWT_RESET_SECRET || SECRET;
 

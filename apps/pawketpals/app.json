@@ -1,0 +1,11 @@
+{
+  "expo": {
+    "name": "Pawket Pals",
+    "slug": "pawket-pals",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": ["**/*"],
+    "plugins": ["expo-router"]
+  }
+}

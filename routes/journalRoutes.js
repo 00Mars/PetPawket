@@ -1,4 +1,4 @@
-x// routes/journalRoutes.js — Shopify-only auth; Clerk removed
+// routes/journalRoutes.js — Shopify-only auth; Clerk removed
 
 import express from 'express';
 const router = express.Router();

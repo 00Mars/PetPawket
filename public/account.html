@@ -7,6 +7,7 @@
 
   <!-- Bootstrap 5 CSS (needed for the utility classes used on this page) -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
 
   <!-- Core site styles (includes .pp-unified-surface) -->
   <link rel="stylesheet" href="/css/core.css" />
@@ -31,12 +32,15 @@
                 <h2 class="h5 m-0">My Account</h2>
               </div>
               <div class="card-body">
-                <p class="text-muted small mb-3">Manage your profile, pets, addresses, and more.</p>
+                <p class="text-muted small mb-3">Your home for pet profiles, journals, Core Memories, Pawket Passes, and care updates.</p>
 
                 <!-- Signed out -->
                 <div class="mt-2" data-auth="signed-out">
-                  <div class="alert alert-warning">Please sign in to view your account.</div>
-                  <a href="#" class="btn btn-primary w-100" data-toggle="login-modal">Sign In</a>
+                  <div class="account-signin-note">
+                    <strong>Build your Pet Pawket around the pets you love.</strong>
+                    <span>Sign in to save pets, journal moments, wishlist picks, and prepare Pawket Pack details.</span>
+                  </div>
+                  <a href="#" class="btn btn-primary w-100 mt-3" data-toggle="login-modal">Sign In</a>
                 </div>
 
                 <!-- Signed in -->
@@ -56,14 +60,119 @@
                 <h2 class="h5 m-0">Your Progress</h2>
               </div>
               <div class="card-body" id="gamification">
-                <p class="text-muted mb-0">Profile progress, badges, and milestones will go here.</p>
+                <div class="account-progress-meter" aria-live="polite">
+                  <div class="account-progress-ring" role="img" aria-label="Pet Pawket progress">
+                    <strong data-account-progress-score>0%</strong>
+                    <span data-account-progress-level>Progress step 1</span>
+                  </div>
+                  <div class="account-progress-meter-copy">
+                    <span class="account-progress-eyebrow">Account progress</span>
+                    <strong data-account-progress-title>Build your pet-first account</strong>
+                    <p data-account-progress-copy>Save the details that make Pet Pawket more useful for you and your pets.</p>
+                  </div>
+                </div>
+
+                <div class="account-progress-next">
+                  <span>Next step</span>
+                  <strong data-account-next-action>Sign in and add a pet profile.</strong>
+                </div>
+
+                <ul class="account-progress-list" data-account-progress-list>
+                  <li data-account-progress-step="profile">
+                    <i class="bi bi-person-heart" aria-hidden="true"></i>
+                    <span><strong>Pet profile</strong><small data-account-progress-note="profile">Add the pet you want to care for here.</small></span>
+                  </li>
+                  <li data-account-progress-step="journal">
+                    <i class="bi bi-journal-richtext" aria-hidden="true"></i>
+                    <span><strong>Journal rhythm</strong><small data-account-progress-note="journal">Log the first care or story note.</small></span>
+                  </li>
+                  <li data-account-progress-step="core">
+                    <i class="bi bi-stars" aria-hidden="true"></i>
+                    <span><strong>Core Memory</strong><small data-account-progress-note="core">Mark one meaningful memory.</small></span>
+                  </li>
+                  <li data-account-progress-step="quest">
+                    <i class="bi bi-map" aria-hidden="true"></i>
+                    <span><strong>Next step</strong><small data-account-progress-note="quest">Choose a helpful care or sharing step.</small></span>
+                  </li>
+                  <li data-account-progress-step="pass">
+                    <i class="bi bi-ticket-perforated" aria-hidden="true"></i>
+                    <span><strong>Pawket Pass</strong><small data-account-progress-note="pass">Passes appear after purchases, gifts, or claims.</small></span>
+                  </li>
+                  <li data-account-progress-step="impact">
+                    <i class="bi bi-shield-heart" aria-hidden="true"></i>
+                    <span><strong>CHARM impact</strong><small data-account-progress-note="impact">Impact updates appear when CHARM campaigns are live.</small></span>
+                  </li>
+                </ul>
+
+                <div class="account-progress-counts" aria-label="Progress totals">
+                  <span><strong data-story-pets-count>0</strong> pets</span>
+                  <span><strong data-story-care-count>0</strong> moments</span>
+                  <span><strong data-story-pass-count>0</strong> passes</span>
+                </div>
               </div>
             </section>
           </div>
 
           <!-- RIGHT COLUMN (auth-gated content) -->
           <div class="col-12 col-lg-9">
+            <div class="account-guest-preview" data-auth="signed-out">
+              <section class="card shadow-sm">
+                <div class="card-header account-guest-header">
+                  <div>
+                    <span class="account-loop-kicker">Account overview</span>
+                    <h2 class="h5 m-0">Build a care trail around the pet you love.</h2>
+                  </div>
+                  <span class="pp-story-pill">Account overview</span>
+                </div>
+                <div class="card-body">
+                  <div class="account-guest-hero">
+                    <div>
+                      <span class="account-progress-eyebrow">Pet-first profile</span>
+                      <h3>Profiles, journals, Core Memories, and CHARM impact start here.</h3>
+                      <p>Sign in to save your pet's details, prepare Pawket Pack fit, and keep meaningful story moments private until you choose otherwise.</p>
+                    </div>
+                    <div class="account-guest-actions">
+                      <a href="#" class="btn btn-primary" data-toggle="login-modal"><i class="bi bi-person-heart" aria-hidden="true"></i> Sign in</a>
+                      <a href="/packs.html" class="btn btn-outline-primary"><i class="bi bi-box2-heart" aria-hidden="true"></i> View Packs</a>
+                    </div>
+                  </div>
+
+                  <div class="account-guest-trail" aria-label="Pet Pawket account overview">
+                    <div class="account-guest-step">
+                      <span><i class="bi bi-person-heart" aria-hidden="true"></i></span>
+                      <div>
+                        <strong>Start with a pet profile</strong>
+                        <small>Species, birthday, fit notes, allergies, preferences, and pack-eligible details.</small>
+                      </div>
+                    </div>
+                    <div class="account-guest-step">
+                      <span><i class="bi bi-journal-richtext" aria-hidden="true"></i></span>
+                      <div>
+                        <strong>Keep real journals</strong>
+                        <small>Care notes, story moments, wellness updates, and private memories stay attached to the pet.</small>
+                      </div>
+                    </div>
+                    <div class="account-guest-step">
+                      <span><i class="bi bi-stars" aria-hidden="true"></i></span>
+                      <div>
+                        <strong>Mark Core Memories</strong>
+                        <small>Meaningful moments can later inform Pawket Pals, Share Studio cards, and CHARM-safe context.</small>
+                      </div>
+                    </div>
+                    <div class="account-guest-step">
+                      <span><i class="bi bi-shield-heart" aria-hidden="true"></i></span>
+                      <div>
+                        <strong>Connect impact carefully</strong>
+                        <small>CHARM and partner updates are built around consent, trust, and careful visibility.</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+
             <div class="requires-auth" data-auth-visible="signed-in">
+              <div class="alert alert-warning d-none" role="alert" data-account-alert></div>
 
               <!-- Profile Information -->
               <section class="card shadow-sm">
@@ -111,36 +220,123 @@
 
                   <hr class="my-3" />
 
-                  <form id="addPetForm" class="mt-2">
-                    <h5 class="h6">Add a New Pet</h5>
-                    <div class="row g-3">
-                      <div class="col-md-4">
-                        <input type="text" class="form-control" placeholder="Name" id="newPetName" required />
-                      </div>
-                      <div class="col-md-4">
-                        <input type="text" class="form-control" placeholder="Type (e.g. Dog, Cat)" id="newPetType" required />
-                      </div>
-                      <div class="col-md-4">
-                        <input type="date" class="form-control" placeholder="Birthday" id="newPetBirthday" />
-                      </div>
+                  <div class="account-add-pet-entry">
+                    <div>
+                      <span class="account-progress-eyebrow">New profile</span>
+                      <h5 class="h6">Add a Pet Profile</h5>
+                      <p class="text-muted small mb-0">Open the full profile builder for a real pet or a Pawket Pack fit profile.</p>
                     </div>
-                    <button type="submit" class="btn btn-outline-primary btn-sm mt-3">Add Pet</button>
-                  </form>
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="addPetOpenBtn" data-open-add-pet>
+                      <i class="bi bi-person-heart" aria-hidden="true"></i> Add Pet
+                    </button>
+                  </div>
 
-                  <!-- Optional My Pets Pane -->
-                  <section id="myPetsPane" class="mt-4" aria-label="Guidance & recommendations for your pets" hidden>
-                    <div class="alert alert-light border d-flex align-items-center justify-content-between mb-3">
-                      <div class="d-flex align-items-center gap-2">
-                        <i class="bi bi-magic"></i>
-                        <div><strong>For My Pets</strong> — guidance, reminders, and subscription picks based on your pets &amp; journals.</div>
+                  <div class="account-personalization-handoff mt-4" aria-label="For My Pets shopping link">
+                    <div>
+                      <span class="account-progress-eyebrow">For My Pets</span>
+                      <h5 class="h6">Profiles personalize the shop.</h5>
+                      <p class="text-muted small mb-0">Keep pet details, allergies, and care notes here. The tuned product shelves now live in the shop where cart, wishlist, and pack-eligible add-on actions belong.</p>
+                    </div>
+                    <a class="btn btn-primary btn-sm" href="/shop.html?mypets=1">
+                      <i class="bi bi-stars" aria-hidden="true"></i> Open tuned shelves
+                    </a>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Story Trail -->
+              <section class="card shadow-sm mt-4 pp-story-panel" id="account-story-trail">
+                <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+                  <h2 class="h5 m-0">Your Story Trail</h2>
+                  <span class="pp-story-pill" data-story-stage-pill>Account overview</span>
+                </div>
+                <div class="card-body">
+                  <div class="pp-story-panel-grid">
+                    <div class="pp-story-panel-card">
+                      <div class="pp-illus pp-illus--mini" data-tone="coral">
+                        <span class="pp-illus-orb pp-illus-orb--sun pp-float"></span>
+                        <span class="pp-illus-orb pp-illus-orb--mint pp-float-slow"></span>
+                        <div class="pp-illus-frame">
+                          <img src="/assets/mascots/pp-mascot-coral.svg" alt="Coral Pawket Pal art" />
+                          <span>Pawket Pals</span>
+                        </div>
                       </div>
-                      <div class="form-check form-switch m-0">
-                        <input class="form-check-input" type="checkbox" id="toggleMyPetsPane">
-                        <label class="form-check-label" for="toggleMyPetsPane">Enable</label>
+                      <div class="pp-story-panel-copy">
+                        <strong data-story-pal-name>Meet your Pawket Pal</strong>
+                        <p data-story-pal-copy>Pawket Pals will grow from saved stories and shared moments. Private journals stay private unless you choose otherwise.</p>
+                        <a class="pp-text-link" href="/community.html">View community</a>
                       </div>
                     </div>
-                    <div id="myPetsContent"></div>
-                  </section>
+                    <div class="pp-story-panel-card">
+                      <div class="pp-story-panel-badge"><i class="bi bi-stars"></i> Care record</div>
+                      <h3><span data-story-care-count>0</span> care moments saved</h3>
+                      <p>Journals and Core Memories keep the important details easy to find.</p>
+                      <div class="pp-story-progress">
+                        <span data-story-progress-bar style="width:0%"></span>
+                      </div>
+                      <div class="pp-story-panel-tags">
+                        <span data-story-reward>Next: add a helpful note</span>
+                        <span data-story-pass-count>0 Pawket Passes ready</span>
+                        <span><span data-story-pets-count>0</span> pet profiles</span>
+                      </div>
+                    </div>
+                    <div class="pp-story-panel-card">
+                      <div class="pp-story-panel-badge"><i class="bi bi-flag"></i> Suggested step</div>
+                      <h3>Save a walk or care note</h3>
+                      <p>Start with one small update: a walk, meal, vet note, training win, or sweet moment.</p>
+                      <div class="pp-story-panel-actions">
+                        <button class="pp-impact-btn" type="button" data-quest-toggle data-quest-id="rescue-walk" data-quest-label="Save step">Save step</button>
+                        <a class="pp-ghost-btn" href="/account.html#account-pets">Open journals</a>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="pp-story-context" data-story-context-panel aria-live="polite">
+                    <div class="pp-story-context-copy">
+                      <span class="pp-kicker">Profile summary</span>
+                      <h3 data-story-context-title>Build your pet's story.</h3>
+                      <p data-story-context-copy>Profiles, journals, Core Memories, and passes help keep care and meaningful moments organized.</p>
+                    </div>
+                    <div class="pp-story-context-metrics" aria-label="Story summary metrics">
+                      <span><strong data-story-context-pets>0</strong><small>Pets</small></span>
+                      <span><strong data-story-context-journals>0</strong><small>Journals</small></span>
+                      <span><strong data-story-context-core>0</strong><small>Core</small></span>
+                      <span><strong data-story-context-handoffs>0</strong><small>Links</small></span>
+                    </div>
+                    <div class="pp-story-context-steps" aria-label="Helpful account steps">
+                      <span data-story-context-step="profile"><i class="bi bi-person-heart" aria-hidden="true"></i> Profile</span>
+                      <span data-story-context-step="journal"><i class="bi bi-journal-richtext" aria-hidden="true"></i> Journal</span>
+                      <span data-story-context-step="core"><i class="bi bi-stars" aria-hidden="true"></i> Core</span>
+                      <span data-story-context-step="quest"><i class="bi bi-map" aria-hidden="true"></i> Next step</span>
+                    </div>
+                    <div class="pp-story-context-next">
+                      <i class="bi bi-arrow-right-circle" aria-hidden="true"></i>
+                      <span data-story-context-next>Sign in and add a pet profile.</span>
+                    </div>
+                  </div>
+                  <div class="pp-quest-map-shell">
+                    <div class="pp-quest-map-head">
+                      <div>
+                        <span class="pp-kicker">Suggested next steps</span>
+                        <h3>Small steps that make your account more useful.</h3>
+                      </div>
+                      <span class="pp-story-pill" data-quest-sync>Saved here</span>
+                    </div>
+                    <div class="pp-quest-map" data-quest-map="account" aria-live="polite"></div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Pawket Passes -->
+              <section class="card shadow-sm mt-4" id="loopTokensSection">
+                <div class="card-header account-loop-header">
+                  <div>
+                    <span class="account-loop-kicker">Pawket Passes</span>
+                    <h2 class="h5 m-0">My Pawket Passes</h2>
+                  </div>
+                  <span class="pp-story-pill account-loop-stage" data-loop-stage-pill>Passes</span>
+                </div>
+                <div class="card-body" data-loop-tracker>
+                  <p class="text-muted mb-0">Loading Pawket Passes…</p>
                 </div>
               </section>
 
@@ -172,51 +368,368 @@
 
   <div id="footer-container"></div>
 
-  <!-- Edit Pet Modal (with Traits) -->
-  <div id="editPetModal" class="custom-modal hidden" role="dialog" aria-modal="true" aria-labelledby="editPetLabel">
-    <div class="modal-content">
-      <div class="scrollable-modal">
-        <h3 id="editPetLabel">Edit Pet</h3>
-        <form id="editPetForm" enctype="multipart/form-data">
-          <input type="hidden" id="editPetIndex" />
-          <!-- Hidden JSON that the enhancer keeps in sync -->
-          <input type="hidden" id="petTraitsJson" name="traits" value="{}" />
+  <!-- Add Pet Modal (full profile builder) -->
+  <div id="addPetModal" class="custom-modal hidden account-pet-profile-modal" role="dialog" aria-modal="true" aria-labelledby="addPetLabel" aria-describedby="addPetSubhead">
+    <div class="modal-content account-pet-edit-modal" data-modal-content>
+      <div class="account-modal-header">
+        <div class="account-modal-title-row">
+          <span class="account-modal-icon" aria-hidden="true"><i class="bi bi-person-plus"></i></span>
+          <div>
+            <span class="account-modal-kicker">New pet profile</span>
+            <h3 id="addPetLabel" data-add-pet-title>Add a pet profile</h3>
+            <p id="addPetSubhead" class="mb-0" data-add-pet-subtitle>Start with profile details, fit notes, and preferences for Pawket Packs and journals.</p>
+          </div>
+        </div>
+        <div class="account-modal-header-tools">
+          <span class="account-modal-pill" data-add-pet-species-pill>New profile</span>
+          <button type="button" class="account-modal-icon-close" data-close="addPetModal" aria-label="Close add pet form"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+        </div>
+      </div>
 
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label for="editPetName" class="form-label">Name</label>
-              <input type="text" class="form-control" id="editPetName" title="Pet name" placeholder="e.g. Fido" />
-            </div>
-            <div class="col-md-6">
-              <label class="form-label" for="editPetType">Type</label>
-              <select class="form-select" id="editPetType">
-                <option disabled selected value="">Select a type</option>
-                <option>Dog</option><option>Cat</option><option>Bird</option>
-                <option>Rabbit</option><option>Hamster</option><option>Guinea Pig</option>
-                <option>Reptile</option><option>Fish</option><option>Horse</option>
-                <option>Ferret</option><option>Other</option>
-              </select>
+      <form id="addPetForm" enctype="multipart/form-data" class="account-pet-edit-form">
+        <input type="hidden" id="newPetBreed" />
+        <input type="hidden" id="addPetTraitsJson" name="traits" value="{}" />
+
+        <div class="scrollable-modal account-modal-body">
+          <section class="account-pet-edit-profile" aria-label="New pet profile basics">
+            <div class="account-pet-photo-panel">
+              <span class="account-pet-photo-kicker">Profile photo</span>
+              <div class="account-avatar-frame">
+                <img id="newPetAvatarPreview" src="/assets/images/default-pet.png" alt="New pet avatar preview" title="Change pet avatar" class="rounded shadow-sm border mb-3 avatar-preview" />
+              </div>
+              <div class="account-avatar-actions">
+                <label for="newPetAvatar" class="account-file-label" role="button" tabindex="0"><i class="bi bi-image" aria-hidden="true"></i> Choose photo</label>
+                <button type="button" id="removeNewPetAvatarBtn" class="remove-avatar-btn" title="Remove Avatar" aria-label="Remove new pet avatar"><i class="bi bi-trash3" aria-hidden="true"></i> Remove</button>
+              </div>
+              <input type="file" class="form-control account-file-input" id="newPetAvatar" title="Upload pet avatar" aria-label="Upload pet avatar" accept="image/*" />
             </div>
 
-            <!-- Avatar -->
-            <div class="col-12 text-center position-relative">
-              <label class="form-label d-block mb-2">Avatar</label>
-              <div class="d-flex flex-column align-items-center position-relative">
-                <img id="avatarPreview" src="/assets/images/default-pet.png" alt="Default pet avatar" title="Pet avatar" class="rounded shadow-sm border mb-3 avatar-preview" />
-                <button type="button" id="removeAvatarBtn" class="remove-avatar-btn" title="Remove Avatar">✕</button>
-                <label for="editPetAvatar" class="visually-hidden">Upload pet avatar</label>
-                <input type="file" class="form-control w-85" id="editPetAvatar" title="Upload pet avatar" aria-label="Upload pet avatar" />
+            <div class="account-pet-basics-panel">
+              <div class="account-section-minihead">
+                <span><i class="bi bi-ui-checks" aria-hidden="true"></i></span>
+                <div>
+                  <h4>Profile basics</h4>
+                  <p>Name, pet type, birthday, and the right breed/species label.</p>
+                </div>
+              </div>
+              <div class="account-pet-field-grid">
+                <div class="account-field">
+                  <label for="newPetName" class="form-label">Name</label>
+                  <input type="text" class="form-control" placeholder="Your pet's name" id="newPetName" required />
+                </div>
+                <div class="account-field">
+                  <label class="form-label" for="newPetType">Type</label>
+                  <select class="form-select" id="newPetType" required>
+                    <option disabled selected value="">Select a type</option>
+                    <option>Dog</option><option>Cat</option><option>Bird</option>
+                    <option>Rabbit</option><option>Hamster</option><option>Guinea Pig</option>
+                    <option>Reptile</option><option>Fish</option><option>Horse</option>
+                    <option>Ferret</option><option>Other</option>
+                  </select>
+                </div>
+                <div class="account-field">
+                  <label for="newPetBreedSelect" class="form-label" id="newPetBreedLabel">Breed / species / type</label>
+                  <select class="form-select" id="newPetBreedSelect" aria-describedby="newPetBreedHelp"></select>
+                  <input type="text" class="form-control mt-2 d-none" id="newPetBreedOther" placeholder="Type the breed, species, or variety" autocomplete="off" />
+                  <div class="form-text" id="newPetBreedHelp">Choose the closest option, or select Other.</div>
+                </div>
+                <div class="account-field">
+                  <label for="newPetBirthday" class="form-label">Birthday</label>
+                  <input type="date" class="form-control" placeholder="Birthday" id="newPetBirthday" />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="account-traits-shell" aria-label="New pet care traits">
+            <div class="account-section-heading">
+              <span class="account-section-icon"><i class="bi bi-sliders" aria-hidden="true"></i></span>
+              <div>
+                <span class="account-modal-kicker">Care fit</span>
+                <h4>Traits and preferences</h4>
+                <p>Add the details now so the first profile is ready for recommendations, journals, and care reminders.</p>
               </div>
             </div>
 
-            <!-- Traits -->
-            <div class="col-12">
-              <hr class="my-3" />
-              <h5 class="mb-2">Traits</h5>
+            <div class="account-trait-sections">
+              <div class="trait-section account-trait-card">
+                <div class="account-trait-card-head">
+                  <span><i class="bi bi-stars" aria-hidden="true"></i></span>
+                  <div>
+                    <h6>Basics</h6>
+                    <p>Size, sex, and play profile.</p>
+                  </div>
+                </div>
+                <div class="trait-grid-2">
+                  <div class="trait-group">
+                    <div class="label">Size</div>
+                    <div class="trait-chips" data-add-trait="size" data-multi="false">
+                      <button type="button" class="trait-chip" data-value="xs" aria-pressed="false">XS</button>
+                      <button type="button" class="trait-chip" data-value="s" aria-pressed="false">S</button>
+                      <button type="button" class="trait-chip" data-value="m" aria-pressed="false">M</button>
+                      <button type="button" class="trait-chip" data-value="l" aria-pressed="false">L</button>
+                      <button type="button" class="trait-chip" data-value="xl" aria-pressed="false">XL</button>
+                    </div>
+                  </div>
+                  <div class="trait-group">
+                    <div class="label">Sex</div>
+                    <div class="trait-chips" data-add-trait="sex" data-multi="false">
+                      <button type="button" class="trait-chip" data-value="male" aria-pressed="false">Male</button>
+                      <button type="button" class="trait-chip" data-value="female" aria-pressed="false">Female</button>
+                      <button type="button" class="trait-chip" data-value="unknown" aria-pressed="true">Unknown</button>
+                    </div>
+                  </div>
+                  <div class="trait-group">
+                    <div class="label">Spayed/Neutered</div>
+                    <div class="trait-chips" data-add-trait="spayNeuter" data-multi="false">
+                      <button type="button" class="trait-chip" data-value="spayed" aria-pressed="false">Spayed</button>
+                      <button type="button" class="trait-chip" data-value="neutered" aria-pressed="false">Neutered</button>
+                      <button type="button" class="trait-chip" data-value="intact" aria-pressed="false">Intact</button>
+                      <button type="button" class="trait-chip" data-value="unknown" aria-pressed="true">Unknown</button>
+                    </div>
+                  </div>
+                  <div class="trait-group">
+                    <div class="label">Chew Strength</div>
+                    <div class="trait-chips" data-add-trait="chewStrength" data-multi="false">
+                      <button type="button" class="trait-chip" data-value="soft" aria-pressed="false">Soft</button>
+                      <button type="button" class="trait-chip" data-value="moderate" aria-pressed="false">Moderate</button>
+                      <button type="button" class="trait-chip" data-value="power" aria-pressed="false">Power</button>
+                    </div>
+                  </div>
+                  <div class="trait-group mb-2">
+                    <div class="label">Play style</div>
+                    <div class="trait-chips" data-add-trait="playStyle" data-multi="false">
+                      <button type="button" class="trait-chip" data-value="unknown" aria-pressed="true">Unknown</button>
+                      <button type="button" class="trait-chip" data-value="fetch" aria-pressed="false">Fetch</button>
+                      <button type="button" class="trait-chip" data-value="tug" aria-pressed="false">Tug</button>
+                      <button type="button" class="trait-chip" data-value="chew" aria-pressed="false">Chew</button>
+                      <button type="button" class="trait-chip" data-value="puzzle" aria-pressed="false">Puzzle</button>
+                      <button type="button" class="trait-chip" data-value="chase" aria-pressed="false">Chase</button>
+                      <button type="button" class="trait-chip" data-value="cuddle" aria-pressed="false">Cuddle</button>
+                    </div>
+                  </div>
+                  <div class="trait-group" id="add-trait-catnip-wrap">
+                    <div class="label">Catnip</div>
+                    <div class="trait-chips" data-add-trait="catnip" data-multi="false">
+                      <button type="button" class="trait-chip" data-value="likes" aria-pressed="false">Likes it</button>
+                      <button type="button" class="trait-chip" data-value="dislikes" aria-pressed="false">Dislikes</button>
+                      <button type="button" class="trait-chip" data-value="unknown" aria-pressed="true">Unknown</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="trait-section account-trait-card">
+                <div class="account-trait-card-head">
+                  <span><i class="bi bi-egg-fried" aria-hidden="true"></i></span>
+                  <div>
+                    <h6>Diet</h6>
+                    <p>Food style, flavor likes, and allergy notes.</p>
+                  </div>
+                </div>
+                <div class="trait-grid-2">
+                  <div class="trait-group">
+                    <div class="label">Preferences</div>
+                    <div class="trait-chips" data-add-trait="diets" data-multi="true">
+                      <button type="button" class="trait-chip" data-value="grain-free" aria-pressed="false">Grain-free</button>
+                      <button type="button" class="trait-chip" data-value="limited-ingredient" aria-pressed="false">Limited-ingredient</button>
+                      <button type="button" class="trait-chip" data-value="wet" aria-pressed="false">Wet</button>
+                      <button type="button" class="trait-chip" data-value="dry" aria-pressed="false">Dry</button>
+                      <button type="button" class="trait-chip" data-value="raw" aria-pressed="false">Raw</button>
+                      <button type="button" class="trait-chip" data-value="freeze-dried" aria-pressed="false">Freeze-dried</button>
+                      <button type="button" class="trait-chip" data-value="high-protein" aria-pressed="false">High-protein</button>
+                    </div>
+                  </div>
+                  <div class="trait-group">
+                    <div class="label">Flavor Likes</div>
+                    <div class="trait-chips" data-add-trait="flavors" data-multi="true">
+                      <button type="button" class="trait-chip" data-value="chicken" aria-pressed="false">Chicken</button>
+                      <button type="button" class="trait-chip" data-value="beef" aria-pressed="false">Beef</button>
+                      <button type="button" class="trait-chip" data-value="salmon" aria-pressed="false">Salmon</button>
+                      <button type="button" class="trait-chip" data-value="tuna" aria-pressed="false">Tuna</button>
+                      <button type="button" class="trait-chip" data-value="lamb" aria-pressed="false">Lamb</button>
+                      <button type="button" class="trait-chip" data-value="duck" aria-pressed="false">Duck</button>
+                    </div>
+                  </div>
+                  <div class="trait-group">
+                    <div class="label">Allergies</div>
+                    <div class="trait-inline">
+                      <input type="text" id="addTraitAllergyInput" data-add-trait-input="allergies" placeholder="Press Enter to add..." autocomplete="off" enterkeyhint="done" />
+                      <div id="add-trait-allergies" class="trait-chips trait-small" data-add-trait="allergies" data-multi="true"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="trait-section account-trait-card">
+                <div class="account-trait-card-head">
+                  <span><i class="bi bi-house-heart" aria-hidden="true"></i></span>
+                  <div>
+                    <h6>Training &amp; Habits</h6>
+                    <p>Everyday routines and home-readiness details.</p>
+                  </div>
+                </div>
+                <div class="trait-grid-3">
+                  <div class="trait-group">
+                    <div class="label">House Trained</div>
+                    <div class="trait-chips" data-add-trait="houseTrained" data-multi="false">
+                      <button type="button" class="trait-chip" data-value="yes" aria-pressed="false">Yes</button>
+                      <button type="button" class="trait-chip" data-value="partial" aria-pressed="false">Partial</button>
+                      <button type="button" class="trait-chip" data-value="no" aria-pressed="false">No</button>
+                      <button type="button" class="trait-chip" data-value="unknown" aria-pressed="true">Unknown</button>
+                    </div>
+                  </div>
+                  <div class="trait-group">
+                    <div class="label">Litter Trained</div>
+                    <div class="trait-chips" data-add-trait="litterTrained" data-multi="false">
+                      <button type="button" class="trait-chip" data-value="yes" aria-pressed="false">Yes</button>
+                      <button type="button" class="trait-chip" data-value="partial" aria-pressed="false">Partial</button>
+                      <button type="button" class="trait-chip" data-value="no" aria-pressed="false">No</button>
+                      <button type="button" class="trait-chip" data-value="unknown" aria-pressed="true">Unknown</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="trait-section account-trait-card">
+                <div class="account-trait-card-head">
+                  <span><i class="bi bi-rulers" aria-hidden="true"></i></span>
+                  <div>
+                    <h6>Fit &amp; Notes</h6>
+                    <p>Measurements and useful context for gear or care.</p>
+                  </div>
+                </div>
+                <div class="trait-grid-2">
+                  <div class="trait-group">
+                    <label class="label" for="add-trait-neck-in">Neck (in)</label>
+                    <input id="add-trait-neck-in" data-add-trait-key="neckIn" type="number" min="0" step="0.1" class="form-control" placeholder="e.g. 12.5" title="Neck measurement in inches" />
+                  </div>
+                  <div class="trait-group">
+                    <label class="label" for="add-trait-chest-in">Chest (in)</label>
+                    <input id="add-trait-chest-in" data-add-trait-key="chestIn" type="number" min="0" step="0.1" class="form-control" placeholder="e.g. 18.0" title="Chest measurement in inches" />
+                  </div>
+                  <div class="trait-group">
+                    <label class="label" for="add-trait-back-in">Back (in)</label>
+                    <input id="add-trait-back-in" data-add-trait-key="backIn" type="number" min="0" step="0.1" class="form-control" placeholder="e.g. 14.0" title="Back measurement in inches" />
+                  </div>
+                  <div class="trait-group">
+                    <label class="label" for="add-trait-notes">Notes</label>
+                    <textarea id="add-trait-notes" data-add-trait-key="notes" class="form-control" rows="3" placeholder="Anything else we should know?"></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="account-modal-footer">
+          <div id="addPetFormStatus" class="alert alert-info d-none" role="status" aria-live="polite"></div>
+          <div class="account-modal-actions">
+            <button type="button" class="btn btn-outline-secondary" data-close="addPetModal" aria-label="Cancel and close add pet form"><i class="bi bi-x-circle" aria-hidden="true"></i> Cancel</button>
+            <button type="submit" class="btn btn-primary" form="addPetForm"><i class="bi bi-check2-circle" aria-hidden="true"></i> Add profile</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Pet Modal (with Traits) -->
+  <div id="editPetModal" class="custom-modal hidden account-pet-profile-modal" role="dialog" aria-modal="true" aria-labelledby="editPetLabel" aria-describedby="editPetSubhead">
+    <div class="modal-content account-pet-edit-modal" data-modal-content>
+      <div class="account-modal-header">
+        <div class="account-modal-title-row">
+          <span class="account-modal-icon" aria-hidden="true"><i class="bi bi-person-heart"></i></span>
+          <div>
+            <span class="account-modal-kicker">Pet profile</span>
+            <h3 id="editPetLabel" data-edit-pet-title>Edit pet profile</h3>
+            <p id="editPetSubhead" class="mb-0" data-edit-pet-subtitle>Profile details for Pawket Packs, journals, and care notes.</p>
+          </div>
+        </div>
+        <div class="account-modal-header-tools">
+          <span class="account-modal-pill" data-edit-pet-species-pill>Pet profile</span>
+          <button type="button" class="account-modal-icon-close" data-close="editPetModal" aria-label="Close pet editor"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+        </div>
+      </div>
+
+      <form id="editPetForm" enctype="multipart/form-data" class="account-pet-edit-form">
+        <input type="hidden" id="editPetIndex" />
+        <!-- Hidden JSON that the enhancer keeps in sync -->
+        <input type="hidden" id="petTraitsJson" name="traits" value="{}" />
+
+        <div class="scrollable-modal account-modal-body">
+          <section class="account-pet-edit-profile" aria-label="Pet profile basics">
+            <div class="account-pet-photo-panel">
+              <span class="account-pet-photo-kicker">Profile photo</span>
+              <div class="account-avatar-frame">
+                <img id="avatarPreview" src="/assets/images/default-pet.png" alt="Default pet avatar" title="Change pet avatar" class="rounded shadow-sm border mb-3 avatar-preview" />
+              </div>
+              <div class="account-avatar-actions">
+                <label for="editPetAvatar" class="account-file-label" role="button" tabindex="0"><i class="bi bi-image" aria-hidden="true"></i> Choose photo</label>
+                <button type="button" id="removeAvatarBtn" class="remove-avatar-btn" title="Remove Avatar" aria-label="Remove pet avatar"><i class="bi bi-trash3" aria-hidden="true"></i> Remove</button>
+              </div>
+              <input type="file" class="form-control account-file-input" id="editPetAvatar" title="Upload pet avatar" aria-label="Upload pet avatar" accept="image/*" />
+            </div>
+
+            <div class="account-pet-basics-panel">
+              <div class="account-section-minihead">
+                <span><i class="bi bi-ui-checks" aria-hidden="true"></i></span>
+                <div>
+                  <h4>Profile basics</h4>
+                  <p>Name, pet type, birthday, and the right breed/species label.</p>
+                </div>
+              </div>
+              <div class="account-pet-field-grid">
+                <div class="account-field">
+                  <label for="editPetName" class="form-label">Name</label>
+                  <input type="text" class="form-control" id="editPetName" title="Pet name" placeholder="Your pet's name" />
+                </div>
+                <div class="account-field">
+                  <label class="form-label" for="editPetType">Type</label>
+                  <select class="form-select" id="editPetType">
+                    <option disabled selected value="">Select a type</option>
+                    <option>Dog</option><option>Cat</option><option>Bird</option>
+                    <option>Rabbit</option><option>Hamster</option><option>Guinea Pig</option>
+                    <option>Reptile</option><option>Fish</option><option>Horse</option>
+                    <option>Ferret</option><option>Other</option>
+                  </select>
+                </div>
+                <div class="account-field">
+                  <label for="editPetBreedSelect" class="form-label" id="editPetBreedLabel">Breed</label>
+                  <select class="form-select" id="editPetBreedSelect" aria-describedby="editPetBreedHelp"></select>
+                  <input type="text" class="form-control mt-2 d-none" id="editPetBreedOther" placeholder="Type the breed, species, or variety" autocomplete="off" />
+                  <input type="hidden" id="editPetBreed" />
+                  <div class="form-text" id="editPetBreedHelp">Choose the closest option, or select Other.</div>
+                </div>
+                <div class="account-field">
+                  <label for="editPetBirthday" class="form-label">Birthday</label>
+                  <input type="date" class="form-control" id="editPetBirthday" title="Pet birthday" />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Traits -->
+          <section class="account-traits-shell" aria-label="Pet care traits">
+            <div class="account-section-heading">
+              <span class="account-section-icon"><i class="bi bi-sliders" aria-hidden="true"></i></span>
+              <div>
+                <span class="account-modal-kicker">Care fit</span>
+                <h4>Traits and preferences</h4>
+                <p>Details that shape Pawket Pack fit, product picks, and care notes.</p>
+              </div>
+            </div>
+
+            <div class="account-trait-sections">
 
               <!-- BASICS -->
-              <div class="trait-section">
-                <h6>Basics</h6>
+              <div class="trait-section account-trait-card">
+                <div class="account-trait-card-head">
+                  <span><i class="bi bi-stars" aria-hidden="true"></i></span>
+                  <div>
+                    <h6>Basics</h6>
+                    <p>Size, sex, and play profile.</p>
+                  </div>
+                </div>
                 <div class="trait-grid-2">
                   <div class="trait-group">
                     <div class="label">Size</div>
@@ -283,8 +796,14 @@
               </div><!-- /trait-section (Basics) -->
 
               <!-- DIET -->
-              <div class="trait-section">
-                <h6>Diet</h6>
+              <div class="trait-section account-trait-card">
+                <div class="account-trait-card-head">
+                  <span><i class="bi bi-egg-fried" aria-hidden="true"></i></span>
+                  <div>
+                    <h6>Diet</h6>
+                    <p>Food style, flavor likes, and allergy notes.</p>
+                  </div>
+                </div>
                 <div class="trait-grid-2">
                   <div class="trait-group">
                     <div class="label">Preferences</div>
@@ -328,8 +847,14 @@
               </div><!-- /trait-section (Diet) -->
 
               <!-- TRAINING / HABITS -->
-              <div class="trait-section">
-                <h6>Training &amp; Habits</h6>
+              <div class="trait-section account-trait-card">
+                <div class="account-trait-card-head">
+                  <span><i class="bi bi-house-heart" aria-hidden="true"></i></span>
+                  <div>
+                    <h6>Training &amp; Habits</h6>
+                    <p>Everyday routines and home-readiness details.</p>
+                  </div>
+                </div>
                 <div class="trait-grid-3">
                   <div class="trait-group">
                     <div class="label">House Trained</div>
@@ -354,8 +879,14 @@
               </div><!-- /trait-section (Training & Habits) -->
 
               <!-- FIT & NOTES -->
-              <div class="trait-section">
-                <h6>Fit & Notes</h6>
+              <div class="trait-section account-trait-card">
+                <div class="account-trait-card-head">
+                  <span><i class="bi bi-rulers" aria-hidden="true"></i></span>
+                  <div>
+                    <h6>Fit &amp; Notes</h6>
+                    <p>Measurements and useful context for gear or care.</p>
+                  </div>
+                </div>
                 <div class="trait-grid-2">
                   <div class="trait-group">
                     <label class="label" for="trait-neck-in">Neck (in)</label>
@@ -374,65 +905,185 @@
                     <textarea id="trait-notes" class="form-control" rows="3" placeholder="Anything else we should know?"></textarea>
                   </div>
                 </div>
-
-                <div class="d-flex justify-content-between align-items-center mt-3">
-                  <button type="button" class="btn btn-secondary" data-close="editPetModal" aria-label="Cancel and close modal">Cancel</button>
-                  <button type="submit" class="btn btn-primary" form="editPetForm">Save Changes</button>
-                </div>
               </div><!-- /trait-section (Fit & Notes) -->
+            </div>
+          </section>
+        </div>
 
-            </div><!-- /col-12 (Traits) -->
-          </div><!-- /row g-3 -->
-
-          <div id="petFormStatus" class="alert alert-info mt-2 d-none" role="status" aria-live="polite"></div>
-        </form>
-      </div>
-      <button class="close-btn" data-close="editPetModal" aria-label="Close modal">×</button>
+        <div class="account-modal-footer">
+          <div id="petFormStatus" class="alert alert-info d-none" role="status" aria-live="polite"></div>
+          <div class="account-modal-actions">
+            <button type="button" class="btn btn-outline-secondary" data-close="editPetModal" aria-label="Cancel and close modal"><i class="bi bi-x-circle" aria-hidden="true"></i> Cancel</button>
+            <button type="submit" class="btn btn-primary" form="editPetForm"><i class="bi bi-check2-circle" aria-hidden="true"></i> Save profile</button>
+          </div>
+        </div>
+      </form>
     </div>
   </div>
 
   <!-- Pet Journal Modal -->
   <div id="journal-modal" class="custom-modal hidden" role="dialog" aria-modal="true" aria-labelledby="journalLabel">
-    <div class="modal-content">
-      <h3 id="journalLabel">Pet Journal</h3>
+    <div class="modal-content journal-modal-content" data-modal-content>
+      <div class="journal-modal-header">
+        <div>
+          <span class="account-modal-kicker"><i class="bi bi-journal-richtext" aria-hidden="true"></i> Pet Journal</span>
+          <h3 id="journalLabel">Pet Journal</h3>
+          <p id="journalSubhead" class="journal-subhead text-muted">Capture notes, moods, care moments, and Core Memories.</p>
+        </div>
+        <button class="account-modal-icon-close" data-close="journal-modal" aria-label="Close journal modal" type="button">×</button>
+      </div>
 
       <input type="hidden" id="journalPetIndex" value="" aria-hidden="true" />
 
-      <!-- Add Entry -->
-      <div id="edit-pet-journal" class="container-fluid">
-        <div class="mb-3">
-          <label class="form-label">Note</label>
-          <textarea class="form-control" id="newJournalNote" rows="2" placeholder="Today's update..."></textarea>
-        </div>
-
-        <div class="row g-2">
-          <div class="col-12 col-sm-6">
-            <label class="form-label" for="journalMood">Mood</label>
-            <select class="form-select" id="journalMood">
-              <option>Happy</option><option>Playful</option><option>Sleepy</option>
-              <option>Calm</option><option>Energetic</option><option>Concerned</option>
-            </select>
+      <div id="edit-pet-journal" class="journal-modal-body">
+        <section class="journal-composer" aria-labelledby="journalComposerTitle">
+          <div class="journal-section-heading">
+            <span class="journal-section-icon"><i class="bi bi-pencil-square" aria-hidden="true"></i></span>
+            <div>
+              <h4 id="journalComposerTitle">New journal entry</h4>
+              <p>Care notes, story moments, and Core Memories in one place.</p>
+            </div>
           </div>
-          <div class="col-12 col-sm-6">
-            <label class="form-label">Tags</label>
-            <input type="text" class="form-control" id="journalTags" placeholder="#vet, #walk, #cute" />
+
+          <div class="journal-prompt-row" aria-label="Journal starter prompts">
+            <button type="button" class="journal-prompt-chip" data-journal-prompt data-journal-type="wellness" data-journal-tags="wellness, check-in" data-journal-text="Wellness check: appetite, energy, sleep, and anything that felt different."><i class="bi bi-heart-pulse" aria-hidden="true"></i> Wellness</button>
+            <button type="button" class="journal-prompt-chip" data-journal-prompt data-journal-type="walk" data-journal-tags="walk, activity" data-journal-text="Walk update: route, energy, behavior, and favorite moment."><i class="bi bi-signpost-split" aria-hidden="true"></i> Walk</button>
+            <button type="button" class="journal-prompt-chip" data-journal-prompt data-journal-type="training" data-journal-tags="training, progress" data-journal-text="Training note: what we practiced, what clicked, and what to repeat next time."><i class="bi bi-award" aria-hidden="true"></i> Training</button>
+            <button type="button" class="journal-prompt-chip" data-journal-prompt data-journal-type="vet" data-journal-tags="vet, care" data-journal-text="Vet or care visit: reason, guidance, medication, and follow-up date."><i class="bi bi-clipboard2-pulse" aria-hidden="true"></i> Vet</button>
           </div>
-        </div>
 
-        <div class="mb-3">
-          <label class="form-label" id="journalPhotoLabel" for="journalPhoto">Optional Photo</label>
-          <input type="file" class="form-control" id="journalPhoto" accept="image/*" title="Optional photo for journal entry" aria-describedby="journalPhotoLabel" />
-        </div>
+          <div class="journal-field-grid">
+            <div class="journal-field journal-field--wide">
+              <label class="form-label" for="newJournalTitle">Title</label>
+              <input type="text" class="form-control" id="newJournalTitle" maxlength="90" placeholder="Morning walk, first trick, vet follow-up..." />
+            </div>
 
-        <button type="button" class="btn btn-outline-primary btn-sm mt-2" id="addJournalEntryBtn">Add Entry</button>
+            <div class="journal-field">
+              <label class="form-label" for="journalEntryType">Type</label>
+              <select class="form-select" id="journalEntryType">
+                <option value="note">Daily note</option>
+                <option value="story">Story moment</option>
+                <option value="milestone">Milestone</option>
+                <option value="wellness">Wellness</option>
+                <option value="vet">Vet visit</option>
+                <option value="medication">Medication</option>
+                <option value="meal">Meal</option>
+                <option value="walk">Walk</option>
+                <option value="training">Training</option>
+                <option value="grooming">Grooming</option>
+                <option value="play">Play</option>
+                <option value="behavior">Behavior</option>
+                <option value="rescue">Rescue/adoption</option>
+                <option value="memorial">Memorial</option>
+              </select>
+            </div>
 
-        <div class="mt-2 pt-1 scrollable-inner">
-          <label class="form-label">Recent Journal Entries</label>
-          <ul id="journalEntryList" data-component="journalEntries" class="list-unstyled"></ul>
-        </div>
+            <div class="journal-field">
+              <label class="form-label" for="journalOccurredAt">When</label>
+              <input type="datetime-local" class="form-control" id="journalOccurredAt" />
+            </div>
+
+            <div class="journal-field">
+              <label class="form-label" for="journalMood">Mood</label>
+              <select class="form-select" id="journalMood">
+                <option>Happy</option>
+                <option>Playful</option>
+                <option>Calm</option>
+                <option>Energetic</option>
+                <option>Sleepy</option>
+                <option>Curious</option>
+                <option>Concerned</option>
+                <option>Anxious</option>
+                <option>Protective</option>
+                <option>Peaceful</option>
+              </select>
+            </div>
+
+            <div class="journal-field">
+              <label class="form-label" for="journalVisibility">Visibility</label>
+              <select class="form-select" id="journalVisibility">
+                <option value="private">Private</option>
+                <option value="shareable">Shareable later</option>
+                <option value="community">Town Square candidate</option>
+                <option value="charm-foundation">CHARM care note</option>
+              </select>
+            </div>
+
+            <div class="journal-field journal-field--wide">
+              <label class="form-label" for="journalTags">Tags</label>
+              <input type="text" class="form-control" id="journalTags" placeholder="walk, vet, cozy, allergy" />
+            </div>
+
+            <div class="journal-field journal-field--wide">
+              <label class="form-label" for="newJournalNote">Note</label>
+              <textarea class="form-control" id="newJournalNote" rows="5" placeholder="Today's update..."></textarea>
+            </div>
+
+            <div class="journal-field">
+              <label class="form-label" id="journalPhotoLabel" for="journalPhoto">Photo</label>
+              <input type="file" class="form-control" id="journalPhoto" accept="image/*" title="Optional photo for journal entry" aria-describedby="journalPhotoLabel" />
+            </div>
+
+            <label class="journal-core-toggle" for="journalCoreMemory">
+              <input class="form-check-input" type="checkbox" id="journalCoreMemory" />
+              <span><i class="bi bi-stars" aria-hidden="true"></i> Core Memory</span>
+            </label>
+          </div>
+
+          <div class="journal-composer-actions">
+            <div id="journalComposerStatus" class="journal-composer-status" role="status" aria-live="polite"></div>
+            <button type="button" class="btn btn-primary" id="addJournalEntryBtn"><i class="bi bi-plus-circle" aria-hidden="true"></i> Add Entry</button>
+          </div>
+        </section>
+
+        <section class="journal-timeline-panel" aria-labelledby="journalTimelineTitle">
+          <div class="journal-section-heading journal-section-heading--compact">
+            <span class="journal-section-icon"><i class="bi bi-clock-history" aria-hidden="true"></i></span>
+            <div>
+              <h4 id="journalTimelineTitle">Timeline</h4>
+              <p>Filter care history, story moments, and Core Memories.</p>
+            </div>
+          </div>
+
+          <div class="journal-stats" id="journalStats" aria-live="polite"></div>
+
+          <div class="journal-toolbar" aria-label="Journal filters">
+            <label class="journal-filter">
+              <span>Type</span>
+              <select class="form-select form-select-sm" id="journalFilterType">
+                <option value="">All entries</option>
+                <option value="note">Daily notes</option>
+                <option value="story">Story moments</option>
+                <option value="milestone">Milestones</option>
+                <option value="wellness">Wellness</option>
+                <option value="vet">Vet visits</option>
+                <option value="medication">Medication</option>
+                <option value="meal">Meals</option>
+                <option value="walk">Walks</option>
+                <option value="training">Training</option>
+                <option value="grooming">Grooming</option>
+                <option value="play">Play</option>
+                <option value="behavior">Behavior</option>
+                <option value="rescue">Rescue/adoption</option>
+                <option value="memorial">Memorial</option>
+              </select>
+            </label>
+            <label class="journal-filter journal-filter--search">
+              <span>Search</span>
+              <input type="search" class="form-control form-control-sm" id="journalSearch" placeholder="Search notes or tags" />
+            </label>
+            <label class="journal-core-filter" for="journalCoreOnly">
+              <input class="form-check-input" type="checkbox" id="journalCoreOnly" />
+              <span>Core only</span>
+            </label>
+          </div>
+
+          <div class="journal-entry-scroll">
+            <ul id="journalEntryList" data-component="journalEntries" class="list-unstyled"></ul>
+            <div id="journalEmpty" class="journal-empty text-muted small">No entries yet. Add your first note.</div>
+          </div>
+        </section>
       </div>
-
-      <button class="close-btn" data-close="journal-modal" aria-label="Close modal">×</button>
     </div>
   </div>
 

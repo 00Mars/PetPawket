@@ -1,7 +1,7 @@
 // routes/searchRoutes.js — unified search over Pets, Journal, and Products
 import express from 'express';
 import fetch from 'node-fetch';
-import { requireAuth } from '../middleware/requireAuth.js';
+import { attachAuthIfPresent } from '../middleware/requireAuth.js';
 import { ensureUser, getPetsByUserId, getPetJournal } from '../userDB.pg.js';
 
 const router = express.Router();
@@ -11,6 +11,7 @@ const SHOPIFY_DOMAIN = (process.env.SHOPIFY_DOMAIN || '').replace(/^https?:\/\//
 const STOREFRONT_TOKEN = process.env.SHOPIFY_STOREFRONT_TOKEN || '';
 const API_VERSION = process.env.SHOPIFY_API_VERSION || '2024-07';
 const SF_ENDPOINT = `https://${SHOPIFY_DOMAIN}/api/${API_VERSION}/graphql.json`;
+const HAS_SHOPIFY_SEARCH = Boolean(SHOPIFY_DOMAIN && STOREFRONT_TOKEN);
 
 async function shopifyGQL(query, variables) {
   const res = await fetch(SF_ENDPOINT, {
@@ -26,40 +27,45 @@ async function shopifyGQL(query, variables) {
   return json;
 }
 
-router.get('/', requireAuth, async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const q = String(req.query.q || '').trim().toLowerCase();
     if (!q) return res.json({ pets: [], journal: [], products: [] });
+    const productLimit = Math.min(Math.max(parseInt(req.query.limit || '8', 10) || 8, 1), 12);
 
-    const c = req.customer;
-    const u = await ensureUser(c.email, c.firstName || '', c.lastName || '');
-    const userId = u?.id;
+    let pets = [];
+    let journal = [];
+    const signedIn = await attachAuthIfPresent(req);
+    if (signedIn && req.customer?.email) {
+      const c = req.customer;
+      const u = req.dbUser || await ensureUser(c.email, c.firstName || '', c.lastName || '');
+      const userId = u?.id;
 
-    // Pets
-    const allPets = await getPetsByUserId(userId);
-    const pets = allPets.filter(p => {
-      const hay = [p.name, p.species, p.breed].filter(Boolean).join(' ').toLowerCase();
-      return hay.includes(q);
-    });
+      // Pets
+      const allPets = userId ? await getPetsByUserId(userId) : [];
+      pets = allPets.filter(p => {
+        const hay = [p.name, p.species, p.breed].filter(Boolean).join(' ').toLowerCase();
+        return hay.includes(q);
+      });
 
-    // Journal (search across all pets if pet match was empty)
-    const basePets = pets.length ? pets : allPets;
-    const journal = [];
-    for (const p of basePets) {
-      const entries = await getPetJournal(userId, p.id);
-      for (const e of entries) {
-        const hay = [
-          e.text,
-          e.mood,
-          ...(Array.isArray(e.tags) ? e.tags : []),
-        ].filter(Boolean).join(' ').toLowerCase();
-        if (hay.includes(q)) journal.push({ ...e, petId: p.id, petName: p.name });
+      // Journal (search across all pets if pet match was empty)
+      const basePets = pets.length ? pets : allPets;
+      for (const p of basePets) {
+        const entries = await getPetJournal(userId, p.id);
+        for (const e of entries) {
+          const hay = [
+            e.text,
+            e.mood,
+            ...(Array.isArray(e.tags) ? e.tags : []),
+          ].filter(Boolean).join(' ').toLowerCase();
+          if (hay.includes(q)) journal.push({ ...e, petId: p.id, petName: p.name });
+        }
       }
     }
 
     // Products (public)
     let products = [];
-    try {
+    if (HAS_SHOPIFY_SEARCH) try {
       const gql = /* GraphQL */ `
         query Search($first:Int!, $query:String!) {
           products(first:$first, query:$query) {
@@ -79,7 +85,7 @@ router.get('/', requireAuth, async (req, res) => {
           }
         }
       `;
-      const data = await shopifyGQL(gql, { first: 6, query: q });
+      const data = await shopifyGQL(gql, { first: productLimit, query: q });
       products = (data?.data?.products?.edges || []).map(e => e.node);
     } catch (prodErr) {
       console.warn('[search] product subsearch failed (non-fatal):', prodErr?.message);

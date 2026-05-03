@@ -1,0 +1,146 @@
+{
+  "faq": [
+    {
+      "tag": "Donors",
+      "q": "How are gifts allocated?",
+      "a": "Every gift is assigned to a designated fund and tracked until it is matched with cases, care updates, and published receipt summaries."
+    },
+    {
+      "tag": "Donors",
+      "q": "Can I support a specific case?",
+      "a": "Yes. Select a case on the Cases page or choose a fund that aligns with the need. Example case-specific requests are labeled as such."
+    },
+    {
+      "tag": "Partners",
+      "q": "Who can request support?",
+      "a": "Rescues, clinics, foster networks, and community organizations can submit a partner intake for urgent care or placement support."
+    },
+    {
+      "tag": "Volunteers",
+      "q": "What volunteer roles are most needed?",
+      "a": "Transport, foster support, event help, and story collection. We share opportunities that match your availability."
+    },
+    {
+      "tag": "Receipts",
+      "q": "When are impact receipts published?",
+      "a": "Monthly. We publish receipt-style summaries with allocations and outcomes once partner verification is complete."
+    }
+  ],
+  "partnerSpotlights": [
+    {
+      "tag": "Example partner",
+      "name": "Harbor Rescue Collective",
+      "summary": "Provides rapid-response intake and fosters for pets recovering from urgent medical care."
+    },
+    {
+      "tag": "Example partner",
+      "name": "Bright Path Clinic",
+      "summary": "Supports urgent care surgeries and post-op rehab for rescue animals."
+    }
+  ],
+  "monthlyHighlights": [
+    {
+      "tag": "Example highlight",
+      "title": "Urgent surgery fund",
+      "summary": "Covered two surgeries and recovery kits for senior rescues."
+    },
+    {
+      "tag": "Example highlight",
+      "title": "Rescue transport day",
+      "summary": "Moved six pets to partner foster care with medical follow-ups scheduled."
+    },
+    {
+      "tag": "Example highlight",
+      "title": "Memorial support",
+      "summary": "Provided legacy keepsakes and counseling resources for families."
+    }
+  ],
+  "reports": [
+    {
+      "title": "January 2026 Impact Summary (Example)",
+      "date": "January 2026",
+      "url": "#"
+    },
+    {
+      "title": "2025 Annual Review (Example)",
+      "date": "2025",
+      "url": "#"
+    }
+  ],
+  "press": [
+    {
+      "title": "Example feature: Care in motion for rescue pets",
+      "outlet": "Local News",
+      "date": "2026-01-15",
+      "url": "#"
+    },
+    {
+      "title": "Example interview: CHARM Foundation partners",
+      "outlet": "Community Radio",
+      "date": "2026-02-01",
+      "url": "#"
+    }
+  ],
+  "board": [
+    {
+      "name": "Avery Lane",
+      "role": "Board Chair (Example)"
+    },
+    {
+      "name": "Jordan Reyes",
+      "role": "Treasurer (Example)"
+    },
+    {
+      "name": "Morgan Patel",
+      "role": "Volunteer Advisor (Example)"
+    }
+  ],
+  "policies": [
+    {
+      "title": "Conflict of Interest Policy (Example)",
+      "url": "#"
+    },
+    {
+      "title": "Donor Privacy Policy (Example)",
+      "url": "#"
+    },
+    {
+      "title": "Partner Verification Policy (Example)",
+      "url": "#"
+    }
+  ],
+  "homeStats": [
+    {
+      "value": "24",
+      "label": "Example cases this season"
+    },
+    {
+      "value": "120+",
+      "label": "Example volunteer hours"
+    },
+    {
+      "value": "$18.4k",
+      "label": "Example care allocated"
+    }
+  ],
+  "trustCards": [
+    {
+      "tag": "Transparency",
+      "title": "Governance & oversight",
+      "summary": "Board updates and policy summaries live in our governance hub.",
+      "href": "/governance"
+    },
+    {
+      "tag": "Financials",
+      "title": "Reports & receipts",
+      "summary": "Monthly receipt-style summaries and annual reviews.",
+      "href": "/reports"
+    },
+    {
+      "tag": "Support",
+      "title": "FAQs & contact",
+      "summary": "Answers about care, donations, and volunteering.",
+      "href": "/faq"
+    }
+  ]
+}

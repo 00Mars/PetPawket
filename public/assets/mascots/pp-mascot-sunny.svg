@@ -1,0 +1,22 @@
+<svg width="320" height="320" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgSunny" x1="40" y1="20" x2="280" y2="300" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF4C5"/>
+      <stop offset="0.6" stop-color="#FFE1A3"/>
+      <stop offset="1" stop-color="#FFD17A"/>
+    </linearGradient>
+    <radialGradient id="pawSunny" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(160 196) scale(70)">
+      <stop stop-color="#FFA625"/>
+      <stop offset="1" stop-color="#FF8A1F"/>
+    </radialGradient>
+  </defs>
+  <rect x="16" y="16" width="288" height="288" rx="64" fill="url(#bgSunny)" stroke="#FFD894" stroke-width="4"/>
+  <circle cx="160" cy="206" r="58" fill="url(#pawSunny)" opacity="0.9"/>
+  <circle cx="110" cy="150" r="20" fill="#FFB347" opacity="0.85"/>
+  <circle cx="210" cy="150" r="20" fill="#FFB347" opacity="0.85"/>
+  <circle cx="135" cy="120" r="16" fill="#FFB347" opacity="0.85"/>
+  <circle cx="185" cy="120" r="16" fill="#FFB347" opacity="0.85"/>
+  <circle cx="160" cy="80" r="10" fill="#00B2C6" opacity="0.9"/>
+  <path d="M110 246C124 262 147 272 160 272C173 272 196 262 210 246" stroke="#9A4D00" stroke-width="6" stroke-linecap="round"/>
+  <text x="160" y="42" text-anchor="middle" font-family="Fredoka, Arial, sans-serif" font-size="16" fill="#9A4D00" letter-spacing="2">SUNNY PAL</text>
+</svg>
