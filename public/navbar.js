@@ -20,7 +20,6 @@ import { setupDropdownToggles } from './dropdownToggles.js';
    ========================================================================== */
 window.__AUTH_CONFIG = Object.assign(
   {
-    expectToken: false,          // cookie session default
     login: '/api/auth/login',
     me: '/api/me',
     logout: '/logout',
@@ -126,13 +125,9 @@ function scheduleNavOffset() {
    optional auth fetch
    ========================================================================== */
 export function authFetch(url, options = {}) {
-  const token = window.__AUTH_CONFIG?.expectToken
-    ? localStorage.getItem?.('authToken')
-    : null;
   const headers = {
     'Content-Type': 'application/json',
     ...(options.headers || {}),
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
   return fetch(url, { credentials: 'include', ...options, headers });
 }

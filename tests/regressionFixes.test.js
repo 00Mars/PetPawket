@@ -87,11 +87,22 @@ test('login and signup responses do not expose bearer or Shopify tokens in JSON'
 });
 
 test('first-party auth client does not persist or send local bearer tokens', () => {
-  const source = fs.readFileSync(path.join(process.cwd(), 'public', 'auth.js'), 'utf8');
-  assert.equal(/localStorage\.setItem\(CFG\.storageKey/.test(source), false);
-  assert.equal(/headers\.set\('Authorization'/.test(source), false);
-  assert.match(source, /localStorage\.removeItem\(CFG\.storageKey\)/);
-  assert.match(source, /cookie-first client mode/);
+  const authSource = fs.readFileSync(path.join(process.cwd(), 'public', 'auth.js'), 'utf8');
+  const navbarSource = fs.readFileSync(path.join(process.cwd(), 'public', 'navbar.js'), 'utf8');
+  assert.equal(/localStorage\.setItem\(CFG\.storageKey/.test(authSource), false);
+  assert.equal(/headers\.set\('Authorization'/.test(authSource), false);
+  assert.equal(/localStorage\.getItem\?\.\('authToken'\)/.test(navbarSource), false);
+  assert.equal(/Authorization:\s*`Bearer/.test(navbarSource), false);
+  assert.equal(/expectToken/.test(navbarSource), false);
+  assert.match(authSource, /localStorage\.removeItem\(CFG\.storageKey\)/);
+  assert.match(authSource, /cookie-first client mode/);
+});
+
+test('legacy public account script with bearer-token fallback is not shipped', () => {
+  const legacyPath = path.join(process.cwd(), 'public', 'scripts', 'account.js');
+  const accountHtml = fs.readFileSync(path.join(process.cwd(), 'public', 'account.html'), 'utf8');
+  assert.equal(fs.existsSync(legacyPath), false);
+  assert.equal(/scripts\/account\.js/.test(accountHtml), false);
 });
 
 test('password reset flow stores and consumes one-time token hashes', () => {
