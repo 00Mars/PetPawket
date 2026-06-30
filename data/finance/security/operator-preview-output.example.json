@@ -1,0 +1,30 @@
+{
+  "schema_version": "pawket-admin-operator-preview-output-example-v0",
+  "example_result": {
+    "production_enabled": false,
+    "read_only": true,
+    "local_only": true,
+    "stdout_only": true,
+    "official_balance_status": "disabled",
+    "official_report_status": "disabled",
+    "final_export_status": "disabled",
+    "source_mode": "local_non_production_view",
+    "raw_document_content_included": false,
+    "mutation_actions_enabled": false,
+    "export_actions_enabled": false,
+    "output_target": "stdout",
+    "output_file_created": false,
+    "files_written": [],
+    "required_banner": "PAWKET ADMIN LOCAL READ-ONLY PREVIEW \u2014 NON-PRODUCTION"
+  },
+  "forbidden_outputs": [
+    "PDF",
+    "CSV",
+    "XLSX",
+    "ZIP",
+    "official report",
+    "official balance",
+    "final export",
+    "raw document content"
+  ]
+}

@@ -11,6 +11,7 @@ import donationsRoutes from './routes/donationsRoutes.js';
 import eventsRoutes from './routes/eventsRoutes.js';
 import commsRoutes from './routes/commsRoutes.js';
 import { pingDb } from './db/pg.js';
+import { createRateLimiter, ipKey } from '../../middleware/rateLimit.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,6 +24,14 @@ app.set('etag', false);
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: false }));
 
+const charmApiPostLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  key: ipKey('charm:api-post'),
+  message: 'Too many form submissions. Please try again soon.',
+  skip: (req) => String(req.method || '').toUpperCase() !== 'POST',
+});
+
 app.get('/favicon.ico', (_req, res) => {
   res.redirect(302, '/favicon.svg');
 });
@@ -33,6 +42,8 @@ app.get('/api/health', async (_req, res) => {
   const dbOk = await pingDb().catch(() => false);
   res.json({ ok: true, dbOk });
 });
+
+app.use('/api', charmApiPostLimiter);
 
 app.use('/api/cases', casesRoutes);
 app.use('/api/partners', partnersRoutes);

@@ -116,7 +116,7 @@ function renderClaimPage(card, data, code) {
       <div class="loop-claim-copy">
         <div class="loop-hub-kicker">Pawket Pass</div>
         <h1>${esc(sender)} sent you a Pawket Pass.</h1>
-        <p class="text-muted">Save it before you shop. When checkout is created, Pet Pawket carries the pass into the secure order so the connection can be recorded after purchase.</p>
+        <p class="text-muted">Save it before you shop. A Pass carries the shared link into secure checkout while private pet profiles, journals, memorial notes, and medical details stay private.</p>
         <div class="loop-cta-row">
           <button class="loop-cta" type="button" data-loop-claim>${saved ? 'Pass Saved - Shop Now' : 'Save Pass & Shop'}</button>
           <button class="loop-cta ghost" type="button" data-loop-copy>Copy Pass Link</button>
@@ -126,7 +126,7 @@ function renderClaimPage(card, data, code) {
         <div class="loop-claim-assurance" aria-label="Pass privacy and checkout notes">
           <span><i class="bi bi-device-ssd" aria-hidden="true"></i> Saved on this browser</span>
           <span><i class="bi bi-cart-check" aria-hidden="true"></i> Added at cart checkout</span>
-          <span><i class="bi bi-shield-lock" aria-hidden="true"></i> No private journal data shared</span>
+          <span><i class="bi bi-shield-lock" aria-hidden="true"></i> No private journals shared</span>
         </div>
       </div>
 
@@ -142,6 +142,9 @@ function renderClaimPage(card, data, code) {
     </div>
 
     ${renderConnectorGrid()}
+    ${renderPassBoundary('claim')}
+    ${renderContinuityReview('claim')}
+    ${renderNextStepRail('claim')}
 
     <div class="loop-path-grid" aria-label="How this Pawket Pass works">
       <article class="loop-path-card">
@@ -152,12 +155,12 @@ function renderClaimPage(card, data, code) {
       <article class="loop-path-card">
         <span>2</span>
         <h3>Choose what fits</h3>
-        <p>Shop normal products now. Pawket Pack and Packet paths can connect as those box systems come online.</p>
+        <p>Shop normal products now. Pawket Packs and Packets can connect as those boxes come online.</p>
       </article>
       <article class="loop-path-card">
         <span>3</span>
         <h3>Checkout securely</h3>
-        <p>The order still runs through secure checkout while Pet Pawket keeps the account, story, and impact layer connected.</p>
+        <p>The order still runs through secure checkout while Pet Pawket keeps your account, story, and CHARM updates connected.</p>
       </article>
       <article class="loop-path-card">
         <span>4</span>
@@ -168,11 +171,11 @@ function renderClaimPage(card, data, code) {
 
     <div class="loop-grid">
       <div class="loop-card">
-        <h3>What a pass can unlock</h3>
+        <h3>What a pass can support</h3>
         <ul class="loop-rewards">
-          <li>CHARM Points for eligible pass activity.</li>
+          <li>Future Pawket rewards where program terms allow.</li>
           <li>Badges for meaningful sharing milestones.</li>
-          <li>Visible CHARM impact when a pass helps fund an active case.</li>
+          <li>CHARM updates when pass activity connects to a public moment that is ready to share.</li>
         </ul>
       </div>
       <div class="loop-card">
@@ -180,7 +183,7 @@ function renderClaimPage(card, data, code) {
         <ul class="loop-rewards">
           <li>Only a simple sender name is shown on public pass links.</li>
           <li>Private pet profiles and journals do not travel with a pass.</li>
-          <li>Partner and CHARM claims stay reviewable instead of automatic.</li>
+          <li>Partner and CHARM uses are checked instead of automatic.</li>
         </ul>
       </div>
     </div>
@@ -188,7 +191,7 @@ function renderClaimPage(card, data, code) {
     <div class="loop-impact" data-loop-impact></div>
     <div class="loop-impact-celebrate" data-loop-impact-celebrate hidden></div>
     <div class="loop-impact-reel" data-loop-impact-reel></div>
-    <p class="pp-loop-meta">Pawket Passes connect purchases, sharing, and CHARM Foundation impact without turning private pet stories into public content.</p>
+    <p class="pp-loop-meta">Pawket Passes connect purchases, sharing, and CHARM without turning private pet stories into public content.</p>
   `;
 
   card.querySelector('[data-loop-claim]')?.addEventListener('click', () => {
@@ -209,34 +212,38 @@ function renderLoopHub(card) {
     <div class="loop-hub-layout">
       <div class="loop-hub-copy">
         <div class="loop-hub-kicker">Pawket Passes</div>
-        <h1>A warmer way to share Pet Pawket.</h1>
-        <p class="text-muted">Pawket Passes are shareable links connected to purchases, gifts, CHARM Points, and visible rescue impact. They bridge the shop with Pet Pawket's native account, story, and impact systems.</p>
+        <h1>Share care without sharing private stories.</h1>
+        <p class="text-muted">Pawket Passes are shareable links for gifts, saved care, and Pet Pawket invites. They connect the shop with accounts, Pawket Pals, CHARM, and Community while keeping private pet stories protected.</p>
         <div class="loop-cta-row">
-          <a class="loop-cta" href="/shop.html">Shop to Start a Pass</a>
+          <a class="loop-cta" href="#pawket-pass-entry">Open or Paste a Pass</a>
+          <a class="loop-cta ghost" href="/shop.html">Shop to Start a Pass</a>
           <a class="loop-cta ghost" href="/account.html#loopTokensSection">Open My Passes</a>
           ${savedToken ? '<button class="loop-cta ghost" type="button" data-loop-resume>Resume Saved Pass</button>' : ''}
         </div>
       </div>
       <aside class="loop-hub-panel">
         <span class="loop-pass-card-kicker">Ready now</span>
-        <strong>Claim, save, share, and track.</strong>
-        <p>Passes are created after eligible purchases and can be claimed through the normal cart and checkout path.</p>
+        <strong>Save, share, and come back.</strong>
+        <p>Passes can appear after purchases and gifts, then travel through the normal cart and checkout.</p>
         <div class="loop-hub-mini">
           <span>Secure checkout</span>
           <span>Account history</span>
-          <span>CHARM impact</span>
+          <span>Private-safe</span>
         </div>
       </aside>
     </div>
 
     ${renderPassTool(savedToken)}
     ${renderConnectorGrid()}
+    ${renderPassBoundary('hub')}
+    ${renderContinuityReview('hub')}
+    ${renderNextStepRail('hub')}
 
     <div class="loop-path-grid" aria-label="Pawket Pass path">
       <article class="loop-path-card">
         <span>1</span>
         <h3>Order or gift</h3>
-        <p>Eligible purchases can create a new pass for your account after checkout.</p>
+        <p>Qualifying purchases can create a new pass for your account after checkout.</p>
       </article>
       <article class="loop-path-card">
         <span>2</span>
@@ -245,13 +252,13 @@ function renderLoopHub(card) {
       </article>
       <article class="loop-path-card">
         <span>3</span>
-        <h3>They claim it</h3>
-        <p>The pass is saved locally, then carried into checkout through the Pet Pawket cart path.</p>
+          <h3>They save it</h3>
+        <p>The pass is saved locally, then carried into checkout through the Pet Pawket cart.</p>
       </article>
       <article class="loop-path-card">
         <span>4</span>
-        <h3>Impact grows</h3>
-        <p>Eligible activity can add CHARM Points, badges, and rescue funding updates.</p>
+        <h3>The trail returns</h3>
+        <p>Pass activity can return to account history, future rewards, badges, and CHARM updates.</p>
       </article>
     </div>
 
@@ -259,7 +266,7 @@ function renderLoopHub(card) {
       <div class="loop-card">
         <h3>For customers</h3>
         <ol class="loop-steps">
-          <li>Claim a pass link before you shop.</li>
+          <li>Save a pass link before you shop.</li>
           <li>Use the Pet Pawket cart to open secure checkout.</li>
           <li>Return to Account to see new passes and activity.</li>
         </ol>
@@ -267,9 +274,9 @@ function renderLoopHub(card) {
       <div class="loop-card">
         <h3>What stays connected</h3>
         <ul class="loop-rewards">
-          <li>Uses the standard Pet Pawket cart-to-checkout path.</li>
-          <li>Keeps public pass links separate from private pet data.</li>
-          <li>Leaves room for Pawket Packs, Pals, and CHARM expansion.</li>
+          <li>Uses the standard Pet Pawket cart and checkout.</li>
+          <li>Keeps public pass links separate from private pet details.</li>
+          <li>Connects to Pawket Packs, Pals, and CHARM as those areas grow.</li>
         </ul>
       </div>
     </div>
@@ -292,16 +299,16 @@ function renderLoopHub(card) {
 
 function renderPassTool(savedToken = '') {
   return `
-    <section class="loop-pass-tool" aria-label="Open a Pawket Pass">
+    <section class="loop-pass-tool ${savedToken ? 'has-saved-pass' : ''}" id="pawket-pass-entry" aria-label="Open a Pawket Pass">
       <div class="loop-pass-tool-copy">
         <span class="loop-pass-card-kicker">Already have a pass?</span>
         <h2>Paste a pass link or code.</h2>
-        <p>Use this if someone sent you a Pawket Pass outside the site. Pet Pawket will open the claim page before you shop.</p>
+        <p>Use this if someone sent you a Pawket Pass outside the site. Pet Pawket will help you save it before you shop.</p>
       </div>
       <form class="loop-code-form" data-loop-code-form>
         <label for="loopPassCode">Pass link or code</label>
         <div class="loop-code-entry">
-          <input id="loopPassCode" name="loopPassCode" type="text" inputmode="text" autocomplete="off" placeholder="Paste pass link or code" data-loop-code-input />
+          <input id="loopPassCode" name="loopPassCode" type="text" inputmode="text" autocomplete="off" placeholder="Link or code" data-loop-code-input />
           <button type="submit">Open Pass</button>
         </div>
         <p data-loop-code-status>${savedToken ? `Saved pass ${esc(savedToken)} is ready on this browser.` : 'Passes are saved locally until checkout.'}</p>
@@ -327,26 +334,135 @@ function renderConnectorGrid() {
         <i class="bi bi-bag-heart" aria-hidden="true"></i>
         <span>Shop</span>
         <strong>Products and gifts</strong>
-        <p>Normal inventory stays on the secure shop path while the pass is carried by Pet Pawket checkout creation.</p>
+        <p>Normal inventory stays in the secure shop while the pass follows checkout.</p>
       </article>
       <article>
         <i class="bi bi-person-heart" aria-hidden="true"></i>
         <span>Account</span>
         <strong>History and sharing</strong>
-        <p>Your account can show available, claimed, and moving passes after eligible activity.</p>
+        <p>Your account can show available, saved, and shared passes.</p>
       </article>
       <article>
         <i class="bi bi-heart-pulse" aria-hidden="true"></i>
         <span>CHARM</span>
-        <strong>Reviewed impact</strong>
-        <p>Approved CHARM updates can connect to pass activity without exposing private pet stories.</p>
+        <strong>CHARM updates</strong>
+        <p>CHARM updates can connect to pass activity without exposing private pet stories.</p>
       </article>
       <article>
         <i class="bi bi-stars" aria-hidden="true"></i>
-        <span>Future world</span>
-        <strong>Pals and quests</strong>
-        <p>Pass activity can later become a Pawket Pal, quest, Share Studio, or Town Square signal.</p>
+        <span>Pawket Pals</span>
+        <strong>Pal moments</strong>
+        <p>Pass activity can later support Pals, Share Studio, or Town Square when a story is ready to share.</p>
       </article>
+    </section>
+  `;
+}
+
+function renderPassBoundary(mode = 'hub') {
+  const claimMode = mode === 'claim';
+  return `
+    <section class="loop-boundary-panel" aria-label="Pawket Pass privacy boundary">
+      <div class="loop-boundary-copy">
+        <span class="loop-hub-kicker">Privacy</span>
+        <h2>${claimMode ? 'This pass carries the share, not the private story.' : 'A Pass is for sharing, not private records.'}</h2>
+        <p>${claimMode
+          ? 'Saving a Pass helps Pet Pawket remember the shared link at checkout. It does not publish who owns a pet, what is in a journal, or why a memorial, medical, rescue, or assistance story matters.'
+          : 'Passes are useful because they can move between people. They should carry simple share details and point back to private areas when a deeper story is needed.'}</p>
+      </div>
+      <div class="loop-boundary-columns">
+        <article>
+          <i class="bi bi-link-45deg" aria-hidden="true"></i>
+          <span>Can travel</span>
+          <strong>Code, sender name, checkout, and simple next steps.</strong>
+        </article>
+        <article>
+          <i class="bi bi-lock" aria-hidden="true"></i>
+          <span>Stays private</span>
+          <strong>Pet profiles, journals, favorite memories, medical notes, and full stories.</strong>
+        </article>
+        <article>
+          <i class="bi bi-shield-check" aria-hidden="true"></i>
+          <span>Needs care</span>
+          <strong>Public Pal, CHARM, Community, Share Studio, or impact use.</strong>
+        </article>
+      </div>
+    </section>
+  `;
+}
+
+function renderContinuityReview(mode = 'hub') {
+  const claimMode = mode === 'claim';
+  return `
+    <section class="loop-continuity" aria-label="Pawket Pass continuity">
+      <div class="loop-continuity-head">
+        <div>
+          <span class="loop-hub-kicker">Next Step</span>
+          <h2>${claimMode ? 'Where this saved pass goes next.' : 'How passes fit the Pet Pawket world.'}</h2>
+        </div>
+        <p>${claimMode
+          ? 'A saved pass is useful because it stays connected to checkout, account history, CHARM, and future story features without carrying private pet details.'
+          : 'Pawket Passes help the shop, accounts, CHARM, and future Pal features connect without replacing pet profiles, journals, or permission.'}</p>
+      </div>
+      <div class="loop-continuity-grid">
+        <a class="loop-continuity-card" href="/cart.html">
+          <i class="bi bi-cart-check" aria-hidden="true"></i>
+          <span>Cart checkout</span>
+          <strong>${claimMode ? 'Saved before checkout' : 'Used at checkout'}</strong>
+          <p>The browser-saved pass is attached only when the Pet Pawket cart creates secure checkout.</p>
+        </a>
+        <a class="loop-continuity-card" href="/account.html#account-story-trail">
+          <i class="bi bi-map" aria-hidden="true"></i>
+          <span>Saved stories</span>
+          <strong>Account progress</strong>
+          <p>Account can connect passes with pet profiles, journals, favorite memories, and helpful next steps.</p>
+        </a>
+        <a class="loop-continuity-card" href="/pals.html">
+          <i class="bi bi-stars" aria-hidden="true"></i>
+          <span>Pawket Pals</span>
+          <strong>Future Pal moments</strong>
+          <p>Pals should grow from stories people choose to share, not from private journals or pass links alone.</p>
+        </a>
+        <a class="loop-continuity-card" href="/charm.html#charm-glance">
+          <i class="bi bi-heart-pulse" aria-hidden="true"></i>
+          <span>CHARM Foundation</span>
+          <strong>Shared with care</strong>
+          <p>Pass pages can show rescue, medical, adoption, or memorial updates only when they are ready.</p>
+        </a>
+      </div>
+    </section>
+  `;
+}
+
+function renderNextStepRail(mode = 'hub') {
+  const claimMode = mode === 'claim';
+  return `
+    <section class="loop-next-rail" aria-label="Continue the Pet Pawket loop">
+      <div>
+        <span class="loop-hub-kicker">Continue the loop</span>
+        <h2>${claimMode ? 'After saving, choose the next useful stop.' : 'Choose what you want to do next.'}</h2>
+      </div>
+      <div class="loop-next-actions">
+        <a href="/shop.html">
+          <i class="bi bi-bag-heart" aria-hidden="true"></i>
+          <span>Shop</span>
+          <strong>Use the pass through cart checkout.</strong>
+        </a>
+        <a href="/pals.html#private-pal-certificate-form">
+          <i class="bi bi-stars" aria-hidden="true"></i>
+          <span>Pawket Pals</span>
+          <strong>Create a private Pal keepsake.</strong>
+        </a>
+        <a href="/account.html#account-story-trail">
+          <i class="bi bi-person-heart" aria-hidden="true"></i>
+          <span>Account</span>
+          <strong>Return to pets, journals, and saved stories.</strong>
+        </a>
+        <a href="/charm.html#charm-glance">
+          <i class="bi bi-heart-pulse" aria-hidden="true"></i>
+          <span>CHARM</span>
+          <strong>Learn how CHARM carries care forward.</strong>
+        </a>
+      </div>
     </section>
   `;
 }
@@ -514,9 +630,9 @@ async function renderImpactReel(card) {
     if (!stories.length) {
       holder.innerHTML = `
         <div class="loop-impact-waiting">
-          <div class="loop-impact-reel-head">CHARM impact path</div>
+          <div class="loop-impact-reel-head">CHARM updates</div>
           <strong>Approved impact updates will appear here.</strong>
-          <p>Public rescue, medical, adoption, and memorial stories need consent and review before they are shown on a pass page.</p>
+          <p>Rescue, medical, adoption, and memorial stories are shown only when they are ready to share.</p>
           <a href="/charm.html">Open CHARM</a>
         </div>
       `;
@@ -573,7 +689,7 @@ async function loadLeaderboard() {
       board.innerHTML = `
         <div class="loop-community-empty">
           <strong>The first public pass connections are still forming.</strong>
-          <p>Once passes are claimed by real customers, this space can show community momentum without exposing private pet records.</p>
+          <p>Once passes are saved and shared by real customers, this space can show community momentum without exposing private pet records.</p>
         </div>
       `;
       wrap.hidden = false;
@@ -586,7 +702,7 @@ async function loadLeaderboard() {
       </div>
       <div class="loop-leaderboard-col">
         <h3>Helpful sharers</h3>
-        ${sharers.length ? sharers.map(rowSharer).join('') : '<p class="text-muted">Shared-pass activity is waiting for the first live claims.</p>'}
+        ${sharers.length ? sharers.map(rowSharer).join('') : '<p class="text-muted">Shared-pass activity is waiting for the first live saves.</p>'}
       </div>
     `;
     wrap.hidden = false;
@@ -610,7 +726,7 @@ function rowSharer(item, idx) {
     <div class="loop-leader-row">
       <span>#${idx + 1}</span>
       <span>Helpful sharer</span>
-      <strong>${shares} claims</strong>
+      <strong>${shares} saves</strong>
     </div>
   `;
 }

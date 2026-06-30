@@ -1,0 +1,51 @@
+{
+  "fixture": "ledger-balance-integrity",
+  "status": "validation_helper_only",
+  "balanced_financial_example": {
+    "proposed_journal_entry_id": "pje_sale_0001",
+    "journal_type": "sale",
+    "currency": "USD",
+    "total_debits": 60,
+    "total_credits": 60,
+    "balance_status": "balanced",
+    "source_proposed_ledger_record_ids": [
+      "proposed_sales_debit_0001",
+      "proposed_sales_credit_0001"
+    ],
+    "source_review_item_ids": [
+      "review_order_sales_0001"
+    ],
+    "source_draft_record_ids": [
+      "draft_order_sales_0001"
+    ],
+    "source_event_ids": [
+      "source_event_order_created_0001"
+    ],
+    "source_bundle_ids": [
+      "bundle_import_test_0001"
+    ]
+  },
+  "nonfinancial_example": {
+    "proposed_journal_entry_id": "pje_story_0001",
+    "journal_type": "impact_nonfinancial",
+    "currency": "USD",
+    "total_debits": 0,
+    "total_credits": 0,
+    "balance_status": "nonfinancial_not_required",
+    "is_non_financial": true
+  },
+  "integrity_checks": [
+    "debits_equal_credits_for_financial_entries",
+    "currency_consistency",
+    "entity_fund_class_consistency",
+    "account_normal_balance_validation_future",
+    "ledger_hash_chain",
+    "source_lineage_integrity",
+    "evidence_manifest_integrity",
+    "document_link_integrity",
+    "calculation_rule_version_integrity",
+    "no_orphan_journal_lines",
+    "no_orphan_committed_entries",
+    "no_proposed_records_committed_without_commit_gate_record"
+  ]
+}

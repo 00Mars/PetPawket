@@ -1,6 +1,7 @@
 // public/account.js — Account page wiring for Pets (list, add, edit, delete, journal)
 // Node 20 / ESM client script; vanilla JS; Shopify cookie auth via credentials:'include'.
 
+import { authFetch } from '/auth.js';
 import { PetsBus } from '/petsEvents.js';
 
 console.info('[account.js] pets v2+traits-save+avatar-fixes');
@@ -55,6 +56,16 @@ function notifyStoryProgress(detail = {}) {
   try {
     document.dispatchEvent(new CustomEvent('pp:story:refresh', { detail }));
   } catch {}
+}
+
+function buildPawketPalHandoffUrl({ petId = '', journalEntryId = '', heartCode = '', source = 'account' } = {}) {
+  const params = new URLSearchParams();
+  if (petId) params.set('petId', String(petId));
+  if (journalEntryId) params.set('journalEntryId', String(journalEntryId));
+  if (heartCode) params.set('heartCode', String(heartCode));
+  if (source) params.set('source', String(source));
+  const query = params.toString();
+  return `/pals.html${query ? `?${query}` : ''}#honorary-pal-certificates`;
 }
 
 // Account-wide alert banner for critical data fetch failures
@@ -275,6 +286,7 @@ document.addEventListener('keydown', (e) => {
 // Pets — list, add, edit, delete
 // -------------------------------
 let PETS = [];                     // latest cache from GET /api/pets
+let PAWKET_PALS = [];              // private Pawket Pal certificates from /api/pals
 let ADDRESSES = [];                // latest cache from GET /api/addresses
 let CURRENT_PET_ID = null;
 let CURRENT_PET_SNAPSHOT = null;   // used to compute minimal diff
@@ -467,7 +479,7 @@ function getPetCardState(summary = emptyJournalSummary()) {
     return { tone: 'attention', icon: 'bi-exclamation-triangle', label: 'Care trail unavailable' };
   }
   if (core > 0) {
-    return { tone: 'core', icon: 'bi-stars', label: 'Core Memory saved' };
+    return { tone: 'core', icon: 'bi-stars', label: 'Favorite memory saved' };
   }
   if (entries > 0) {
     return { tone: 'active', icon: 'bi-journal-check', label: 'Care trail active' };
@@ -554,33 +566,182 @@ function renderPetJournalSummary(summary = emptyJournalSummary()) {
     ? summary.handoffTargets.slice(0, 4).map(target => (
         `<span>${escapeHtml(JOURNAL_HANDOFF_LABELS[target] || target)}</span>`
       )).join('')
-    : '<span>Ready to connect</span>';
+    : '<span>Ready for a Pal</span>';
 
   return `
     <div class="account-pet-summary-shell">
       <div class="account-pet-stats" aria-label="Pet journal summary">
         <span><strong data-pet-journal-count>${summary.entries}</strong><small>${summary.entries === 1 ? 'entry' : 'entries'}</small></span>
-        <span><strong data-pet-core-count>${summary.core}</strong><small>Core</small></span>
-        <span><strong>${handoffCount}</strong><small>${handoffCount === 1 ? 'path' : 'paths'}</small></span>
+        <span><strong data-pet-core-count>${summary.core}</strong><small>Favorites</small></span>
+        <span><strong>${handoffCount}</strong><small>${handoffCount === 1 ? 'step' : 'steps'}</small></span>
       </div>
       <div class="account-pet-story-stack">
         <div class="account-pet-memory ${summary.core ? 'has-core-memory' : ''}" data-pet-core-summary>
           <i class="bi ${summary.core ? 'bi-stars' : 'bi-journal-plus'}" aria-hidden="true"></i>
           <div>
-            <strong>${summary.core ? 'Core Memory saved' : 'Core Memory ready'}</strong>
+            <strong>${summary.core ? 'Favorite memory saved' : 'Favorite memory ready'}</strong>
             <span>${summary.core ? escapeHtml(coreTitle) : 'Mark one meaningful entry when the moment is ready.'}</span>
           </div>
         </div>
         <div class="account-pet-latest">
           <i class="bi bi-clock-history" aria-hidden="true"></i>
-          <span>${latest ? `Latest${latestDate ? ` ${escapeHtml(latestDate.split(',')[0])}` : ''}: ${escapeHtml(latestTitle)}` : 'Add the first care note, story moment, or Core Memory.'}</span>
+          <span>${latest ? `Latest${latestDate ? ` ${escapeHtml(latestDate.split(',')[0])}` : ''}: ${escapeHtml(latestTitle)}` : 'Add the first care note, story moment, or favorite memory.'}</span>
         </div>
       </div>
       <div class="account-pet-handoff-row">
-        <span class="account-pet-handoff-label">Connected paths</span>
-        <div class="account-pet-handoff-tags" aria-label="Connected Pet Pawket paths">${handoffs}</div>
+        <span class="account-pet-handoff-label">Suggested next steps</span>
+        <div class="account-pet-handoff-tags" aria-label="Suggested Pet Pawket next steps">${handoffs}</div>
       </div>
     </div>`;
+}
+
+function getPalsForPet(petId) {
+  if (!petId) return [];
+  return PAWKET_PALS.filter(pal => String(pal.inspiredByPetId || '') === String(petId));
+}
+
+function getPalsForJournalEntry(entryId) {
+  if (!entryId) return [];
+  return PAWKET_PALS.filter(pal => String(pal.sourceJournalEntryId || '') === String(entryId));
+}
+
+function palStatusLabel(pal = {}) {
+  if (pal.consentState === 'review_required') return 'Sharing requested';
+  if (pal.privacyState === 'private') return 'Private';
+  return String(pal.privacyState || 'Private').replace(/_/g, ' ');
+}
+
+function palClassLabel(value = '') {
+  return String(value || 'honorary')
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, ch => ch.toUpperCase());
+}
+
+function formatAccountPalDate(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function renderAccountPawketPals(pals = []) {
+  const summary = document.querySelector('[data-account-pal-summary]');
+  const count = document.querySelector('[data-account-pal-count]');
+  if (!summary) return;
+
+  if (count) count.textContent = `${pals.length} ${pals.length === 1 ? 'Pal' : 'Pals'}`;
+
+  if (!pals.length) {
+    summary.innerHTML = `
+      <div class="account-pal-empty">
+        <div class="account-pal-empty-icon"><i class="bi bi-stars" aria-hidden="true"></i></div>
+        <div>
+          <strong>No private Pals yet.</strong>
+          <p class="mb-0">Honor a pet profile or favorite memory to create the first private Pawket Pal, or send a private-first story when sharing may feel right.</p>
+        </div>
+        <div class="account-pal-source-map" aria-label="Private Pawket Pal source path">
+          <span><i class="bi bi-person-heart" aria-hidden="true"></i><strong>Profile</strong><small>Pet details</small></span>
+          <span><i class="bi bi-stars" aria-hidden="true"></i><strong>Memory</strong><small>Private note</small></span>
+          <span><i class="bi bi-patch-check" aria-hidden="true"></i><strong>Pal</strong><small>Keepsake</small></span>
+          <span><i class="bi bi-shield-check" aria-hidden="true"></i><strong>Share</strong><small>Only by choice</small></span>
+        </div>
+        <div class="account-pal-empty-actions">
+          <a class="btn btn-primary btn-sm" href="${buildPawketPalHandoffUrl()}">
+            <i class="bi bi-patch-plus" aria-hidden="true"></i> Create Pal
+          </a>
+          <a class="btn btn-outline-primary btn-sm" href="/pals.html#pal-story-intake">
+            <i class="bi bi-send-heart" aria-hidden="true"></i> Submit story
+          </a>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const petLinked = pals.filter(pal => pal.inspiredByPetId).length;
+  const memoryLinked = pals.filter(pal => pal.sourceJournalEntryId).length;
+  const reviewCount = pals.filter(pal => pal.consentState === 'review_required').length;
+  const latestCards = pals.slice(0, 3).map(pal => {
+    const created = formatAccountPalDate(pal.createdAt);
+    const href = buildPawketPalHandoffUrl({ heartCode: pal.heartCode, source: 'account-heartcode' });
+    return `
+      <article class="account-pal-mini-card">
+        <span class="account-pal-chip">${escapeHtml(palStatusLabel(pal))}</span>
+        <h3>${escapeHtml(pal.name || 'Honorary Pawket Pal')}</h3>
+        <code>${escapeHtml(pal.heartCode || '')}</code>
+        <div class="account-pal-card-meta">
+          <span>${escapeHtml(palClassLabel(pal.palClass))}</span>
+          ${created ? `<span>${escapeHtml(created)}</span>` : ''}
+        </div>
+        <a class="btn btn-sm btn-outline-primary" href="${escapeHtml(href)}">
+          <i class="bi bi-patch-check" aria-hidden="true"></i> Open
+        </a>
+      </article>`;
+  }).join('');
+
+  summary.innerHTML = `
+    <div class="account-pal-dashboard">
+      <div class="account-pal-metrics" aria-label="Private Pawket Pal summary">
+        <span><strong>${pals.length}</strong><small>Pals</small></span>
+        <span><strong>${petLinked}</strong><small>Pet links</small></span>
+        <span><strong>${memoryLinked}</strong><small>Memory links</small></span>
+        <span><strong>${reviewCount}</strong><small>Share requests</small></span>
+      </div>
+      <div class="account-pal-source-map" aria-label="Private Pawket Pal source path">
+        <span><i class="bi bi-person-heart" aria-hidden="true"></i><strong>Profile</strong><small>Pet details</small></span>
+        <span><i class="bi bi-journal-heart" aria-hidden="true"></i><strong>Journal</strong><small>Story notes</small></span>
+        <span><i class="bi bi-stars" aria-hidden="true"></i><strong>Memory</strong><small>Private note</small></span>
+        <span><i class="bi bi-patch-check" aria-hidden="true"></i><strong>Pal</strong><small>Keepsake</small></span>
+      </div>
+      <div class="account-pal-paths" aria-label="Pawket Pal path boundaries">
+        <span><i class="bi bi-lock" aria-hidden="true"></i><strong>Private Pals</strong><small>Stay in your account unless you ask to share.</small></span>
+        <span><i class="bi bi-shield-check" aria-hidden="true"></i><strong>Sharing check</strong><small>Stories are checked before any public use.</small></span>
+        <span><i class="bi bi-chat-heart" aria-hidden="true"></i><strong>Community previews</strong><small>Only chosen story details reach Town Square.</small></span>
+      </div>
+      <div class="account-pal-mini-grid">${latestCards}</div>
+      <div class="account-pal-next">
+        <div>
+          <strong>Keep private stories close.</strong>
+          <span>Pet profiles and favorite memories now connect directly to private Honorary Pals.</span>
+        </div>
+        <div class="account-pal-next-actions">
+          <a class="btn btn-outline-primary btn-sm" href="${buildPawketPalHandoffUrl()}">
+            <i class="bi bi-stars" aria-hidden="true"></i> Open Pawket Pals
+          </a>
+          <a class="btn btn-outline-primary btn-sm" href="/pals.html#pal-story-intake">
+            <i class="bi bi-send-heart" aria-hidden="true"></i> Submit story
+          </a>
+        </div>
+      </div>
+    </div>`;
+}
+
+async function loadPawketPals() {
+  const summary = document.querySelector('[data-account-pal-summary]');
+  if (summary) summary.innerHTML = '<p class="text-muted mb-0">Loading private Pawket Pals...</p>';
+
+  try {
+    const res = await authFetch('/api/pals?limit=24');
+    if (res.status === 401) {
+      PAWKET_PALS = [];
+      renderAccountPawketPals([]);
+      return;
+    }
+    if (!res.ok) throw new Error('Pawket Pal fetch failed');
+    const payload = await res.json().catch(() => ({}));
+    PAWKET_PALS = Array.isArray(payload?.pals) ? payload.pals : [];
+    renderAccountPawketPals(PAWKET_PALS);
+    if (PETS.length) renderPets(PETS);
+  } catch (err) {
+    console.warn('[account.js] private Pawket Pals failed:', err);
+    PAWKET_PALS = [];
+    if (summary) {
+      summary.innerHTML = `
+        <div class="account-empty-state account-empty-state--compact">
+          <strong>Private Pals could not load.</strong>
+          <p class="mb-0">Refresh the page or open Pawket Pals directly to manage certificates.</p>
+        </div>`;
+    }
+  }
 }
 
 function setPetJournalSummary(petId, summary) {
@@ -602,7 +763,7 @@ function setPetJournalSummary(petId, summary) {
     const coreDot = card.querySelector('.account-pet-core-dot');
     if (coreDot) {
       const hasCore = !!summary?.core;
-      coreDot.setAttribute('title', hasCore ? 'Core Memory saved' : 'No Core Memory yet');
+      coreDot.setAttribute('title', hasCore ? 'Favorite memory saved' : 'No favorite memory yet');
       coreDot.innerHTML = `<i class="bi ${hasCore ? 'bi-stars' : 'bi-journal'}" aria-hidden="true"></i>`;
     }
   }
@@ -953,6 +1114,81 @@ function addAddPetAllergyChip(value) {
   writeAddPetTraitsJson();
 }
 
+const EDIT_TRAIT_FIELDS = {
+  neckIn: '#trait-neck-in',
+  chestIn: '#trait-chest-in',
+  backIn: '#trait-back-in',
+  notes: '#trait-notes',
+};
+
+function normalizeTraitList(value) {
+  if (Array.isArray(value)) {
+    return value.map(item => String(item || '').trim()).filter(Boolean);
+  }
+  return String(value || '')
+    .split(',')
+    .map(item => item.trim())
+    .filter(Boolean);
+}
+
+function collectEditPetTraits() {
+  const modal = document.getElementById('editPetModal');
+  if (!modal) return {};
+  const traits = {};
+
+  modal.querySelectorAll('[data-trait]').forEach(group => {
+    const key = group.getAttribute('data-trait');
+    if (!key) return;
+    const multi = group.getAttribute('data-multi') === 'true';
+    const selected = Array.from(group.querySelectorAll('.trait-chip[aria-pressed="true"]'))
+      .map(btn => String(btn.dataset.value || '').trim())
+      .filter(Boolean);
+    if (multi) {
+      if (selected.length) traits[key] = selected;
+    } else if (selected[0]) {
+      traits[key] = selected[0];
+    }
+  });
+
+  Object.entries(EDIT_TRAIT_FIELDS).forEach(([key, selector]) => {
+    const input = modal.querySelector(selector);
+    if (!input) return;
+    const raw = String(input.value || '').trim();
+    if (!raw) return;
+    if (input.type === 'number') {
+      const n = Number(raw);
+      if (Number.isFinite(n)) traits[key] = n;
+    } else {
+      traits[key] = raw;
+    }
+  });
+
+  return traits;
+}
+
+function writeEditPetTraitsJson() {
+  const input = document.getElementById('petTraitsJson');
+  if (input) input.value = JSON.stringify(collectEditPetTraits());
+}
+
+function addEditPetAllergyChip(value, { sync = true } = {}) {
+  const allergyWrap = document.querySelector('#editPetModal [data-trait="allergies"]');
+  if (!allergyWrap) return;
+  const clean = String(value || '').trim();
+  if (!clean) return;
+  const exists = Array.from(allergyWrap.querySelectorAll('.trait-chip'))
+    .some(chip => String(chip.dataset.value || '').toLowerCase() === clean.toLowerCase());
+  if (exists) return;
+  const chip = document.createElement('button');
+  chip.type = 'button';
+  chip.className = 'trait-chip';
+  chip.dataset.value = clean;
+  chip.setAttribute('aria-pressed', 'true');
+  chip.textContent = clean;
+  allergyWrap.appendChild(chip);
+  if (sync) writeEditPetTraitsJson();
+}
+
 function resetAddPetModal() {
   const form = document.getElementById('addPetForm');
   form?.reset();
@@ -1031,10 +1267,15 @@ function renderPets(pets) {
     const summary = PET_JOURNAL_SUMMARIES.get(rawPetId) || emptyJournalSummary('loading');
     const coreCount = Number(summary.core || 0);
     const entryCount = Number(summary.entries || 0);
+    const palCount = getPalsForPet(rawPetId).length;
     const tone = escapeHtml(getPetCardTone(p.species));
     const birthdayLine = bday ? `<span><i class="bi bi-cake2" aria-hidden="true"></i> ${bday}</span>` : '';
     const detailLine = breed ? `<span><i class="bi bi-tag" aria-hidden="true"></i> ${detailLabel}: ${breed}</span>` : '';
+    const palLine = palCount
+      ? `<span><i class="bi bi-patch-check" aria-hidden="true"></i> ${palCount} private Pal${palCount === 1 ? '' : 's'}</span>`
+      : '<span><i class="bi bi-stars" aria-hidden="true"></i> Ready for an Honorary Pal</span>';
     const photoAlt = `${name || 'Pet'} profile photo`;
+    const palHref = buildPawketPalHandoffUrl({ petId: rawPetId, source: 'pet-profile' });
 
     return `
       <article class="account-pet-card ${coreCount ? 'has-core-memory' : ''}" data-pet-id="${petId}" data-core-memory-count="${coreCount}" data-journal-entry-count="${entryCount}" data-pet-tone="${tone}">
@@ -1043,7 +1284,7 @@ function renderPets(pets) {
             <img class="pet-thumb account-pet-thumb"
                  src="${escapeHtml(avatar)}" alt="${escapeHtml(photoAlt)}"
                  loading="lazy" />
-            <span class="account-pet-core-dot" title="${coreCount ? 'Core Memory saved' : 'No Core Memory yet'}" aria-hidden="true">
+            <span class="account-pet-core-dot" title="${coreCount ? 'Favorite memory saved' : 'No favorite memory yet'}" aria-hidden="true">
               <i class="bi ${coreCount ? 'bi-stars' : 'bi-journal'}"></i>
             </span>
             ${species ? `<span class="account-pet-photo-label">${species}</span>` : ''}
@@ -1065,6 +1306,9 @@ function renderPets(pets) {
               <button class="btn btn-outline-secondary" data-action="open-journal" data-pet-id="${petId}" type="button">
                 <i class="bi bi-journals" aria-hidden="true"></i><span>Journal</span>
               </button>
+              <a class="btn btn-outline-info account-pal-handoff-btn" href="${escapeHtml(palHref)}">
+                <i class="bi bi-patch-plus" aria-hidden="true"></i><span>Honor Pal</span>
+              </a>
               <button class="btn btn-outline-primary" data-action="open-edit" data-pet-id="${petId}" type="button">
                 <i class="bi bi-pencil" aria-hidden="true"></i><span>Edit</span>
               </button>
@@ -1079,6 +1323,7 @@ function renderPets(pets) {
                 ${birthdayLine}
                 <span><i class="bi bi-gender-ambiguous" aria-hidden="true"></i> Sex: ${sex}</span>
                 <span><i class="bi bi-heart-pulse" aria-hidden="true"></i> Fixed: ${fixed}</span>
+                ${palLine}
               </div>
             </div>
 
@@ -1094,6 +1339,12 @@ function renderPets(pets) {
 // Reusable: file -> dataURL with 5MB guard
 async function readFileAsDataURL(file, statusId = 'petFormStatus') {
   if (!file) return null;
+  const allowedImageTypes = new Set(['image/png', 'image/jpeg', 'image/gif', 'image/webp']);
+  if (!allowedImageTypes.has(String(file.type || '').toLowerCase())) {
+    setInlineStatus(statusId, 'Please select a PNG, JPEG, GIF, or WebP photo.', 'warning');
+    setAccountAlert('Please select a PNG, JPEG, GIF, or WebP photo.', 'warning');
+    return null;
+  }
   if (file.size > 5 * 1024 * 1024) {
     setInlineStatus(statusId, 'Please select a photo 5MB or smaller.', 'warning');
     setAccountAlert('Please select a photo 5MB or smaller.', 'warning');
@@ -1210,6 +1461,43 @@ document.getElementById('addPetModal')?.addEventListener('input', (e) => {
   if (e.target.matches('[data-add-trait-key]')) writeAddPetTraitsJson();
 });
 
+document.getElementById('editPetModal')?.addEventListener('click', (e) => {
+  const editTraitChip = e.target.closest('.trait-chip');
+  if (!editTraitChip) return;
+  const group = editTraitChip.closest('[data-trait]');
+  if (!group) return;
+  const key = group.getAttribute('data-trait');
+  const multi = group.getAttribute('data-multi') === 'true';
+  if (key === 'allergies') {
+    editTraitChip.remove();
+    writeEditPetTraitsJson();
+    return;
+  }
+  if (multi) {
+    const next = editTraitChip.getAttribute('aria-pressed') !== 'true';
+    editTraitChip.setAttribute('aria-pressed', next ? 'true' : 'false');
+  } else {
+    group.querySelectorAll('.trait-chip').forEach(chip => {
+      chip.setAttribute('aria-pressed', chip === editTraitChip ? 'true' : 'false');
+    });
+  }
+  writeEditPetTraitsJson();
+});
+
+document.getElementById('editPetModal')?.addEventListener('keydown', (e) => {
+  if (!e.target.matches('[data-trait-input="allergies"]')) return;
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  addEditPetAllergyChip(e.target.value);
+  e.target.value = '';
+});
+
+document.getElementById('editPetModal')?.addEventListener('input', (e) => {
+  if (e.target.matches('#trait-neck-in, #trait-chest-in, #trait-back-in, #trait-notes')) {
+    writeEditPetTraitsJson();
+  }
+});
+
 // Delegated actions: open edit, delete, open journal
 document.addEventListener('click', async (e) => {
   const btn = e.target.closest('[data-action]');
@@ -1280,6 +1568,7 @@ function normalizeTraitsToTopLevel(traits = {}) {
 // Build minimal patch from edit form fields compared to snapshot
 function buildPetPatchFromForm() {
   syncPetDetailValueFromControls();
+  writeEditPetTraitsJson();
   const name   = (document.getElementById('editPetName')?.value ?? '').trim();
   const type   = (document.getElementById('editPetType')?.value ?? '').trim();
   const breed  = (document.getElementById('editPetBreed')?.value ?? '').trim();
@@ -1330,6 +1619,11 @@ function hydrateTraitChipsFromPet(pet) {
 
   // Fill from top-level fields when traits don’t include them
   if (!traits.sex && pet?.sex) traits.sex = pet.sex;
+  if (!traits.size && pet?.size) traits.size = pet.size;
+  if (traits.allergies == null && Array.isArray(pet?.allergies) && pet.allergies.length) {
+    traits.allergies = pet.allergies;
+  }
+  if (traits.notes == null && pet?.notes) traits.notes = pet.notes;
   if (traits.spayNeuter == null) {
     if (pet?.spayedNeutered === true) {
       traits.spayNeuter = pet?.sex === 'male' ? 'neutered' : 'spayed';
@@ -1344,6 +1638,14 @@ function hydrateTraitChipsFromPet(pet) {
   const modal = document.getElementById('editPetModal');
   if (!modal) return;
 
+  const allergyWrap = modal.querySelector('[data-trait="allergies"]');
+  if (allergyWrap) {
+    allergyWrap.innerHTML = '';
+    normalizeTraitList(traits.allergies).forEach(value => {
+      addEditPetAllergyChip(value, { sync: false });
+    });
+  }
+
   modal.querySelectorAll('.trait-chips[data-trait]').forEach(group => {
     const key   = group.getAttribute('data-trait');
     const multi = group.getAttribute('data-multi') === 'true';
@@ -1351,7 +1653,7 @@ function hydrateTraitChipsFromPet(pet) {
 
     const btns = Array.from(group.querySelectorAll('.trait-chip'));
     if (multi) {
-      const set = new Set((Array.isArray(val) ? val : []).map(s => String(s).toLowerCase()));
+      const set = new Set(normalizeTraitList(val).map(s => String(s).toLowerCase()));
       btns.forEach(b => b.setAttribute('aria-pressed', set.has(String(b.dataset.value).toLowerCase()) ? 'true' : 'false'));
     } else {
       const chosen = val == null ? 'unknown' : String(val).toLowerCase();
@@ -1361,9 +1663,13 @@ function hydrateTraitChipsFromPet(pet) {
     }
   });
 
-  // Keep the hidden JSON in sync so submit picks it up
-  const hidden = document.getElementById('petTraitsJson');
-  if (hidden) hidden.value = JSON.stringify(traits);
+  Object.entries(EDIT_TRAIT_FIELDS).forEach(([key, selector]) => {
+    const input = modal.querySelector(selector);
+    if (input) input.value = traits[key] ?? '';
+  });
+
+  // Keep the hidden JSON in sync so submit picks up the rendered controls.
+  writeEditPetTraitsJson();
 }
 
 function openEditModal(petId) {
@@ -1631,18 +1937,23 @@ const JOURNAL_MOODS = [
   'Inspired',
 ];
 let JOURNAL_CACHE = [];
+let JOURNAL_LOAD_RUN = 0;
 
 function getJournalTypeMeta(value = 'note') {
   const normalized = String(value || 'note').trim().toLowerCase();
   return JOURNAL_TYPE_BY_VALUE.get(normalized) || JOURNAL_TYPE_BY_VALUE.get('note');
 }
 
-function journalTypeOptions(currentType = 'note') {
-  const current = getJournalTypeMeta(currentType).value;
-  return JOURNAL_ENTRY_TYPES.map(type => {
+function journalTypeOptions(currentType = 'note', { includeAll = false, allLabel = 'All entries' } = {}) {
+  const current = includeAll ? String(currentType || '') : getJournalTypeMeta(currentType).value;
+  const options = includeAll
+    ? [`<option value=""${current ? '' : ' selected'}>${escapeHtml(allLabel)}</option>`]
+    : [];
+  options.push(...JOURNAL_ENTRY_TYPES.map(type => {
     const selected = type.value === current ? ' selected' : '';
     return `<option value="${escapeHtml(type.value)}"${selected}>${escapeHtml(type.label)}</option>`;
-  }).join('');
+  }));
+  return options.join('');
 }
 
 function journalMoodOptions(currentMood = '') {
@@ -1656,6 +1967,24 @@ function journalMoodOptions(currentMood = '') {
     const selected = value.toLowerCase() === normalizedCurrent.toLowerCase() ? ' selected' : '';
     return `<option value="${escapeHtml(value)}"${selected}>${escapeHtml(label)}</option>`;
   }).join('');
+}
+
+function setSelectOptions(selectEl, optionsHtml, preferredValue = '') {
+  if (!selectEl) return;
+  const selectedValue = String(preferredValue ?? selectEl.value ?? '');
+  selectEl.innerHTML = optionsHtml;
+  const hasPreferred = Array.from(selectEl.options || [])
+    .some(option => String(option.value) === selectedValue);
+  if (hasPreferred) selectEl.value = selectedValue;
+}
+
+function ensureJournalControlOptions() {
+  const typeEl = document.getElementById('journalEntryType');
+  const filterEl = document.getElementById('journalFilterType');
+  const moodEl = document.getElementById('journalMood');
+  setSelectOptions(typeEl, journalTypeOptions(typeEl?.value || 'note'), typeEl?.value || 'note');
+  setSelectOptions(filterEl, journalTypeOptions(filterEl?.value || '', { includeAll: true }), filterEl?.value || '');
+  setSelectOptions(moodEl, journalMoodOptions(moodEl?.value || 'Happy'), moodEl?.value || 'Happy');
 }
 
 function normalizeJournalTags(input) {
@@ -1829,7 +2158,7 @@ function renderJournalStats(entries) {
     </div>
     <div class="journal-stat">
       <strong>${coreCount}</strong>
-      <span>Core Memories</span>
+      <span>Favorite Memories</span>
     </div>
     <div class="journal-stat">
       <strong>${escapeHtml(topMood)}</strong>
@@ -1850,7 +2179,7 @@ function renderJournalEntry(entry) {
     ? `<span class="journal-mood"><i class="bi bi-emoji-smile" aria-hidden="true"></i>${escapeHtml(entry.mood)}</span>`
     : '';
   const coreBadge = entry.highlighted
-    ? '<span class="journal-core-memory"><i class="bi bi-stars" aria-hidden="true"></i>Core Memory</span>'
+    ? '<span class="journal-core-memory"><i class="bi bi-stars" aria-hidden="true"></i>Favorite Memory</span>'
     : '';
   const tags = entry.tags.length
     ? `<div class="journal-tags">${entry.tags.map(tag => `<span class="journal-tag">#${escapeHtml(tag)}</span>`).join('')}</div>`
@@ -1866,10 +2195,18 @@ function renderJournalEntry(entry) {
     ? entry.metadata.handoffTargets
     : inferJournalHandoffTargets(entry);
   const handoffBadges = handoffTargets.length
-    ? `<div class="journal-handoff-tags" aria-label="Connected story paths">
+    ? `<div class="journal-handoff-tags" aria-label="Connected story ideas">
         ${handoffTargets.map(target => `<span>${escapeHtml(JOURNAL_HANDOFF_LABELS[target] || target)}</span>`).join('')}
        </div>`
     : '';
+  const sourcePetId = entry.petId || CURRENT_PET_ID || '';
+  const linkedPalCount = getPalsForJournalEntry(entry.id).length;
+  const palHref = buildPawketPalHandoffUrl({
+    petId: sourcePetId,
+    journalEntryId: entry.id,
+    source: entry.highlighted ? 'core-memory' : 'journal-entry',
+  });
+  const palLabel = linkedPalCount ? 'Pal linked' : (entry.highlighted ? 'Honor memory' : 'Make Pal');
 
   return `
     <li class="journal-entry-wrapper" data-entry-id="${escapeHtml(entry.id)}" data-entry-type="${escapeHtml(entry.entryType)}" data-mood="${escapeHtml(entry.mood || 'Unknown')}" data-highlighted="${entry.highlighted ? 'true' : 'false'}">
@@ -1889,7 +2226,8 @@ function renderJournalEntry(entry) {
           ${photo}
         </div>
         <div class="journal-actions">
-          <button class="btn btn-sm btn-outline-warning" data-action="toggle-core-memory" aria-pressed="${entry.highlighted ? 'true' : 'false'}" type="button"><i class="bi bi-stars" aria-hidden="true"></i><span>${entry.highlighted ? 'Unmark' : 'Core'}</span></button>
+          <button class="btn btn-sm btn-outline-warning" data-action="toggle-core-memory" aria-pressed="${entry.highlighted ? 'true' : 'false'}" type="button"><i class="bi bi-stars" aria-hidden="true"></i><span>${entry.highlighted ? 'Unmark' : 'Favorite'}</span></button>
+          <a class="btn btn-sm btn-outline-info account-pal-handoff-btn" href="${escapeHtml(palHref)}"><i class="bi bi-patch-plus" aria-hidden="true"></i><span>${escapeHtml(palLabel)}</span></a>
           <button class="btn btn-sm btn-outline-secondary" data-action="edit-journal" type="button"><i class="bi bi-pencil" aria-hidden="true"></i><span>Edit</span></button>
           <button class="btn btn-sm btn-outline-danger" data-action="delete-journal" type="button"><i class="bi bi-trash3" aria-hidden="true"></i><span>Delete</span></button>
         </div>
@@ -1908,7 +2246,7 @@ function renderJournalTimeline() {
   if (!JOURNAL_CACHE.length) {
     list.innerHTML = '';
     if (empty) {
-      empty.textContent = 'No entries yet. Add the first care note, story moment, or Core Memory.';
+      empty.textContent = 'No entries yet. Add the first care note, story moment, or favorite memory.';
       empty.style.display = '';
     }
     return;
@@ -1940,6 +2278,7 @@ function clearJournalPhotoPreview() {
 }
 
 function resetJournalComposer(pet) {
+  ensureJournalControlOptions();
   const titleEl = document.getElementById('newJournalTitle');
   const noteEl = document.getElementById('newJournalNote');
   const tagsEl = document.getElementById('journalTags');
@@ -1983,7 +2322,7 @@ function openJournalModal(petId) {
   const sub = document.getElementById('journalSubhead');
   if (sub) {
     const meta = [pet?.species, pet?.breed].filter(Boolean).join(' • ');
-    sub.textContent = meta ? `${meta} • Notes, care, story moments, and Core Memories.` : 'Capture notes, moods, care moments, and Core Memories.';
+    sub.textContent = meta ? `${meta} • Notes, care, story moments, and favorite memories.` : 'Capture notes, moods, care moments, and favorite memories.';
   }
 
   if (idxEl) idxEl.value = petId;
@@ -1994,6 +2333,8 @@ function openJournalModal(petId) {
 }
 
 function ensureJournalEnhancements() {
+  ensureJournalControlOptions();
+
   const noteEl = document.getElementById('newJournalNote');
   const photoEl = document.getElementById('journalPhoto');
 
@@ -2023,7 +2364,7 @@ function ensureJournalEnhancements() {
     photoEl.addEventListener('change', async () => {
       const file = photoEl.files?.[0];
       if (!file) { wrap.innerHTML = ''; return; }
-      const dataUrl = await readFileAsDataURL(file);
+      const dataUrl = await readFileAsDataURL(file, 'journalComposerStatus');
       if (!dataUrl) return;
       wrap.innerHTML = `<img src="${dataUrl}" alt="Journal preview" />`;
     });
@@ -2061,6 +2402,7 @@ function ensureJournalEnhancements() {
 }
 
 async function loadPetJournal(petId) {
+  const loadRun = ++JOURNAL_LOAD_RUN;
   const list = document.getElementById('journalEntryList');
   const empty = document.getElementById('journalEmpty');
   if (!list) return;
@@ -2076,10 +2418,12 @@ async function loadPetJournal(petId) {
       ? payload
       : (payload.journal || payload.entries || payload.items || []);
 
+    if (loadRun !== JOURNAL_LOAD_RUN || String(CURRENT_PET_ID) !== String(petId)) return;
     JOURNAL_CACHE = (entries || []).map(normalizeJournalEntry);
     setPetJournalSummary(petId, summarizeJournalEntries(JOURNAL_CACHE));
     renderJournalTimeline();
   } catch (err) {
+    if (loadRun !== JOURNAL_LOAD_RUN || String(CURRENT_PET_ID) !== String(petId)) return;
     console.error(err);
     JOURNAL_CACHE = [];
     setPetJournalSummary(petId, emptyJournalSummary('error'));
@@ -2137,7 +2481,7 @@ function renderJournalEditForm(li, entry = {}) {
       </div>
       <label class="journal-core-toggle journal-core-toggle--edit">
         <input class="form-check-input" type="checkbox" name="highlighted"${entry.highlighted ? ' checked' : ''} />
-        <span><i class="bi bi-stars" aria-hidden="true"></i> Core Memory</span>
+        <span><i class="bi bi-stars" aria-hidden="true"></i> Favorite Memory</span>
       </label>
     </div>
     <div class="d-flex flex-wrap gap-2 mt-3">
@@ -2178,7 +2522,7 @@ if (journalListEl) {
     if (action === 'delete-journal') {
       const confirmed = await accountConfirm({
         title: 'Delete journal memory?',
-        message: 'This journal entry will be removed from the pet story trail. Core Memory status and tags on this entry will be deleted too.',
+        message: 'This journal entry will be removed from the pet story trail. Favorite memory status and tags on this entry will be deleted too.',
         confirmLabel: 'Delete memory',
       });
       if (!confirmed) return;
@@ -2876,7 +3220,7 @@ async function initAccountPage() {
     ensureAddressSection();
     wireAddressUI();
 
-    await Promise.allSettled([loadProfile(), loadOrders(), loadPets(), loadAddresses()]);
+    await Promise.allSettled([loadProfile(), loadOrders(), loadPets(), loadPawketPals(), loadAddresses()]);
   })();
   try {
     return await accountInitPromise;

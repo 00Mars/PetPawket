@@ -1,10 +1,10 @@
-// public/auth.js — Robust hybrid (JWT + cookie) client session handling
+// public/auth.js — Robust cookie-first client session handling
 // Behavior:
-// - If a JWT exists locally, prefer /api/me with Authorization.
-// - If JWT is missing or invalid (401), fall back to /api/session (cookie-based).
+// - Server sets HttpOnly auth cookies; bearer tokens are not stored in localStorage.
+// - Legacy local tokens are cleared and cookie session endpoints are used.
 // - Never spin indefinitely: always resolve a session and update the UI.
 
-console.info('[auth] hybrid client mode: JWT preferred, cookie fallback');
+console.info('[auth] cookie-first client mode');
 
 const DEFAULT_CONFIG = {
   login: '/api/auth/login',
@@ -12,7 +12,7 @@ const DEFAULT_CONFIG = {
   me: '/api/me',
   session: '/api/session',
   logout: '/logout',
-  storageKey: 'authToken',       // used only when server returns a JWT
+  storageKey: 'authToken',       // legacy key cleared during session checks
   logoutFallbacks: ['/logout', '/api/logout', '/api/auth/logout'],
 };
 
@@ -85,9 +85,14 @@ async function checkDbHealth() {
   }
 }
 
-// JWT token helpers
-function getToken() { try { return localStorage.getItem(CFG.storageKey) || ''; } catch { return ''; } }
-function setToken(t) { try { if (t) localStorage.setItem(CFG.storageKey, t); else localStorage.removeItem(CFG.storageKey); } catch {} }
+// Legacy token helpers. First-party auth is cookie-only; keep cleanup for older sessions.
+function getToken() { return ''; }
+function setToken(_t) {
+  try {
+    localStorage.removeItem(CFG.storageKey);
+    localStorage.removeItem('shopifyAccessToken');
+  } catch {}
+}
 function clearToken() { setToken(''); }
 function cacheSession(session) {
   sessionCache = session || { signedIn: false };
@@ -101,8 +106,6 @@ function clearSessionCache() {
 
 export async function authFetch(url, init = {}) {
   const headers = new Headers(init.headers || {});
-  const token = getToken();
-  if (token) headers.set('Authorization', `Bearer ${token}`);
   headers.set('Accept', headers.get('Accept') || 'application/json');
   return fetch(url, { ...init, headers, credentials: 'include', cache: 'no-store' });
 }
@@ -114,13 +117,17 @@ function extractIdentity(data) {
 }
 
 async function getSessionViaMe() {
-  const res = await authFetch(CFG.me);
-  if (!res.ok) return { ok: false, status: res.status };
-  const data = await res.json().catch(() => ({}));
-  const ident = extractIdentity(data);
-  const ok = !!(ident.email || ident.id);
-  return ok ? { ok: true, customer: { email: ident.email, id: ident.id }, raw: data }
-            : { ok: false, status: 200 };
+  try {
+    const res = await authFetch(CFG.me);
+    if (!res.ok) return { ok: false, status: res.status };
+    const data = await res.json().catch(() => ({}));
+    const ident = extractIdentity(data);
+    const ok = !!(ident.email || ident.id);
+    return ok ? { ok: true, customer: { email: ident.email, id: ident.id }, raw: data }
+              : { ok: false, status: 200 };
+  } catch {
+    return { ok: false, status: 0 };
+  }
 }
 
 async function getSessionViaCookie() {
@@ -144,18 +151,13 @@ export async function getSession({ force = false } = {}) {
     return sessionCache;
   }
 
-  // 1) If we have a token, try /api/me
-  const token = getToken();
-  if (token) {
-    const me = await getSessionViaMe();
-    if (me.ok) return cacheSession({ signedIn: true, customer: me.customer, raw: me.raw });
-    if (me.status === 401) {
-      // Token invalid: clear it and fall back to cookie session
-      clearToken();
-    } // else: try cookie session anyway
-  }
+  clearToken();
 
-  // 2) No token or invalid token: try cookie session
+  // 1) Try /api/me with HttpOnly cookies.
+  const me = await getSessionViaMe();
+  if (me.ok) return cacheSession({ signedIn: true, customer: me.customer, raw: me.raw });
+
+  // 2) Fall back to the soft cookie session probe.
   const ck = await getSessionViaCookie();
   if (ck.ok) return cacheSession({ signedIn: true, customer: ck.customer, raw: ck.raw });
 
@@ -188,9 +190,7 @@ export async function login(email, password) {
     throw new Error(msg);
   }
 
-  // Store JWT if provided (site-local auth)
-  const token = data?.token || data?.access_token || '';
-  if (token) setToken(token);
+  clearToken();
 
   // Validate final session via JWT-first, then cookie fallback
   clearSessionCache();
@@ -229,8 +229,7 @@ export async function signup({ email, password, firstName = '', lastName = '' } 
     throw new Error(msg);
   }
 
-  const token = data?.token || data?.access_token || '';
-  if (token) setToken(token);
+  clearToken();
 
   clearSessionCache();
   const session = await getSession({ force: true });

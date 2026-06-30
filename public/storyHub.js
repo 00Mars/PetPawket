@@ -40,7 +40,7 @@ const QUEST_CATALOG = [
     id: 'care-rhythm',
     groups: ['account', 'charm'],
     title: 'Weekly care check-in',
-    eyebrow: 'Core Memory',
+    eyebrow: 'Favorite memory',
     icon: 'bi-stars',
     summary: 'Add a care note and mark the moments that matter most.',
     cta: { label: 'Review memories', href: '/account.html#account-pets' },
@@ -54,7 +54,7 @@ const QUEST_CATALOG = [
     checkpoints: [
       { id: 'pet-profile', label: 'Pet profile saved', hint: 'A saved profile keeps care details together.', auto: 'hasPet' },
       { id: 'journal-note', label: 'Care note saved', hint: 'Add one journal note from this week.', auto: 'hasJournal' },
-      { id: 'core-memory', label: 'Core Memory marked', hint: 'Mark the most meaningful entry as a Core Memory.', auto: 'hasCoreMemory' },
+      { id: 'core-memory', label: 'Favorite memory marked', hint: 'Mark the most meaningful entry as a favorite memory.', auto: 'hasCoreMemory' },
     ],
   },
   {
@@ -63,7 +63,7 @@ const QUEST_CATALOG = [
     title: 'Pawket Pass share',
     eyebrow: 'Sharing',
     icon: 'bi-ticket-perforated',
-    summary: 'Keep track of a Pawket Pass when one is available to share or claim.',
+    summary: 'Keep track of a Pawket Pass when one is available to share or save.',
     cta: { label: 'View passes', href: '/account.html#loopTokensSection' },
     reward: {
       label: 'Pass step saved',
@@ -73,9 +73,9 @@ const QUEST_CATALOG = [
       handoffTitle: 'Pawket Pass step saved',
     },
     checkpoints: [
-      { id: 'pass-ready', label: 'Pawket Pass available', hint: 'Complete a purchase or claim a pass.', auto: 'hasPass' },
+      { id: 'pass-ready', label: 'Pawket Pass available', hint: 'Complete a purchase or save a pass link.', auto: 'hasPass' },
       { id: 'share-plan', label: 'Recipient chosen', hint: 'Choose who should receive the pass.' },
-      { id: 'impact-review', label: 'Impact update reviewed', hint: 'Review the current CHARM update.', auto: 'hasImpact' },
+      { id: 'impact-review', label: 'CHARM update seen', hint: 'Open the current CHARM update.', auto: 'hasImpact' },
     ],
   },
   {
@@ -105,7 +105,7 @@ const QUEST_CATALOG = [
     title: 'CHARM Rescue Drive',
     eyebrow: 'Foundation',
     icon: 'bi-heart-pulse',
-    summary: 'Connect a small action to a verified rescue update without making the story feel heavy.',
+    summary: 'Connect a small action to a rescue update without making the story feel heavy.',
     cta: { label: 'See CHARM', href: '/charm.html#charm-glance' },
     reward: {
       label: 'CHARM step saved',
@@ -115,8 +115,8 @@ const QUEST_CATALOG = [
       handoffTitle: 'CHARM support step saved',
     },
     checkpoints: [
-      { id: 'impact-case', label: 'Active case reviewed', hint: 'Review the active care case.', auto: 'hasImpact' },
-      { id: 'support-path', label: 'Support path chosen', hint: 'Choose shopping, sharing, or partner support.' },
+      { id: 'impact-case', label: 'Care update opened', hint: 'Open the active care update.', auto: 'hasImpact' },
+      { id: 'support-path', label: 'Support idea chosen', hint: 'Choose shopping, sharing, or partner support.' },
       { id: 'care-message', label: 'Care message drafted', hint: 'Write a short kindness note for the impact trail.' },
     ],
   },
@@ -800,14 +800,14 @@ function renderHandoffPanels(state) {
     if (!handoffs.length) {
       root.innerHTML = `
         <div class="pp-handoff-empty">
-          <strong>Connected paths</strong>
-          <span>Saved steps can connect to Pawket Pals, CHARM, or community features when those areas are ready.</span>
+          <strong>Suggested next steps</strong>
+          <span>Saved steps can point to private Pals, CHARM, or Community when you choose what to share.</span>
         </div>`;
       return;
     }
     root.innerHTML = `
       <div class="pp-handoff-head">
-        <strong>Connected paths</strong>
+        <strong>Suggested next steps</strong>
         <span>${handoffs.length} saved</span>
       </div>
       <ul class="pp-handoff-list">
@@ -899,9 +899,9 @@ function updateAccountProgressSummary({
       complete: hasCoreMemory,
       active: hasJournal && !hasCoreMemory,
       note: hasCoreMemory
-        ? `${coreMemoryCount} Core Memor${coreMemoryCount === 1 ? 'y' : 'ies'} marked.`
-        : hasJournal ? 'Mark one meaningful memory.' : 'Core Memories come from journal entries.',
-      next: 'Mark a journal entry as a Core Memory.',
+        ? `${coreMemoryCount} favorite memor${coreMemoryCount === 1 ? 'y' : 'ies'} marked.`
+        : hasJournal ? 'Mark one meaningful memory.' : 'Favorite memories come from journal entries.',
+      next: 'Mark a journal entry as a favorite memory.',
       weight: 20,
     },
     {
@@ -921,7 +921,7 @@ function updateAccountProgressSummary({
       active: completedQuests > 0 && !hasPass,
       note: hasPass
         ? `${passCount} Pawket Pass${passCount === 1 ? '' : 'es'} ready.`
-        : 'Passes appear after purchases, gifts, or claims.',
+        : 'Passes appear after purchases, gifts, or saved links.',
       next: 'Connect a purchase or Pawket Pass.',
       weight: 10,
     },
@@ -930,9 +930,9 @@ function updateAccountProgressSummary({
       complete: hasImpact,
       active: hasPass && !hasImpact,
       note: hasImpact
-        ? `${impact.title || 'CHARM impact'} is connected.`
+        ? `${impact.title || 'CHARM update'} is connected.`
         : 'Impact updates appear when CHARM campaigns are live.',
-      next: 'Review the current CHARM impact update.',
+      next: 'Open the current CHARM update.',
       weight: 10,
     },
   ];
@@ -967,7 +967,7 @@ function updateAccountProgressSummary({
   document.querySelectorAll('[data-account-progress-copy]').forEach((el) => {
     el.textContent = hasPet
       ? 'Your saved pet details, journals, and passes make the account more useful.'
-      : 'Add a pet profile, then save journals and Core Memories as you go.';
+      : 'Add a pet profile, then save journals and favorite memories as you go.';
   });
   document.querySelectorAll('[data-account-next-action]').forEach((el) => {
     el.textContent = nextStep?.next || 'Keep your pet details up to date.';
@@ -1030,7 +1030,7 @@ function updateStoryContextPanel({
   const totalHandoffs = (activeState.handoffs?.length || 0) + handoffTargets.length;
 
   let title = "Build your pet's story.";
-  let copy = 'Profiles, journals, Core Memories, and passes help keep care and meaningful moments organized.';
+  let copy = 'Profiles, journals, favorite memories, and passes help keep care and meaningful moments organized.';
   let next = signedIn ? 'Add your first pet profile.' : 'Sign in and add a pet profile.';
   let stage = signedIn ? 'Account overview' : 'Sign in';
 
@@ -1041,14 +1041,14 @@ function updateStoryContextPanel({
   } else if (hasJournal && !hasCoreMemory) {
     title = 'Journal started.';
     copy = latestTitle
-      ? `Latest moment: ${latestTitle}${latestDate ? ` (${latestDate})` : ''}. Mark one meaningful entry as a Core Memory when ready.`
+      ? `Latest moment: ${latestTitle}${latestDate ? ` (${latestDate})` : ''}. Mark one meaningful entry as a favorite memory when ready.`
       : 'Journal moments are now saved to this account.';
-    next = 'Mark one journal entry as a Core Memory.';
+    next = 'Mark one journal entry as a favorite memory.';
   } else if (hasCoreMemory && !hasQuest) {
-    title = 'Core Memory saved.';
+    title = 'Favorite memory saved.';
     copy = latestCore
       ? `${latestCore} is saved as a meaningful moment for this pet.`
-      : 'A meaningful journal entry is now marked as a Core Memory.';
+      : 'A meaningful journal entry is now marked as a favorite memory.';
     next = 'Choose a suggested next step.';
   } else if (hasQuest && completedQuests === 0) {
     title = 'Next steps are in progress.';
@@ -1057,13 +1057,13 @@ function updateStoryContextPanel({
   } else if (completedQuests > 0) {
     title = 'Helpful steps saved.';
     copy = `${completedQuests} suggested step${completedQuests === 1 ? '' : 's'} completed for this account.`;
-    next = passCount > 0 || impact ? 'Review Pawket Passes and CHARM impact updates.' : 'Connect a purchase, pass, or impact update next.';
+    next = passCount > 0 || impact ? 'Open Pawket Passes and CHARM updates.' : 'Connect a purchase, pass, or CHARM update next.';
     stage = 'In progress';
   }
 
   if (readiness >= 100) {
     stage = 'Ready';
-    next = 'Review your saved pets, journals, passes, and impact updates.';
+    next = 'Review your saved pets, journals, passes, and CHARM updates.';
   }
 
   document.querySelectorAll('[data-story-stage-pill]').forEach((el) => {
@@ -1192,13 +1192,13 @@ function updateStoryStats({ state, pets = [], passCount = 0, impact = null, sign
   const palCopyEl = document.querySelector('[data-story-pal-copy]');
   if (palNameEl) {
     palNameEl.textContent = firstPetName
-      ? `${firstPetName}'s Pawket Pal`
-      : 'Meet your Pawket Pal';
+      ? `${firstPetName}'s private Pal`
+      : 'Create a private Pal';
   }
   if (palCopyEl) {
     palCopyEl.textContent = firstPetName
-      ? `Pawket Pals will connect to ${firstPetName}'s saved story when those features are ready. Private journals stay private unless you choose otherwise.`
-      : 'Pawket Pals will grow from saved stories and shared moments. Private journals stay private unless you choose otherwise.';
+      ? `Pawket Pals can connect to ${firstPetName}'s saved story privately first. Public sharing happens only when you choose it.`
+      : 'Pawket Pals can begin from saved stories and favorite moments. Private journals stay private unless you choose otherwise.';
   }
 
   if (impact) {
@@ -1206,12 +1206,12 @@ function updateStoryStats({ state, pets = [], passCount = 0, impact = null, sign
     const goal = Number(impact.goalAmount || 0);
     const pct = percent(impact.progressPct);
     document.querySelectorAll('[data-story-impact-title]').forEach((el) => {
-      el.textContent = impact.title || 'Rescue funding in motion';
+      el.textContent = impact.title || 'CHARM update in motion';
     });
     document.querySelectorAll('[data-story-impact-meta]').forEach((el) => {
       el.textContent = goal
         ? `${money(funded, impact.currency)} of ${money(goal, impact.currency)} funded`
-        : 'Active rescue case coming into view';
+        : 'CHARM update coming into view';
     });
     document.querySelectorAll('[data-story-impact-funded]').forEach((el) => {
       el.textContent = money(funded, impact.currency);

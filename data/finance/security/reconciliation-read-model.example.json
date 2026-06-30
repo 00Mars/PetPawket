@@ -1,0 +1,28 @@
+{
+  "fixture": "reconciliation-read-model",
+  "status": "preview_only_not_official_reconciliation",
+  "reconciliation_preview": {
+    "reconciliation_preview_id": "recprev_sales_2026_05",
+    "source_mode": "proposed",
+    "production_status": "non_production_preview",
+    "nonproduction_label": "reconciliation_preview_not_official",
+    "source_total": 75,
+    "ledger_preview_total": 60,
+    "variance": 15,
+    "unreconciled_source_event_ids": [
+      "source_event_refund_0001"
+    ],
+    "unreconciled_record_ids": [],
+    "duplicate_idempotency_warnings": [
+      "Duplicate idempotency key refund:1 appears on source_event_refund_0001 and source_event_refund_duplicate."
+    ],
+    "refund_reversal_warnings": [
+      "Refund and reward/donation/tax reversal handling needs review."
+    ],
+    "donation_payable_warnings": [],
+    "care_credit_liability_warnings": [],
+    "charm_cherish_payable_warnings": [],
+    "generated_at": "2026-05-29T11:20:00Z",
+    "generated_by": "finance_admin_example"
+  }
+}

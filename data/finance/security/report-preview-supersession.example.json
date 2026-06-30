@@ -1,0 +1,26 @@
+{
+  "schema_version": "pawket-admin-report-preview-supersession-example-v0",
+  "allowed_write_target": "manifests/report-preview-supersessions.ndjson",
+  "example_supersession": {
+    "supersession_id": "report_supersession_0001",
+    "original_review_item_id": "report_review_old_0001",
+    "superseding_review_item_id": "report_review_new_0001",
+    "original_export_intent_id": "export_intent_old_0001",
+    "superseding_export_intent_id": "export_intent_new_0001",
+    "original_preview_package_id": "preview_pkg_old_0001",
+    "superseding_preview_package_id": "preview_pkg_new_0001",
+    "old_preview_lineage": {
+      "export_intent_id": "export_intent_old_0001",
+      "preview_package_id": "preview_pkg_old_0001",
+      "report_review_item_id": "report_review_old_0001"
+    },
+    "new_preview_lineage": {
+      "export_intent_id": "export_intent_new_0001",
+      "preview_package_id": "preview_pkg_new_0001",
+      "report_review_item_id": "report_review_new_0001"
+    },
+    "reason": "New preview includes corrected redaction warnings.",
+    "production_status": "preview_only",
+    "final_export_status": "disabled"
+  }
+}

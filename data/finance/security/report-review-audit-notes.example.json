@@ -1,0 +1,17 @@
+{
+  "schema_version": "pawket-admin-report-review-audit-notes-example-v0",
+  "allowed_write_target": "manifests/report-reviewer-notes.ndjson",
+  "example_note": {
+    "report_reviewer_note_id": "report_note_0001",
+    "report_review_item_id": "report_review_internal_0001",
+    "export_intent_id": "export_intent_internal_0001",
+    "preview_package_id": "preview_pkg_internal_0001",
+    "note_text": "Confirm missing evidence warning remains visible.",
+    "note_type": "review_note",
+    "created_by": "finance_admin_example",
+    "created_role": "finance_admin",
+    "audit_event_id": "audit_report_note_0001",
+    "production_status": "preview_only",
+    "final_export_status": "disabled"
+  }
+}

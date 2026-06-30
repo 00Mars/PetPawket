@@ -16,6 +16,25 @@ const safeImageUrl = (value, fallback = '/assets/images/placeholder.png') => {
   if (raw.startsWith('/') && !raw.startsWith('//')) return raw;
   return fallback;
 };
+const hasRealImage = (value) => {
+  const raw = String(value || '').trim();
+  return !!raw && !/\/(?:placeholder|default-pet)\.(?:png|jpe?g|webp|gif|svg)$/i.test(raw);
+};
+const iconForCategory = (category = '') => {
+  const c = String(category).toLowerCase();
+  if (c.includes('treat') || c.includes('food')) return 'bi-basket2';
+  if (c.includes('toy') || c.includes('play')) return 'bi-stars';
+  if (c.includes('care') || c.includes('health')) return 'bi-heart-pulse';
+  if (c.includes('pack') || c.includes('box')) return 'bi-box-seam';
+  return 'bi-bag-heart';
+};
+const fallbackThumbHTML = (category, icon) => `
+  <div class="pp-thumb-fallback" aria-hidden="true">
+    <span><i class="bi ${escapeHtml(icon)}"></i></span>
+    <strong>${escapeHtml(category)}</strong>
+    <em>Pet Pawket pick</em>
+  </div>
+`;
 
 async function ensureSignedInForWishlist() {
   const session = await getSession();
@@ -56,11 +75,14 @@ function renderSkeleton(grid, count = 8) {
 
 // ---- Cards ----
 function cardHTML(p, index = 0) {
-  const img = safeImageUrl(p.featuredImage?.url);
+  const rawImg = p.featuredImage?.url;
+  const img = safeImageUrl(rawImg);
   const title = p.title || '';
   const handle = p.handle || '';
   const id = p.id || '';
   const category = p.productType || 'Featured';
+  const showImage = hasRealImage(rawImg);
+  const icon = iconForCategory(category);
   const minp = p.priceRange?.minVariantPrice, maxp = p.priceRange?.maxVariantPrice;
   const minAmount = Number(minp?.amount);
   const maxAmount = Number(maxp?.amount);
@@ -76,8 +98,10 @@ function cardHTML(p, index = 0) {
   return `
     <article class="pp-card" data-product-id="${escapeHtml(id)}" data-product-handle="${escapeHtml(handle)}" data-category="${escapeHtml(p.productType || '')}">
       <a class="pp-link" href="/product.html?handle=${encodeURIComponent(handle)}" aria-label="${escapeHtml(title)}">
-        <div class="pp-thumb">
-          <img src="${escapeHtml(img)}" alt="${escapeHtml(p.featuredImage?.altText || title)}" loading="lazy">
+        <div class="pp-thumb${showImage ? ' has-remote-image' : ''}" data-featured-tone="${index % 4}">
+          ${showImage
+            ? `${fallbackThumbHTML(category, icon)}<img class="pp-thumb-img" src="${escapeHtml(img)}" alt="${escapeHtml(p.featuredImage?.altText || title)}" loading="lazy" data-product-image>`
+            : fallbackThumbHTML(category, icon)}
           ${spotlight}
         </div>
       </a>
@@ -209,6 +233,28 @@ function renderQuickFilters(container, state, controlsRef) {
   }
 }
 
+function hydrateProductImages(root) {
+  root.querySelectorAll('.pp-thumb.has-remote-image').forEach((thumb) => {
+    const img = thumb.querySelector('[data-product-image]');
+    if (!img) return;
+    const markLoaded = () => {
+      if (img.naturalWidth > 0) {
+        thumb.classList.add('is-image-ready');
+        thumb.classList.remove('is-image-missing');
+      }
+    };
+    const markMissing = () => {
+      if (!thumb.classList.contains('is-image-ready')) thumb.classList.add('is-image-missing');
+    };
+    if (img.complete) markLoaded();
+    img.addEventListener('load', markLoaded, { once: true });
+    img.addEventListener('error', markMissing, { once: true });
+    window.setTimeout(() => {
+      if (!img.complete || img.naturalWidth === 0) markMissing();
+    }, 1600);
+  });
+}
+
 function updateFeaturedMeta(mount, state, showing) {
   const count = mount.querySelector('[data-featured-count]');
   if (!count) return;
@@ -262,8 +308,8 @@ export async function initFeaturedGrid(opts = {}) {
       <header class="pp-featured-head">
         <div class="pp-featured-head-copy">
           <span class="pp-featured-kicker">Pawket Picks</span>
-          <h2 class="pp-featured-title">A curated shelf for the next care moment.</h2>
-          <p class="pp-featured-sub">Featured products sit between the subscription box and the story layer: useful add-ons, seasonal rewards, and easy saves for each pet profile.</p>
+          <h2 class="pp-featured-title">Shop what fits today.</h2>
+          <p class="pp-featured-sub">A tighter shelf of useful treats, toys, care goods, and small extras that make the next pet-care moment easier.</p>
         </div>
         <div class="pp-featured-head-meta">
           <span class="pp-featured-count" data-featured-count>0 showing</span>
@@ -271,9 +317,9 @@ export async function initFeaturedGrid(opts = {}) {
         </div>
       </header>
       <div class="pp-featured-story" aria-label="Featured product lanes">
-        <span><i class="bi bi-box-seam" aria-hidden="true"></i> Pack add-ons</span>
-        <span><i class="bi bi-gift" aria-hidden="true"></i> Threshold rewards</span>
-        <span><i class="bi bi-heart-pulse" aria-hidden="true"></i> CHARM-friendly picks</span>
+        <span><i class="bi bi-box-seam" aria-hidden="true"></i> Box add-ons</span>
+        <span><i class="bi bi-gift" aria-hidden="true"></i> Little bonuses</span>
+        <span><i class="bi bi-heart-pulse" aria-hidden="true"></i> Care-minded picks</span>
       </div>
       <div class="pp-controls-wrap" id="pp-controls"></div>
       <div class="pp-featured-quick d-none" id="pp-featured-quick"></div>
@@ -305,6 +351,7 @@ export async function initFeaturedGrid(opts = {}) {
       }
       empty.classList.add('d-none');
       grid.innerHTML = filtered.map((product, idx) => cardHTML(product, idx)).join('');
+      hydrateProductImages(grid);
       updateFeaturedMeta(mount, state, filtered.length);
       renderQuickFilters(quick, state, state.controlsRef);
     }

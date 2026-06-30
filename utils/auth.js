@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
+import crypto from 'node:crypto';
 
 const DEFAULT_DEV_SECRET = 'supersecretkey';
 const IS_PROD = process.env.NODE_ENV === 'production';
@@ -38,11 +39,14 @@ export async function verifyPassword(password, hashed) {
  */
 export function createPasswordResetToken(user, expiresIn = '15m') {
   return jwt.sign(
-    { id: user.id, email: user.email, purpose: 'pwreset' },
+    { id: user.id, email: user.email, purpose: 'pwreset', jti: crypto.randomUUID() },
     RESET_SECRET,
     { expiresIn }
   );
 }
 export function verifyPasswordResetToken(token) {
   return jwt.verify(token, RESET_SECRET);
+}
+export function decodePasswordResetToken(token) {
+  return jwt.decode(token);
 }

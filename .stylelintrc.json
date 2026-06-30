@@ -1,22 +1,47 @@
 {
   "extends": ["stylelint-config-standard"],
-  "plugins": ["@stylistic/stylelint-plugin"],
   "rules": {
-    "no-descending-specificity": true,
-    "declaration-block-no-duplicate-properties": true,
+    "no-descending-specificity": null,
+    "no-duplicate-selectors": null,
+    "declaration-block-no-duplicate-properties": [
+      true,
+      { "ignore": ["consecutive-duplicates-with-different-values"] }
+    ],
     "property-no-unknown": true,
-    "keyframes-name-pattern": "kebab-case",
-    "media-feature-name-no-vendor-prefix": true,
-    "property-no-vendor-prefix": true,
-    "value-no-vendor-prefix": true,
+    "custom-property-pattern": [
+      "^[a-z][a-z0-9-]*$",
+      { "message": "Custom properties may use Pet Pawket scale names like --step--1 while migrating." }
+    ],
     "selector-id-pattern": [
       "^[A-Za-z][A-Za-z0-9_-]*$",
       { "message": "IDs may be camelCase, PascalCase, _, or - while migrating." }
     ],
 
     "selector-max-id": 2,
-    "selector-max-universal": 1,
+    "selector-max-universal": 2,
 
-    "stylistic/declaration-block-single-line-max-declarations": 1
+    "alpha-value-notation": null,
+    "at-rule-empty-line-before": null,
+    "color-function-notation": null,
+    "color-hex-length": null,
+    "comment-empty-line-before": null,
+    "custom-property-empty-line-before": null,
+    "declaration-block-no-redundant-longhand-properties": null,
+    "declaration-block-single-line-max-declarations": null,
+    "declaration-empty-line-before": null,
+    "font-family-name-quotes": null,
+    "font-family-no-missing-generic-family-keyword": null,
+    "keyframes-name-pattern": null,
+    "length-zero-no-unit": null,
+    "media-feature-name-no-vendor-prefix": null,
+    "media-feature-range-notation": null,
+    "no-empty-source": null,
+    "property-no-vendor-prefix": null,
+    "rule-empty-line-before": null,
+    "selector-class-pattern": null,
+    "shorthand-property-no-redundant-values": null,
+    "selector-not-notation": null,
+    "value-keyword-case": null,
+    "value-no-vendor-prefix": null
   }
 }

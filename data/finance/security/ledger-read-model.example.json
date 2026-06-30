@@ -1,0 +1,50 @@
+{
+  "fixture": "ledger-read-model",
+  "status": "non_production_projection",
+  "read_model_types": [
+    "proposed-ledger-read-model",
+    "proposed-journal-read-model",
+    "test-only-ledger-read-model",
+    "evidence-read-model",
+    "reconciliation-read-model",
+    "report-manifest-read-model"
+  ],
+  "proposed_journal_projection": {
+    "read_model_id": "pjrm_example_2026_05_sales",
+    "source_mode": "proposed",
+    "production_status": "proposed_only",
+    "nonproduction_label": "non_production_preview",
+    "entity_id": "ent_petpawket",
+    "fund_id": "fund_operating",
+    "class_id": "class_commerce",
+    "effective_period": "2026-05",
+    "currency": "USD",
+    "journal_type": "sale",
+    "balance_status": "balanced",
+    "proposed_journal_entry_ids": [
+      "pje_sale_0001"
+    ],
+    "source_proposed_ledger_record_ids": [
+      "proposed_sales_debit_0001",
+      "proposed_sales_credit_0001"
+    ],
+    "source_review_item_ids": [
+      "review_order_sales_0001"
+    ],
+    "source_draft_record_ids": [
+      "draft_order_sales_0001"
+    ],
+    "source_event_ids": [
+      "source_event_order_created_0001"
+    ],
+    "source_bundle_ids": [
+      "bundle_import_test_0001"
+    ],
+    "evidence_manifest_ids": [
+      "cem_pje_sale_0001"
+    ],
+    "risk_flags": [],
+    "total_debits": 60,
+    "total_credits": 60
+  }
+}

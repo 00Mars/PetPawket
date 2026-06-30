@@ -56,17 +56,35 @@
 
       <!-- CENTER / BRAND -->
       <div class="pp-nav-center">
-        <div class="pp-brand">
-          <div class="pp-brand-frame" id="pp-logo-frame">
-            <img src="/PP_Frame.svg" alt="" class="pp-brand-ring">
-            <img
-              src="/Huey.svg"
-              alt="Pet Pawket"
-              class="pp-brand-head huey-mascot"
-              id="huey"
-            >
-          </div>
-          <a href="/.." class="pp-brand-text">Pet Pawket</a>
+        <div class="pp-brand pp-brand--pet-lockup">
+          <a href="/.." class="pp-brand-lockup-link" aria-label="Pet Pawket home" id="pp-logo-frame">
+            <picture>
+              <source media="(max-width: 720px)" srcset="/assets/images/pp-brand-frame-ornate-compact.png">
+              <img
+                src="/assets/images/pp-brand-frame-ornate.png"
+                alt=""
+                class="pp-brand-frame-img"
+                aria-hidden="true"
+              >
+            </picture>
+            <picture class="pp-brand-wordmark-picture">
+              <source media="(max-width: 720px)" srcset="/assets/images/pp-brand-wordmark-ornate-compact.png">
+              <img
+                src="/assets/images/pp-brand-wordmark-ornate.png"
+                alt=""
+                class="pp-brand-wordmark-img"
+                aria-hidden="true"
+              >
+            </picture>
+            <span class="pp-brand-huey-slot" aria-hidden="true">
+              <img
+                src="/assets/images/pp-brand-huey-layer.png"
+                alt=""
+                class="pp-brand-head huey-mascot pp-brand-head--pet-lockup"
+                id="huey"
+              >
+            </span>
+          </a>
         </div>
       </div>
 
@@ -181,7 +199,9 @@
           <summary>Community</summary>
           <div class="pp-subnav-drop-links">
             <a href="/community.html">Community</a>
+            <a href="/pals.html">Pawket Pals</a>
             <a href="/pawket-network.html">Pawket Network</a>
+            <a href="/pawket-places.html">Pawket Places</a>
             <a href="/partner-portal.html">Partner Portal</a>
             <a href="/events.html">Events</a>
           </div>
@@ -218,14 +238,74 @@
     </div>
 
     <div class="pp-subnav-group" data-group="links">
-      <button class="pp-subnav-label" type="button" data-subnav-toggle aria-expanded="false" data-tooltip="External project sites.">Links</button>
-      <div class="pp-subnav-links pp-subnav-links--links">
-        <a href="/pals.html" data-tooltip="Preview Pawket Pals inside the Pet Pawket world." data-tooltip-tap-hold="true">
-          Pawket Pals
-        </a>
-        <a href="/charm.html" data-tooltip="Preview CHARM Foundation impact inside Pet Pawket." data-tooltip-tap-hold="true">
-          CHARM Foundation
-        </a>
+      <button class="pp-subnav-label" type="button" data-subnav-toggle aria-expanded="false" data-tooltip="Open the full Pet Pawket site map.">Links</button>
+      <div class="pp-subnav-links pp-subnav-links--directory" aria-label="All Pet Pawket links">
+        <div class="pp-subnav-directory-panel" role="region" aria-label="Pet Pawket link directory">
+          <div class="pp-subnav-directory-head">
+            <span><i class="bi bi-compass" aria-hidden="true"></i> Full site map</span>
+            <strong>Find your next Pet Pawket stop.</strong>
+            <small>Shop, care, stories, local help, and support stay close.</small>
+          </div>
+
+          <div class="pp-subnav-directory-grid">
+            <section class="pp-subnav-directory-section is-store" aria-labelledby="navLinksStore">
+              <h3 id="navLinksStore"><i class="bi bi-bag-heart" aria-hidden="true"></i> Store</h3>
+              <a href="/">Home</a>
+              <a href="/shop.html">All Products</a>
+              <a href="/shop.html?pet=dog" data-shop-cat="dog">Dog Shelf</a>
+              <a href="/shop.html?pet=cat" data-shop-cat="cat">Cat Shelf</a>
+              <a href="/shop.html?pet=bird" data-shop-cat="bird">Bird Shelf</a>
+              <a href="/shop.html?pet=fish" data-shop-cat="fish">Fish Shelf</a>
+              <a href="/shop.html?pet=reptile" data-shop-cat="reptile">Reptile Shelf</a>
+              <a href="/shop.html?pet=small-pet" data-shop-cat="small-pet">Small Pet Shelf</a>
+              <a href="/pettypes.html">Pet Types</a>
+              <a href="/for-my-pets.html">For My Pets</a>
+              <a href="/cart.html">Cart</a>
+            </section>
+
+            <section class="pp-subnav-directory-section is-boxes" aria-labelledby="navLinksBoxes">
+              <h3 id="navLinksBoxes"><i class="bi bi-box2-heart" aria-hidden="true"></i> Boxes</h3>
+              <a href="/packs.html">Pawket Packs</a>
+              <a href="/packets.html">Pawket Packets</a>
+              <a href="/picks.html">Pawket Picks</a>
+              <a href="/shop.html?subscribe=1">Box-Friendly Add-ons</a>
+            </section>
+
+            <section class="pp-subnav-directory-section is-story" aria-labelledby="navLinksStory">
+              <h3 id="navLinksStory"><i class="bi bi-stars" aria-hidden="true"></i> Story</h3>
+              <a href="/account.html">Account</a>
+              <a href="/account.html#account-pets">Pet Profiles</a>
+              <a href="/account.html#account-story-trail">Saved Stories</a>
+              <a href="/account.html#account-pawket-pals">Private Pals</a>
+              <a href="/pals.html">Pawket Pals</a>
+              <a href="/pals.html#private-pal-certificate-form">Create a Private Pal</a>
+              <a href="/pals.html#pal-story-intake">Submit Pal Story</a>
+              <a href="/loop.html">Pawket Passes</a>
+            </section>
+
+            <section class="pp-subnav-directory-section is-community" aria-labelledby="navLinksCommunity">
+              <h3 id="navLinksCommunity"><i class="bi bi-chat-heart" aria-hidden="true"></i> Community</h3>
+              <a href="/community.html">Community</a>
+              <a href="/charm.html">CHARM Foundation</a>
+              <a href="/pawket-network.html">Pawket Network</a>
+              <a href="/pawket-places.html">Pawket Places</a>
+              <a href="/partner-portal.html">Partner Portal</a>
+              <a href="/events.html">Events</a>
+              <a href="/news.html">News</a>
+            </section>
+
+            <section class="pp-subnav-directory-section is-support" aria-labelledby="navLinksSupport">
+              <h3 id="navLinksSupport"><i class="bi bi-life-preserver" aria-hidden="true"></i> Support</h3>
+              <a href="/order-tracker.html">Track Order</a>
+              <a href="/contact.html">Contact</a>
+              <a href="/about.html">About</a>
+              <a href="/mission.html">Mission</a>
+              <a href="/privacy.html">Privacy &amp; Terms</a>
+              <a href="https://thecharmfoundation.com" data-charm-foundation-link="/" target="_blank" rel="noopener noreferrer">CHARM Foundation Site</a>
+            </section>
+          </div>
+        </div>
+        <button class="pp-subnav-close" type="button" data-subnav-close>× Close</button>
       </div>
     </div>
   </div>

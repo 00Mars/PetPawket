@@ -1,0 +1,59 @@
+{
+  "fixture": "live-ledger-disabled-commit-gate",
+  "status": "production_commit_disabled",
+  "commit_gate_statuses": [
+    "not_requested",
+    "validation_failed",
+    "eligible_but_production_disabled",
+    "test_commit_allowed",
+    "test_committed",
+    "production_commit_blocked",
+    "production_commit_future_review_required",
+    "rejected",
+    "superseded"
+  ],
+  "disabled_production_commit_record": {
+    "disabled_commit_record_id": "disabled_commit_pje_sale_0001_20260529",
+    "proposed_journal_entry_id": "pje_sale_0001",
+    "source_proposed_ledger_record_ids": [
+      "proposed_sales_debit_0001",
+      "proposed_sales_credit_0001"
+    ],
+    "source_review_item_ids": [
+      "review_order_sales_0001"
+    ],
+    "source_draft_record_ids": [
+      "draft_order_sales_0001"
+    ],
+    "source_event_ids": [
+      "source_event_order_created_0001"
+    ],
+    "source_bundle_ids": [
+      "bundle_import_test_0001"
+    ],
+    "evidence_manifest_id": "cem_pje_sale_0001",
+    "commit_gate_status": "eligible_but_production_disabled",
+    "production_commit_enabled": false,
+    "production_live_ledger_write": false,
+    "blockers": [],
+    "warnings": [
+      "Production live ledger commit is disabled by policy."
+    ],
+    "audit_event_id": "audit_000900"
+  },
+  "allowed_current_files": [
+    "events/disabled-production-commit-records.ndjson",
+    "events/test-immutable-ledger-entries.ndjson",
+    "events/proposed-ledger-correction-records.ndjson"
+  ],
+  "forbidden_production_files": [
+    "events/journal-entries.ndjson",
+    "events/live-ledger.ndjson",
+    "events/final-ledger.ndjson",
+    "events/balances.ndjson",
+    "ledger/journal-entries.ndjson",
+    "ledger/live-ledger.ndjson",
+    "ledger/final-ledger.ndjson",
+    "ledger/balances.ndjson"
+  ]
+}

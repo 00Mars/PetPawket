@@ -26,6 +26,9 @@ coverage/
 .playwright-cli/
 output/
 tmp-hero-check/
+data/sources/
+private_uploads/
+uploads/
 
 # Env / local
 .env

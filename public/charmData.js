@@ -1,7 +1,7 @@
 // public/charmData.js — shared placeholder loader for CHARM receipts
 const DEFAULTS = {
-  isPlaceholder: false,
-  howCharmWorks: 'Every order reserves $0.50 + 1% (cap $5) for urgent rescue care, and Pawket Passes help that kindness travel from one pet family to the next.',
+  isPlaceholder: true,
+  howCharmWorks: 'CHARM carries Pet Pawket\'s rescue and medicine mission. Public contribution details will be shown only after program rules and reviewed updates are ready.',
   storyPlaceholder: {
     title: 'Protected memorial origin',
     body: 'CHARM honors the love behind Pet Pawket while public rescue stories, medical updates, and memorial submissions stay consent-aware and carefully reviewed.',
@@ -9,29 +9,25 @@ const DEFAULTS = {
     imageUrl: ''
   },
   whereFundsGo: [
-    { label: 'Urgent medical care', percent: 52 },
-    { label: 'Rescue missions', percent: 28 },
-    { label: 'Placement support', percent: 20 }
+    { label: 'Urgent medical care', percent: 0 },
+    { label: 'Rescue missions', percent: 0 },
+    { label: 'Placement support', percent: 0 }
   ],
   fundedThisMonth: {
-    monthLabel: 'Spring rescue care',
+    monthLabel: 'Reviewed updates pending',
     currency: 'USD',
-    items: [
-      { label: 'Emergency vet visits', amount: 1200 },
-      { label: 'Recovery kits + meds', amount: 850 },
-      { label: 'Foster support', amount: 650 }
-    ],
-    total: 2700
+    items: [],
+    total: 0
   },
   charmEditions: [
-    'CHARM Editions reserve a portion of each pack for rescue care.',
-    'Limited drops help fund urgent cases and memorial support.'
+    'CHARM Edition contribution details will appear after rules are ready.',
+    'Special releases need review before public impact details are shown.'
   ],
   receiptHighlight: {
-    title: 'CHARM care fund',
-    label: 'Spring rescue care',
-    amount: 2700,
-    note: 'Funded urgent visits, recovery kits, foster support, and comfort supplies.'
+    title: 'CHARM updates pending',
+    label: 'Reviewed care updates',
+    amount: 0,
+    note: 'Reviewed CHARM updates will appear here when the details are ready.'
   },
   supportLinks: {
     supportCharm: '/shop.html',

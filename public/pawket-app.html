@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pawket App</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/core.css" />
+  <link rel="stylesheet" href="/css/hero.css" />
+  <link rel="stylesheet" href="/css/pawket-app.css" />
+</head>
+<body class="pp-standalone-app-body">
+  <main class="pp-standalone-app-shell" data-pawket-app-shell>
+    <header class="pp-standalone-app-header">
+      <a class="pp-standalone-app-brand" href="/">
+        <span><i class="bi bi-stars" aria-hidden="true"></i></span>
+        <strong>Pet Pawket</strong>
+      </a>
+      <nav class="pp-standalone-app-tabs" aria-label="Pawket apps" data-pawket-app-tabs></nav>
+    </header>
+
+    <section class="pp-standalone-app-titlebar" data-pawket-app-titlebar>
+      <span class="pp-standalone-app-icon"><i class="bi bi-grid" aria-hidden="true"></i></span>
+      <div>
+        <span>Pawket App</span>
+        <h1>Loading app...</h1>
+        <p>Preparing the app workspace.</p>
+      </div>
+    </section>
+
+    <section class="pp-standalone-app-frame" data-pawket-app-root aria-live="polite">
+      <div class="pp-widget-app-note">Loading Pawket app...</div>
+    </section>
+  </main>
+
+  <script type="module" src="/pawketAppStandalone.js"></script>
+</body>
+</html>

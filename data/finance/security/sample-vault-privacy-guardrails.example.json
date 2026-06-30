@@ -1,0 +1,19 @@
+{
+  "schema_version": "pawket-admin-sample-vault-privacy-guardrails-example-v0",
+  "demo": true,
+  "production_enabled": false,
+  "forbidden_data": [
+    "real customer data",
+    "real donor data",
+    "real vendor data",
+    "real person data",
+    "real payment data",
+    "real tax data",
+    "real bank data",
+    "real assistance data",
+    "real pet-owner data",
+    "raw document content"
+  ],
+  "public_path_allowed": false,
+  "raw_document_content_included": false
+}

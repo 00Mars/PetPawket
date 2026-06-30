@@ -1,0 +1,31 @@
+{
+  "schema_version": "pawket-admin-redaction-review-outcomes-example-v0",
+  "allowed_write_target": "manifests/redaction-review-outcomes.ndjson",
+  "allowed_outcomes": [
+    "redaction_approved",
+    "redaction_required",
+    "public_safe",
+    "blocked_privacy",
+    "rejected"
+  ],
+  "example_outcome": {
+    "redaction_review_outcome_id": "redaction_outcome_0001",
+    "target_type": "report_review_item",
+    "target_id": "report_review_internal_0001",
+    "report_type": "internal_management_preview",
+    "source_mode": "proposed",
+    "required_redaction_profile": "owner_full_internal",
+    "outcome": "redaction_approved",
+    "reviewed_by": "finance_admin_example",
+    "reviewer_role": "finance_admin",
+    "reason": "Internal preview metadata can retain warning labels.",
+    "production_status": "preview_only",
+    "final_export_status": "disabled"
+  },
+  "blocked_public_example": {
+    "report_type": "public_impact_preview",
+    "required_redaction_profile": "owner_full_internal",
+    "outcome": "public_safe",
+    "blocker": "Public impact review requires the public_impact_report redaction profile."
+  }
+}

@@ -13,6 +13,41 @@ const API_VERSION = process.env.SHOPIFY_API_VERSION || '2024-07';
 const SF_ENDPOINT = `https://${SHOPIFY_DOMAIN}/api/${API_VERSION}/graphql.json`;
 const HAS_SHOPIFY_SEARCH = Boolean(SHOPIFY_DOMAIN && STOREFRONT_TOKEN);
 
+function snippet(value, max = 240) {
+  const text = String(value || '').replace(/\s+/g, ' ').trim();
+  return text.length > max ? `${text.slice(0, max).trim()}...` : text;
+}
+
+function sameSiteImagePath(value) {
+  const raw = String(value || '').trim();
+  if (raw.startsWith('/uploads/pets/') || raw.startsWith('/assets/')) return raw;
+  return null;
+}
+
+function petSearchResult(p = {}) {
+  return {
+    id: p.id,
+    name: p.name || '',
+    species: p.species || '',
+    breed: p.breed || '',
+    avatar: sameSiteImagePath(p.avatar),
+  };
+}
+
+function journalSearchResult(entry = {}, pet = {}) {
+  return {
+    id: entry.id,
+    petId: pet.id,
+    petName: pet.name || '',
+    text: snippet(entry.text, 240),
+    mood: entry.mood || null,
+    tags: Array.isArray(entry.tags) ? entry.tags.slice(0, 8).map(tag => String(tag).slice(0, 50)) : [],
+    entryType: entry.entryType || entry.entry_type || 'note',
+    highlighted: entry.highlighted === true,
+    createdAt: entry.createdAt || entry.created_at || null,
+  };
+}
+
 async function shopifyGQL(query, variables) {
   const res = await fetch(SF_ENDPOINT, {
     method: 'POST',
@@ -43,13 +78,14 @@ router.get('/', async (req, res) => {
 
       // Pets
       const allPets = userId ? await getPetsByUserId(userId) : [];
-      pets = allPets.filter(p => {
+      const matchingPets = allPets.filter(p => {
         const hay = [p.name, p.species, p.breed].filter(Boolean).join(' ').toLowerCase();
         return hay.includes(q);
       });
+      pets = matchingPets.map(petSearchResult);
 
       // Journal (search across all pets if pet match was empty)
-      const basePets = pets.length ? pets : allPets;
+      const basePets = matchingPets.length ? matchingPets : allPets;
       for (const p of basePets) {
         const entries = await getPetJournal(userId, p.id);
         for (const e of entries) {
@@ -58,7 +94,7 @@ router.get('/', async (req, res) => {
             e.mood,
             ...(Array.isArray(e.tags) ? e.tags : []),
           ].filter(Boolean).join(' ').toLowerCase();
-          if (hay.includes(q)) journal.push({ ...e, petId: p.id, petName: p.name });
+          if (hay.includes(q)) journal.push(journalSearchResult(e, p));
         }
       }
     }

@@ -1,0 +1,732 @@
+{
+  "status": "static_example_only",
+  "last_updated": "2026-05-26",
+  "disclaimer": "Not insurance. No guaranteed coverage. Pawket Care Credit is a rewards program. CHARM Emergency Assistance is charitable aid subject to eligibility, program guidelines, and available funds. Pet insurance, where available, is offered only through licensed insurance partners.",
+  "summary_cards": [
+    {
+      "id": "revenue",
+      "label": "Revenue",
+      "value": 426.5,
+      "currency": "USD",
+      "note": "Mock gross revenue from storefront, Pack, and Packet examples."
+    },
+    {
+      "id": "expenses",
+      "label": "Expenses",
+      "value": 74.2,
+      "currency": "USD",
+      "note": "Mock vendor and fulfillment expenses."
+    },
+    {
+      "id": "donations",
+      "label": "Donations",
+      "value": 14.77,
+      "currency": "USD",
+      "note": "Mock CHARM pledge, not transferred."
+    },
+    {
+      "id": "care_credit",
+      "label": "Care Credit",
+      "value": 6.25,
+      "currency": "USD",
+      "note": "Planning-only example. No real balance is active."
+    },
+    {
+      "id": "subscriptions",
+      "label": "Subscriptions",
+      "value": 1,
+      "note": "One mock Pawket Pack subscription event."
+    },
+    {
+      "id": "impact",
+      "label": "Impact",
+      "value": 3,
+      "note": "Mock value-flow edges tied to impact reporting examples."
+    }
+  ],
+  "entities": [
+    {
+      "entity_id": "ent_petpawket",
+      "name": "Pet Pawket Commerce",
+      "entity_type": "commerce",
+      "default_currency": "USD"
+    },
+    {
+      "entity_id": "ent_charm",
+      "name": "CHARM Foundation",
+      "entity_type": "foundation_planned",
+      "default_currency": "USD"
+    }
+  ],
+  "funds": [
+    {
+      "fund_id": "fund_operating",
+      "entity_id": "ent_petpawket",
+      "name": "Operating",
+      "restriction_type": "unrestricted"
+    },
+    {
+      "fund_id": "fund_charm_pending",
+      "entity_id": "ent_charm",
+      "name": "CHARM Pending Pledge",
+      "restriction_type": "pending_review"
+    }
+  ],
+  "classes": [
+    {
+      "class_id": "class_storefront",
+      "name": "Storefront"
+    },
+    {
+      "class_id": "class_pawket_packs",
+      "name": "Pawket Packs"
+    },
+    {
+      "class_id": "class_pawket_packets",
+      "name": "Pawket Packets"
+    },
+    {
+      "class_id": "class_pawket_picks",
+      "name": "Pawket Picks"
+    },
+    {
+      "class_id": "class_charm",
+      "name": "CHARM"
+    }
+  ],
+  "accounts": [
+    {
+      "account_id": "acct_sales",
+      "account_code": "4000",
+      "name": "Product Sales",
+      "account_type": "revenue"
+    },
+    {
+      "account_id": "acct_cogs",
+      "account_code": "5000",
+      "name": "Cost Of Goods Sold",
+      "account_type": "expense"
+    },
+    {
+      "account_id": "acct_donation_payable",
+      "account_code": "2200",
+      "name": "Donation Payable",
+      "account_type": "liability"
+    },
+    {
+      "account_id": "acct_care_credit_liability",
+      "account_code": "2300",
+      "name": "Care Credit Liability - Future",
+      "account_type": "liability_planned"
+    }
+  ],
+  "transactions": [
+    {
+      "transaction_id": "txn_order_1001",
+      "event_id": "evt_order_1001",
+      "date_time": "2026-05-01T14:20:00Z",
+      "entity_id": "ent_petpawket",
+      "fund_id": "fund_operating",
+      "class_id": "class_storefront",
+      "account_id": "acct_sales",
+      "category": "revenue",
+      "subcategory": "product_sale",
+      "source_system": "mock_shopify",
+      "source_record_id": "order_1001",
+      "customer_id": "cust_mock_001",
+      "vendor_id": null,
+      "order_id": "order_1001",
+      "subscription_id": null,
+      "campaign_id": "camp_spring-care",
+      "product_sku": "PP-CARE-KIT-01",
+      "gross_amount": 68,
+      "discount_amount": 8,
+      "tax_amount": 3.75,
+      "fee_amount": 2.1,
+      "net_amount": 60,
+      "currency": "USD",
+      "payment_method": "mock_card",
+      "status": "posted_example",
+      "document_links": ["doc_shopify_export_may"],
+      "calculation_rule_id": "rule_net_product_sales_v0",
+      "reconciled_status": "unreconciled_example",
+      "approval_status": "example_only",
+      "audit_hash": "example_hash_txn_order_1001",
+      "notes": "Mock storefront order.",
+      "created_at": "2026-05-26T00:00:00Z",
+      "updated_at": "2026-05-26T00:00:00Z"
+    },
+    {
+      "transaction_id": "txn_pack_sub_2001",
+      "event_id": "evt_subscription_2001",
+      "date_time": "2026-05-03T10:15:00Z",
+      "entity_id": "ent_petpawket",
+      "fund_id": "fund_operating",
+      "class_id": "class_pawket_packs",
+      "account_id": "acct_sales",
+      "category": "revenue",
+      "subcategory": "subscription",
+      "source_system": "mock_subscription",
+      "source_record_id": "sub_2001",
+      "customer_id": "cust_mock_002",
+      "vendor_id": null,
+      "order_id": "order_1002",
+      "subscription_id": "sub_2001",
+      "campaign_id": "camp_pack-launch",
+      "product_sku": "PP-PACK-DOG-M",
+      "gross_amount": 49,
+      "discount_amount": 0,
+      "tax_amount": 3.06,
+      "fee_amount": 1.76,
+      "net_amount": 49,
+      "currency": "USD",
+      "payment_method": "mock_card",
+      "status": "posted_example",
+      "document_links": ["doc_subscription_snapshot_may"],
+      "calculation_rule_id": "rule_pack_margin_v0",
+      "reconciled_status": "unreconciled_example",
+      "approval_status": "example_only",
+      "audit_hash": "example_hash_txn_pack_sub_2001",
+      "notes": "Mock Pawket Pack subscription.",
+      "created_at": "2026-05-26T00:00:00Z",
+      "updated_at": "2026-05-26T00:00:00Z"
+    },
+    {
+      "transaction_id": "txn_packet_3001",
+      "event_id": "evt_packet_3001",
+      "date_time": "2026-05-05T18:45:00Z",
+      "entity_id": "ent_petpawket",
+      "fund_id": "fund_operating",
+      "class_id": "class_pawket_packets",
+      "account_id": "acct_sales",
+      "category": "revenue",
+      "subcategory": "packet_order",
+      "source_system": "mock_shopify",
+      "source_record_id": "order_1003",
+      "customer_id": "cust_mock_003",
+      "vendor_id": null,
+      "order_id": "order_1003",
+      "subscription_id": null,
+      "campaign_id": "camp_packets",
+      "product_sku": "PP-PACKET-CAT-01",
+      "gross_amount": 19.5,
+      "discount_amount": 0,
+      "tax_amount": 1.22,
+      "fee_amount": 0.9,
+      "net_amount": 19.5,
+      "currency": "USD",
+      "payment_method": "mock_card",
+      "status": "posted_example",
+      "document_links": ["doc_shopify_export_may"],
+      "calculation_rule_id": "rule_packet_margin_v0",
+      "reconciled_status": "unreconciled_example",
+      "approval_status": "example_only",
+      "audit_hash": "example_hash_txn_packet_3001",
+      "notes": "Mock Pawket Packet order. Big love comes in small Packets.",
+      "created_at": "2026-05-26T00:00:00Z",
+      "updated_at": "2026-05-26T00:00:00Z"
+    },
+    {
+      "transaction_id": "txn_expense_4001",
+      "event_id": "evt_vendor_invoice_4001",
+      "date_time": "2026-05-06T09:00:00Z",
+      "entity_id": "ent_petpawket",
+      "fund_id": "fund_operating",
+      "class_id": "class_storefront",
+      "account_id": "acct_cogs",
+      "category": "expense",
+      "subcategory": "packaging",
+      "source_system": "mock_vendor_invoice",
+      "source_record_id": "invoice_packaging_001",
+      "customer_id": null,
+      "vendor_id": "vendor_packaging_mock",
+      "order_id": null,
+      "subscription_id": null,
+      "campaign_id": null,
+      "product_sku": null,
+      "gross_amount": 74.2,
+      "discount_amount": 0,
+      "tax_amount": 0,
+      "fee_amount": 0,
+      "net_amount": 74.2,
+      "currency": "USD",
+      "payment_method": "mock_bank",
+      "status": "posted_example",
+      "document_links": ["doc_vendor_invoice_packaging"],
+      "calculation_rule_id": "rule_cogs_packaging_v0",
+      "reconciled_status": "unreconciled_example",
+      "approval_status": "example_only",
+      "audit_hash": "example_hash_txn_expense_4001",
+      "notes": "Mock packaging vendor expense.",
+      "created_at": "2026-05-26T00:00:00Z",
+      "updated_at": "2026-05-26T00:00:00Z"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "order_1001",
+      "source_system": "mock_shopify",
+      "customer_id": "cust_mock_001",
+      "gross_amount": 68,
+      "discount_amount": 8,
+      "tax_amount": 3.75,
+      "net_amount": 60,
+      "currency": "USD",
+      "status": "example_paid"
+    },
+    {
+      "order_id": "order_1003",
+      "source_system": "mock_shopify",
+      "customer_id": "cust_mock_003",
+      "gross_amount": 19.5,
+      "discount_amount": 0,
+      "tax_amount": 1.22,
+      "net_amount": 19.5,
+      "currency": "USD",
+      "status": "example_paid"
+    }
+  ],
+  "order_items": [
+    {
+      "order_item_id": "item_1001_1",
+      "order_id": "order_1001",
+      "product_sku": "PP-CARE-KIT-01",
+      "name": "Everyday Care Kit",
+      "quantity": 1,
+      "gross_amount": 68,
+      "net_amount": 60,
+      "cogs_amount": 23.4
+    },
+    {
+      "order_item_id": "item_1003_1",
+      "order_id": "order_1003",
+      "product_sku": "PP-PACKET-CAT-01",
+      "name": "Cat Pawket Packet",
+      "quantity": 1,
+      "gross_amount": 19.5,
+      "net_amount": 19.5,
+      "cogs_amount": 8.6
+    }
+  ],
+  "products": [
+    {
+      "product_id": "prod_care_kit",
+      "name": "Everyday Care Kit",
+      "class_id": "class_storefront"
+    },
+    {
+      "product_id": "prod_pack_dog",
+      "name": "Dog Pawket Pack",
+      "class_id": "class_pawket_packs"
+    },
+    {
+      "product_id": "prod_packet_cat",
+      "name": "Cat Pawket Packet",
+      "class_id": "class_pawket_packets"
+    }
+  ],
+  "skus": [
+    {
+      "product_sku": "PP-CARE-KIT-01",
+      "product_id": "prod_care_kit",
+      "standard_cost": 23.4
+    },
+    {
+      "product_sku": "PP-PACK-DOG-M",
+      "product_id": "prod_pack_dog",
+      "standard_cost": 21.75
+    },
+    {
+      "product_sku": "PP-PACKET-CAT-01",
+      "product_id": "prod_packet_cat",
+      "standard_cost": 8.6
+    }
+  ],
+  "subscriptions": [
+    {
+      "subscription_id": "sub_2001",
+      "customer_id": "cust_mock_002",
+      "product_sku": "PP-PACK-DOG-M",
+      "status": "example_active",
+      "period": "monthly",
+      "amount": 49,
+      "currency": "USD"
+    }
+  ],
+  "payments": [
+    {
+      "payment_id": "pay_1001",
+      "order_id": "order_1001",
+      "amount": 63.75,
+      "fee_amount": 2.1,
+      "currency": "USD",
+      "status": "example_captured"
+    }
+  ],
+  "refunds": [
+    {
+      "refund_id": "refund_1001_partial",
+      "order_id": "order_1001",
+      "amount": 8,
+      "currency": "USD",
+      "reason": "mock_discount_adjustment",
+      "care_credit_reversal_required": "future_rule_only"
+    }
+  ],
+  "expenses": [
+    {
+      "expense_id": "expense_4001",
+      "vendor_id": "vendor_packaging_mock",
+      "category": "packaging",
+      "amount": 74.2,
+      "currency": "USD",
+      "document_id": "doc_vendor_invoice_packaging"
+    }
+  ],
+  "inventory_movements": [
+    {
+      "movement_id": "inv_5001",
+      "product_sku": "PP-PACKET-CAT-01",
+      "movement_type": "mock_fulfillment",
+      "quantity": -1,
+      "unit_cost": 8.6,
+      "source_record_id": "order_1003"
+    }
+  ],
+  "campaigns": [
+    {
+      "campaign_id": "camp_spring-care",
+      "name": "Spring Care Mock Campaign",
+      "status": "example_only"
+    },
+    {
+      "campaign_id": "camp_packets",
+      "name": "Packet Trial Mock Campaign",
+      "status": "example_only"
+    }
+  ],
+  "coupons": [
+    {
+      "coupon_id": "coupon_mock_8",
+      "code": "MOCKCARE8",
+      "campaign_id": "camp_spring-care",
+      "discount_amount": 8,
+      "status": "example_only"
+    }
+  ],
+  "donations": [
+    {
+      "donation_id": "don_charm_pledge_001",
+      "entity_id": "ent_charm",
+      "fund_id": "fund_charm_pending",
+      "source_order_id": "order_1001",
+      "pledged_amount": 5.6,
+      "transferred_amount": 0,
+      "currency": "USD",
+      "status": "pending_example"
+    },
+    {
+      "donation_id": "don_charm_pledge_002",
+      "entity_id": "ent_charm",
+      "fund_id": "fund_charm_pending",
+      "source_order_id": "order_1003",
+      "pledged_amount": 1.95,
+      "transferred_amount": 0,
+      "currency": "USD",
+      "status": "pending_example"
+    }
+  ],
+  "donor_acknowledgments": [
+    {
+      "acknowledgment_id": "ack_001",
+      "donation_id": "don_charm_pledge_001",
+      "status": "not_required_for_mock",
+      "document_id": "doc_charm_pledge_summary"
+    }
+  ],
+  "fund_restrictions": [
+    {
+      "restriction_id": "restriction_charm_pending",
+      "fund_id": "fund_charm_pending",
+      "restriction_type": "pending_review",
+      "allowed_uses": ["future_charm_mission_after_review"]
+    }
+  ],
+  "care_credit_ledger": [
+    {
+      "care_credit_event_id": "cc_mock_001",
+      "customer_id": "cust_mock_001",
+      "source_order_id": "order_1001",
+      "event_type": "planned_earn_example",
+      "amount": 3,
+      "currency": "USD",
+      "status": "example_only_not_active",
+      "terms_version": "not_approved",
+      "disclaimer": "Pawket Care Credit is not active and this is not a customer balance."
+    },
+    {
+      "care_credit_event_id": "cc_mock_002",
+      "customer_id": "cust_mock_003",
+      "source_order_id": "order_1003",
+      "event_type": "planned_earn_example",
+      "amount": 0.98,
+      "currency": "USD",
+      "status": "example_only_not_active",
+      "terms_version": "not_approved",
+      "disclaimer": "Pawket Care Credit is rewards value, not insurance."
+    }
+  ],
+  "pawket_points_ledger": [
+    {
+      "points_event_id": "ppoints_001",
+      "customer_id": "cust_mock_001",
+      "source_order_id": "order_1001",
+      "points": 60,
+      "status": "example_only"
+    }
+  ],
+  "heartpoints_ledger": [
+    {
+      "heartpoints_event_id": "hpoints_001",
+      "customer_id": "cust_mock_001",
+      "source_event_id": "don_charm_pledge_001",
+      "points": 6,
+      "status": "example_only"
+    }
+  ],
+  "customer_tiers": [
+    {
+      "customer_id": "cust_mock_001",
+      "tier": "Heartkeeper",
+      "status": "example_only"
+    }
+  ],
+  "reward_redemptions": [
+    {
+      "redemption_id": "redeem_mock_001",
+      "customer_id": "cust_mock_001",
+      "reward_type": "pawket_pick",
+      "status": "example_fulfilled"
+    }
+  ],
+  "pawket_picks": [
+    {
+      "pick_id": "pick_mock_001",
+      "source_order_id": "order_1001",
+      "threshold": 60,
+      "item_sku": "PP-PICK-SAMPLE-01",
+      "estimated_cost": 2.25,
+      "status": "example_unlocked"
+    }
+  ],
+  "assistance_applications": [
+    {
+      "application_id": "assist_mock_001",
+      "entity_id": "ent_charm",
+      "status": "planning_example_not_active",
+      "applicant_type": "rescue_partner_example",
+      "public_story_consent": "not_granted",
+      "notes": "No real assistance intake exists."
+    }
+  ],
+  "assistance_awards": [
+    {
+      "award_id": "award_mock_001",
+      "application_id": "assist_mock_001",
+      "amount": 0,
+      "currency": "USD",
+      "status": "not_active"
+    }
+  ],
+  "assistance_payments": [
+    {
+      "payment_id": "assist_pay_mock_001",
+      "award_id": "award_mock_001",
+      "amount": 0,
+      "currency": "USD",
+      "status": "not_active"
+    }
+  ],
+  "impact_outcomes": [
+    {
+      "outcome_id": "impact_mock_001",
+      "entity_id": "ent_charm",
+      "metric": "privacy_safe_support_example",
+      "value": 0,
+      "status": "example_only"
+    }
+  ],
+  "foundation_partners": [
+    {
+      "partner_id": "foundation_partner_mock_001",
+      "name": "Example Rescue Partner",
+      "status": "example_only_unverified"
+    }
+  ],
+  "pawket_pals": [
+    {
+      "pal_finance_id": "pal_fin_mock_001",
+      "heartcode": "HC-EXAMPLE-001",
+      "pal_class": "community_example",
+      "creation_cost": 18,
+      "market_enabled": false,
+      "transfer_locked": true,
+      "status": "example_only"
+    }
+  ],
+  "heartcodes": [
+    {
+      "heartcode": "HC-EXAMPLE-001",
+      "source_type": "mock_pal",
+      "private_data_encoded": false,
+      "status": "example_only"
+    }
+  ],
+  "story_submissions": [
+    {
+      "story_submission_id": "story_mock_001",
+      "source_type": "consent_safe_mock",
+      "raw_story_in_finance": false,
+      "status": "example_only"
+    }
+  ],
+  "pal_editions": [
+    {
+      "edition_id": "edition_mock_001",
+      "edition_type": "community_preview_example",
+      "release_status": "not_released",
+      "market_enabled": false
+    }
+  ],
+  "asset_ledger": [
+    {
+      "asset_event_id": "asset_mock_001",
+      "asset_type": "pal_art_direction",
+      "amount": 18,
+      "currency": "USD",
+      "status": "example_cost_only_no_resale_promise"
+    }
+  ],
+  "contractors_creators": [
+    {
+      "creator_id": "creator_mock_001",
+      "role": "illustration",
+      "payment_status": "example_only"
+    }
+  ],
+  "documents": [
+    {
+      "document_id": "doc_shopify_export_may",
+      "title": "Mock Shopify May Export",
+      "document_type": "order_export",
+      "storage_uri": "mock://finance/documents/shopify-may-export.csv",
+      "status": "example_only"
+    },
+    {
+      "document_id": "doc_vendor_invoice_packaging",
+      "title": "Mock Packaging Vendor Invoice",
+      "document_type": "vendor_invoice",
+      "storage_uri": "mock://finance/documents/vendor-packaging.pdf",
+      "status": "example_only"
+    },
+    {
+      "document_id": "doc_charm_pledge_summary",
+      "title": "Mock CHARM Pledge Summary",
+      "document_type": "donation_summary",
+      "storage_uri": "mock://finance/documents/charm-pledge-summary.json",
+      "status": "example_only"
+    }
+  ],
+  "calculation_rules": [
+    {
+      "calculation_rule_id": "rule_net_product_sales_v0",
+      "rule_key": "net_product_sales",
+      "version": "0.0-example",
+      "status": "example_only",
+      "formula_description": "gross_amount minus discount_amount, excluding tax and fees"
+    },
+    {
+      "calculation_rule_id": "rule_charm_pledge_v0",
+      "rule_key": "charm_pledge",
+      "version": "0.0-example",
+      "status": "example_only_not_approved",
+      "formula_description": "example pledge amount for planning display only"
+    },
+    {
+      "calculation_rule_id": "rule_care_credit_earned_v0",
+      "rule_key": "care_credit_earned",
+      "version": "0.0-example",
+      "status": "example_only_not_approved",
+      "formula_description": "planning-only rewards value example"
+    }
+  ],
+  "report_runs": [
+    {
+      "report_run_id": "report_mock_may_management",
+      "report_key": "monthly_management_report",
+      "title": "Mock May Management Report",
+      "period_start": "2026-05-01",
+      "period_end": "2026-05-31",
+      "status": "example_only",
+      "rule_versions": ["0.0-example"],
+      "source_documents": ["doc_shopify_export_may", "doc_vendor_invoice_packaging"]
+    }
+  ],
+  "report_exports": [
+    {
+      "export_id": "export_mock_json",
+      "report_run_id": "report_mock_may_management",
+      "format": "json",
+      "status": "example_only"
+    }
+  ],
+  "reconciliations": [
+    {
+      "reconciliation_id": "recon_mock_001",
+      "source": "mock_payment_processor",
+      "status": "not_reconciled_example"
+    }
+  ],
+  "decisions": [
+    {
+      "decision_id": "decision_finance_001",
+      "title": "Start with static finance prototype",
+      "status": "recorded_example",
+      "source_document": "docs/PET_PAWKET_FINANCE_IMPLEMENTATION_PLAN.md"
+    }
+  ],
+  "promises": [
+    {
+      "promise_id": "promise_mock_001",
+      "public_claim": "Mock campaign pledge example",
+      "fulfillment_status": "example_pending",
+      "source_document": "doc_charm_pledge_summary"
+    }
+  ],
+  "value_flow_edges": [
+    {
+      "edge_id": "edge_001",
+      "from_type": "customer",
+      "from_id": "cust_mock_001",
+      "to_type": "order",
+      "to_id": "order_1001",
+      "relationship": "placed"
+    },
+    {
+      "edge_id": "edge_002",
+      "from_type": "order",
+      "from_id": "order_1001",
+      "to_type": "donation",
+      "to_id": "don_charm_pledge_001",
+      "relationship": "generated_mock_pledge"
+    },
+    {
+      "edge_id": "edge_003",
+      "from_type": "donation",
+      "from_id": "don_charm_pledge_001",
+      "to_type": "report_run",
+      "to_id": "report_mock_may_management",
+      "relationship": "included_in"
+    }
+  ]
+}

@@ -215,7 +215,7 @@ function render(root, p){
               <span>CHARM preview</span>
               <strong id="pdp-impact-amount">CHARM care stories</strong>
             </div>
-            <div class="pdp-impact-case" id="pdp-impact-case">This product can connect into Pet Pawket's growing receipt, rescue story, and Pawket Pass ecosystem.</div>
+            <div class="pdp-impact-case" id="pdp-impact-case">This product can stay connected to Pet Pawket care, CHARM kindness, and Pawket Pass sharing.</div>
             <button class="pp-impact-btn pdp-impact-btn" type="button" data-loop-open hidden>Share Pawket Pass</button>
           </div>
 

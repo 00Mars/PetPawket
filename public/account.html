@@ -32,13 +32,13 @@
                 <h2 class="h5 m-0">My Account</h2>
               </div>
               <div class="card-body">
-                <p class="text-muted small mb-3">Your home for pet profiles, journals, Core Memories, Pawket Passes, and care updates.</p>
+                <p class="text-muted small mb-3">Your home for pet profiles, journals, favorite memories, private Pals, Pawket Passes, and care updates.</p>
 
                 <!-- Signed out -->
                 <div class="mt-2" data-auth="signed-out">
                   <div class="account-signin-note">
                     <strong>Build your Pet Pawket around the pets you love.</strong>
-                    <span>Sign in to save pets, journal moments, wishlist picks, and prepare Pawket Pack details.</span>
+                    <span>Sign in to save pets, journal moments, private Pals, wishlist picks, and Pawket Pack details.</span>
                   </div>
                   <a href="#" class="btn btn-primary w-100 mt-3" data-toggle="login-modal">Sign In</a>
                 </div>
@@ -88,7 +88,7 @@
                   </li>
                   <li data-account-progress-step="core">
                     <i class="bi bi-stars" aria-hidden="true"></i>
-                    <span><strong>Core Memory</strong><small data-account-progress-note="core">Mark one meaningful memory.</small></span>
+                    <span><strong>Favorite memory</strong><small data-account-progress-note="core">Mark one meaningful memory.</small></span>
                   </li>
                   <li data-account-progress-step="quest">
                     <i class="bi bi-map" aria-hidden="true"></i>
@@ -96,7 +96,7 @@
                   </li>
                   <li data-account-progress-step="pass">
                     <i class="bi bi-ticket-perforated" aria-hidden="true"></i>
-                    <span><strong>Pawket Pass</strong><small data-account-progress-note="pass">Passes appear after purchases, gifts, or claims.</small></span>
+                    <span><strong>Pawket Pass</strong><small data-account-progress-note="pass">Passes appear after purchases, gifts, or saved links.</small></span>
                   </li>
                   <li data-account-progress-step="impact">
                     <i class="bi bi-shield-heart" aria-hidden="true"></i>
@@ -128,8 +128,8 @@
                   <div class="account-guest-hero">
                     <div>
                       <span class="account-progress-eyebrow">Pet-first profile</span>
-                      <h3>Profiles, journals, Core Memories, and CHARM impact start here.</h3>
-                      <p>Sign in to save your pet's details, prepare Pawket Pack fit, and keep meaningful story moments private until you choose otherwise.</p>
+                      <h3>Profiles, journals, favorite memories, and CHARM updates start here.</h3>
+                      <p>Sign in to save your pet's details, prepare Pawket Pack fit, create private Pals, and keep meaningful story moments private until you choose otherwise.</p>
                     </div>
                     <div class="account-guest-actions">
                       <a href="#" class="btn btn-primary" data-toggle="login-modal"><i class="bi bi-person-heart" aria-hidden="true"></i> Sign in</a>
@@ -142,7 +142,7 @@
                       <span><i class="bi bi-person-heart" aria-hidden="true"></i></span>
                       <div>
                         <strong>Start with a pet profile</strong>
-                        <small>Species, birthday, fit notes, allergies, preferences, and pack-eligible details.</small>
+                        <small>Species, birthday, fit notes, allergies, preferences, and helpful shopping details.</small>
                       </div>
                     </div>
                     <div class="account-guest-step">
@@ -155,15 +155,15 @@
                     <div class="account-guest-step">
                       <span><i class="bi bi-stars" aria-hidden="true"></i></span>
                       <div>
-                        <strong>Mark Core Memories</strong>
-                        <small>Meaningful moments can later inform Pawket Pals, Share Studio cards, and CHARM-safe context.</small>
+                        <strong>Mark favorite memories</strong>
+                        <small>Meaningful moments can inspire Pawket Pals, Share Studio cards, and CHARM updates when you choose what can be shared.</small>
                       </div>
                     </div>
                     <div class="account-guest-step">
                       <span><i class="bi bi-shield-heart" aria-hidden="true"></i></span>
                       <div>
-                        <strong>Connect impact carefully</strong>
-                        <small>CHARM and partner updates are built around consent, trust, and careful visibility.</small>
+                        <strong>Keep impact careful</strong>
+                        <small>CHARM and partner updates are shared with trust and care.</small>
                       </div>
                     </div>
                   </div>
@@ -235,10 +235,10 @@
                     <div>
                       <span class="account-progress-eyebrow">For My Pets</span>
                       <h5 class="h6">Profiles personalize the shop.</h5>
-                      <p class="text-muted small mb-0">Keep pet details, allergies, and care notes here. The tuned product shelves now live in the shop where cart, wishlist, and pack-eligible add-on actions belong.</p>
+                      <p class="text-muted small mb-0">Keep pet details, allergies, and care notes here. The shop can use those details to make browsing feel more personal.</p>
                     </div>
                     <a class="btn btn-primary btn-sm" href="/shop.html?mypets=1">
-                      <i class="bi bi-stars" aria-hidden="true"></i> Open tuned shelves
+                      <i class="bi bi-stars" aria-hidden="true"></i> Shop for my pets
                     </a>
                   </div>
                 </div>
@@ -247,7 +247,7 @@
               <!-- Story Trail -->
               <section class="card shadow-sm mt-4 pp-story-panel" id="account-story-trail">
                 <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
-                  <h2 class="h5 m-0">Your Story Trail</h2>
+                  <h2 class="h5 m-0">Your Saved Stories</h2>
                   <span class="pp-story-pill" data-story-stage-pill>Account overview</span>
                 </div>
                 <div class="card-body">
@@ -262,15 +262,18 @@
                         </div>
                       </div>
                       <div class="pp-story-panel-copy">
-                        <strong data-story-pal-name>Meet your Pawket Pal</strong>
-                        <p data-story-pal-copy>Pawket Pals will grow from saved stories and shared moments. Private journals stay private unless you choose otherwise.</p>
-                        <a class="pp-text-link" href="/community.html">View community</a>
+                        <strong data-story-pal-name>Create a private Pal</strong>
+                        <p data-story-pal-copy>Pet profiles and favorite memories can become private Honorary Pals. Stories are shared only when you choose.</p>
+                        <div class="pp-story-panel-actions">
+                          <a class="pp-text-link" href="/pals.html#private-pal-certificate-form">Create private Pal</a>
+                          <a class="pp-text-link" href="/pals.html#pal-story-intake">Send a story</a>
+                        </div>
                       </div>
                     </div>
                     <div class="pp-story-panel-card">
                       <div class="pp-story-panel-badge"><i class="bi bi-stars"></i> Care record</div>
                       <h3><span data-story-care-count>0</span> care moments saved</h3>
-                      <p>Journals and Core Memories keep the important details easy to find.</p>
+                      <p>Journals and favorite memories keep the important details easy to find.</p>
                       <div class="pp-story-progress">
                         <span data-story-progress-bar style="width:0%"></span>
                       </div>
@@ -290,22 +293,27 @@
                       </div>
                     </div>
                   </div>
+                  <div class="pp-story-spine-note" aria-label="Private story to Pawket Pal path">
+                    <span><i class="bi bi-person-heart" aria-hidden="true"></i> Profile or favorite memory</span>
+                    <span><i class="bi bi-patch-check" aria-hidden="true"></i> Private Pal</span>
+                    <span><i class="bi bi-eye-slash" aria-hidden="true"></i> Share only by choice</span>
+                  </div>
                   <div class="pp-story-context" data-story-context-panel aria-live="polite">
                     <div class="pp-story-context-copy">
                       <span class="pp-kicker">Profile summary</span>
                       <h3 data-story-context-title>Build your pet's story.</h3>
-                      <p data-story-context-copy>Profiles, journals, Core Memories, and passes help keep care and meaningful moments organized.</p>
+                      <p data-story-context-copy>Profiles, journals, favorite memories, and passes help keep care and meaningful moments organized.</p>
                     </div>
                     <div class="pp-story-context-metrics" aria-label="Story summary metrics">
                       <span><strong data-story-context-pets>0</strong><small>Pets</small></span>
                       <span><strong data-story-context-journals>0</strong><small>Journals</small></span>
-                      <span><strong data-story-context-core>0</strong><small>Core</small></span>
-                      <span><strong data-story-context-handoffs>0</strong><small>Links</small></span>
+                      <span><strong data-story-context-core>0</strong><small>Favorites</small></span>
+                      <span><strong data-story-context-handoffs>0</strong><small>Steps</small></span>
                     </div>
                     <div class="pp-story-context-steps" aria-label="Helpful account steps">
                       <span data-story-context-step="profile"><i class="bi bi-person-heart" aria-hidden="true"></i> Profile</span>
                       <span data-story-context-step="journal"><i class="bi bi-journal-richtext" aria-hidden="true"></i> Journal</span>
-                      <span data-story-context-step="core"><i class="bi bi-stars" aria-hidden="true"></i> Core</span>
+                      <span data-story-context-step="core"><i class="bi bi-stars" aria-hidden="true"></i> Memory</span>
                       <span data-story-context-step="quest"><i class="bi bi-map" aria-hidden="true"></i> Next step</span>
                     </div>
                     <div class="pp-story-context-next">
@@ -322,6 +330,42 @@
                       <span class="pp-story-pill" data-quest-sync>Saved here</span>
                     </div>
                     <div class="pp-quest-map" data-quest-map="account" aria-live="polite"></div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Pawket Pals -->
+              <section class="card shadow-sm mt-4 account-pal-panel" id="account-pawket-pals">
+                <div class="card-header account-pal-header">
+                  <div>
+                    <span class="account-loop-kicker">Pawket Pals</span>
+                    <h2 class="h5 m-0">Private Pals</h2>
+                  </div>
+                  <span class="pp-story-pill" data-account-pal-count>0 Pals</span>
+                </div>
+                <div class="card-body">
+                  <div class="account-pal-summary" data-account-pal-summary aria-live="polite">
+                    <div class="account-pal-empty">
+                      <div class="account-pal-empty-icon"><i class="bi bi-stars" aria-hidden="true"></i></div>
+                      <div>
+                        <strong>Private Pals begin with your account.</strong>
+                        <p class="mb-0">Sign in to create private Pawket Pals from pet profiles, favorite memories, or stories you choose to send.</p>
+                      </div>
+                      <div class="account-pal-source-map" aria-label="Private Pawket Pal start points">
+                        <span><i class="bi bi-person-heart" aria-hidden="true"></i><strong>Profile</strong><small>Pet details</small></span>
+                        <span><i class="bi bi-stars" aria-hidden="true"></i><strong>Memory</strong><small>Private note</small></span>
+                        <span><i class="bi bi-patch-check" aria-hidden="true"></i><strong>Pal</strong><small>Keepsake</small></span>
+                        <span><i class="bi bi-shield-check" aria-hidden="true"></i><strong>Share</strong><small>Only by choice</small></span>
+                      </div>
+                      <div class="account-pal-empty-actions">
+                        <a class="btn btn-primary btn-sm" href="/pals.html#private-pal-certificate-form">
+                          <i class="bi bi-patch-plus" aria-hidden="true"></i> Create Pal
+                        </a>
+                        <a class="btn btn-outline-primary btn-sm" href="/pals.html#pal-story-intake">
+                          <i class="bi bi-send-heart" aria-hidden="true"></i> Submit story
+                        </a>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </section>
@@ -928,7 +972,7 @@
         <div>
           <span class="account-modal-kicker"><i class="bi bi-journal-richtext" aria-hidden="true"></i> Pet Journal</span>
           <h3 id="journalLabel">Pet Journal</h3>
-          <p id="journalSubhead" class="journal-subhead text-muted">Capture notes, moods, care moments, and Core Memories.</p>
+          <p id="journalSubhead" class="journal-subhead text-muted">Capture notes, moods, care moments, and favorite memories.</p>
         </div>
         <button class="account-modal-icon-close" data-close="journal-modal" aria-label="Close journal modal" type="button">×</button>
       </div>
@@ -941,7 +985,7 @@
             <span class="journal-section-icon"><i class="bi bi-pencil-square" aria-hidden="true"></i></span>
             <div>
               <h4 id="journalComposerTitle">New journal entry</h4>
-              <p>Care notes, story moments, and Core Memories in one place.</p>
+              <p>Care notes, story moments, and favorite memories in one place.</p>
             </div>
           </div>
 
@@ -1026,7 +1070,7 @@
 
             <label class="journal-core-toggle" for="journalCoreMemory">
               <input class="form-check-input" type="checkbox" id="journalCoreMemory" />
-              <span><i class="bi bi-stars" aria-hidden="true"></i> Core Memory</span>
+              <span><i class="bi bi-stars" aria-hidden="true"></i> Favorite Memory</span>
             </label>
           </div>
 
@@ -1041,7 +1085,7 @@
             <span class="journal-section-icon"><i class="bi bi-clock-history" aria-hidden="true"></i></span>
             <div>
               <h4 id="journalTimelineTitle">Timeline</h4>
-              <p>Filter care history, story moments, and Core Memories.</p>
+              <p>Filter care history, story moments, and favorite memories.</p>
             </div>
           </div>
 
@@ -1074,7 +1118,7 @@
             </label>
             <label class="journal-core-filter" for="journalCoreOnly">
               <input class="form-check-input" type="checkbox" id="journalCoreOnly" />
-              <span>Core only</span>
+              <span>Favorites only</span>
             </label>
           </div>
 

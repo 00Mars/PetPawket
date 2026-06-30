@@ -1,0 +1,39 @@
+{
+  "schema_version": "pawket-admin-report-review-decisions-example-v0",
+  "allowed_write_target": "manifests/report-review-decisions.ndjson",
+  "allowed_decisions": [
+    "approved_for_preview_package",
+    "rejected",
+    "needs_changes",
+    "superseded"
+  ],
+  "example_decisions": [
+    {
+      "report_review_decision_id": "decision_approved_0001",
+      "report_review_item_id": "report_review_internal_0001",
+      "decision": "approved_for_preview_package",
+      "decided_by": "finance_admin_example",
+      "decider_role": "finance_admin",
+      "reason": "Preview metadata can proceed; final export remains disabled.",
+      "production_status": "preview_only",
+      "final_export_status": "disabled"
+    },
+    {
+      "report_review_decision_id": "decision_rejected_0001",
+      "report_review_item_id": "report_review_public_0001",
+      "decision": "rejected",
+      "decided_by": "owner_root_example",
+      "decider_role": "owner_root",
+      "reason": "Public evidence still contains private assistance context.",
+      "rejection_history": [
+        {
+          "reason": "Public evidence still contains private assistance context.",
+          "rejected_by": "owner_root_example",
+          "rejected_at": "2026-05-29T13:06:00Z"
+        }
+      ],
+      "production_status": "blocked_pending_review",
+      "final_export_status": "blocked"
+    }
+  ]
+}

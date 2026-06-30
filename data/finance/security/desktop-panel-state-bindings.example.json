@@ -1,0 +1,33 @@
+{
+  "panel_bindings_type": "desktop_panel_state_bindings",
+  "production_enabled": false,
+  "read_only": true,
+  "local_only": true,
+  "source_mode": "local_non_production_desktop_shell_contract",
+  "bindings": [
+    {
+      "panel_id": "overview",
+      "label": "Overview",
+      "source_view_model": "operator_ui_state.panels.overview",
+      "ui_state_key": "panels.overview",
+      "enabled": true,
+      "read_only": true,
+      "mutation_actions_enabled": false,
+      "export_actions_enabled": false,
+      "raw_document_content_allowed": false,
+      "production_authority": false
+    },
+    {
+      "panel_id": "sample_vault_preview",
+      "label": "Sample Vault Preview",
+      "source_view_model": "sample_vault_preview.cli_preview",
+      "ui_state_key": "sample_preview_binding",
+      "enabled": true,
+      "read_only": true,
+      "mutation_actions_enabled": false,
+      "export_actions_enabled": false,
+      "raw_document_content_allowed": false,
+      "production_authority": false
+    }
+  ]
+}

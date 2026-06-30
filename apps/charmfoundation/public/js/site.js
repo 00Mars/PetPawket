@@ -30,25 +30,75 @@ async function fetchJSON(url, opts) {
   return { ok: res.ok, data };
 }
 
+function clearNode(node) {
+  while (node?.firstChild) node.removeChild(node.firstChild);
+}
+
+function makeEl(tag, className = '', text = null) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== null && text !== undefined) node.textContent = String(text);
+  return node;
+}
+
+function appendChildren(parent, children = []) {
+  children.filter(Boolean).forEach((child) => parent.appendChild(child));
+  return parent;
+}
+
+function safeHref(value, fallback = '#') {
+  const raw = String(value || '').trim();
+  if (!raw) return fallback;
+  try {
+    const url = new URL(raw, window.location.origin);
+    if (!['http:', 'https:'].includes(url.protocol)) return fallback;
+    return url.origin === window.location.origin
+      ? `${url.pathname}${url.search}${url.hash}`
+      : url.href;
+  } catch {
+    return fallback;
+  }
+}
+
+function makeLink(className, href, text) {
+  const link = makeEl('a', className, text);
+  const safe = safeHref(href);
+  link.setAttribute('href', safe);
+  if (safe === '#') link.setAttribute('aria-disabled', 'true');
+  return link;
+}
+
+function makeCard(text = '') {
+  return makeEl('div', 'cf-card', text);
+}
+
+function setEmptyCard(host, text) {
+  clearNode(host);
+  host.appendChild(makeCard(text));
+}
+
 async function loadCases() {
   const host = qs('[data-cases-list]');
   if (!host) return;
   const { data } = await fetchJSON('/api/cases');
   const isPlaceholder = Boolean(data.placeholder);
   const cases = data.cases || [];
-  host.innerHTML = cases.map((c) => {
+  if (!cases.length) return setEmptyCard(host, 'No cases published yet.');
+  clearNode(host);
+  cases.forEach((c) => {
     const pct = c.goalAmount ? Math.min(100, Math.round((c.fundedAmount / c.goalAmount) * 100)) : 0;
-    const link = c.id ? `/cases/${c.id}` : '/cases';
-    return `
-      <div class="cf-card">
-        <span class="cf-tag">${isPlaceholder ? 'Example case' : 'Active case'}</span>
-        <h3><a class="cf-link" href="${link}">${c.title}</a></h3>
-        <p>${c.summary || ''}</p>
-        <div class="cf-notice">${formatMoney(c.fundedAmount || 0, c.currency || 'USD')} of ${formatMoney(c.goalAmount || 0, c.currency || 'USD')} funded - ${pct}%</div>
-        <a class="cf-btn ghost" href="${link}">View case</a>
-      </div>
-    `;
-  }).join('') || '<div class="cf-card">No cases published yet.</div>';
+    const link = c.id ? `/cases/${encodeURIComponent(c.id)}` : '/cases';
+    const title = makeEl('h3');
+    title.appendChild(makeLink('cf-link', link, c.title || 'Case'));
+    const card = appendChildren(makeCard(), [
+      makeEl('span', 'cf-tag', isPlaceholder ? 'Example case' : 'Active case'),
+      title,
+      makeEl('p', '', c.summary || ''),
+      makeEl('div', 'cf-notice', `${formatMoney(c.fundedAmount || 0, c.currency || 'USD')} of ${formatMoney(c.goalAmount || 0, c.currency || 'USD')} funded - ${pct}%`),
+      makeLink('cf-btn ghost', link, 'View case'),
+    ]);
+    host.appendChild(card);
+  });
 }
 
 async function loadEvents() {
@@ -57,18 +107,23 @@ async function loadEvents() {
   const { data } = await fetchJSON('/api/events');
   const isPlaceholder = Boolean(data.placeholder);
   const events = data.events || [];
-  host.innerHTML = events.map((e) => {
+  if (!events.length) return setEmptyCard(host, 'No events scheduled yet.');
+  clearNode(host);
+  events.forEach((e) => {
     const date = e.startsAt ? new Date(e.startsAt).toLocaleString() : 'TBD';
-    return `
-      <div class="cf-card">
-        <span class="cf-tag">${isPlaceholder ? 'Example event' : 'Upcoming'} - #${e.id || 'TBD'}</span>
-        <h3>${e.title}</h3>
-        <p>${e.description || ''}</p>
-        <div class="cf-notice">${date} - ${e.location || 'Location TBD'}</div>
-        <button class="cf-btn ghost" type="button" data-rsvp-button data-event-id="${e.id || ''}" data-event-title="${e.title || ''}">RSVP</button>
-      </div>
-    `;
-  }).join('') || '<div class="cf-card">No events scheduled yet.</div>';
+    const button = makeEl('button', 'cf-btn ghost', 'RSVP');
+    button.type = 'button';
+    button.setAttribute('data-rsvp-button', '');
+    button.dataset.eventId = String(e.id || '');
+    button.dataset.eventTitle = String(e.title || '');
+    host.appendChild(appendChildren(makeCard(), [
+      makeEl('span', 'cf-tag', `${isPlaceholder ? 'Example event' : 'Upcoming'} - #${e.id || 'TBD'}`),
+      makeEl('h3', '', e.title || 'Event'),
+      makeEl('p', '', e.description || ''),
+      makeEl('div', 'cf-notice', `${date} - ${e.location || 'Location TBD'}`),
+      button,
+    ]));
+  });
   wireEventButtons();
 }
 
@@ -78,7 +133,12 @@ async function loadFunds() {
   const { data } = await fetchJSON('/api/donations/funds');
   const funds = data.funds || [];
   selects.forEach((select) => {
-    select.innerHTML = funds.map((f) => `<option value="${f.code}">${f.name}</option>`).join('');
+    clearNode(select);
+    funds.forEach((f) => {
+      const option = makeEl('option', '', f.name || f.code || 'Fund');
+      option.value = String(f.code || '');
+      select.appendChild(option);
+    });
   });
 }
 
@@ -87,15 +147,15 @@ async function loadReceipts() {
   if (!host) return;
   const { data } = await fetchJSON('/api/donations/impact/receipts');
   const receipts = data.receipts || [];
-  host.innerHTML = receipts.map((r) => {
-    return `
-      <div class="cf-card cf-receipt-card">
-        <span class="cf-tag">${r.month || 'Receipt'}</span>
-        <h3>${formatMoney(r.totalAmount || 0)}</h3>
-        <p>${r.summary?.note || 'Impact receipt summary will appear here.'}</p>
-      </div>
-    `;
-  }).join('') || '<div class="cf-card">No receipts published yet.</div>';
+  if (!receipts.length) return setEmptyCard(host, 'No receipts published yet.');
+  clearNode(host);
+  receipts.forEach((r) => {
+    host.appendChild(appendChildren(makeEl('div', 'cf-card cf-receipt-card'), [
+      makeEl('span', 'cf-tag', r.month || 'Receipt'),
+      makeEl('h3', '', formatMoney(r.totalAmount || 0)),
+      makeEl('p', '', r.summary?.note || 'Impact receipt summary will appear here.'),
+    ]));
+  });
 }
 
 function collectCheckedValues(form, name) {
@@ -320,13 +380,13 @@ async function loadCaseDetail() {
   if (!root) return;
   const caseId = parseCaseId();
   if (!caseId) {
-    root.innerHTML = '<div class="cf-card">Case details are unavailable.</div>';
+    setEmptyCard(root, 'Case details are unavailable.');
     return;
   }
 
   const { ok, data } = await fetchJSON(`/api/cases/${caseId}`);
   if (!ok || !data?.case) {
-    root.innerHTML = '<div class="cf-card">Case not found.</div>';
+    setEmptyCard(root, 'Case not found.');
     return;
   }
 
@@ -359,29 +419,35 @@ async function loadCaseDetail() {
   const updatesEl = root.querySelector('[data-case-updates]');
   if (updatesEl) {
     const updates = Array.isArray(data.updates) ? data.updates : [];
-    updatesEl.innerHTML = updates.length
-      ? updates.map((u) => `
-          <div class="cf-card">
-            <span class="cf-tag">${u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'Update'}</span>
-            <h3>${u.title || 'Update'}</h3>
-            <p>${u.body || ''}</p>
-          </div>
-        `).join('')
-      : '<div class="cf-card">Updates will appear here as they are published.</div>';
+    if (!updates.length) {
+      setEmptyCard(updatesEl, 'Updates will appear here as they are published.');
+    } else {
+      clearNode(updatesEl);
+      updates.forEach((u) => {
+        updatesEl.appendChild(appendChildren(makeCard(), [
+          makeEl('span', 'cf-tag', u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'Update'),
+          makeEl('h3', '', u.title || 'Update'),
+          makeEl('p', '', u.body || ''),
+        ]));
+      });
+    }
   }
 
   const docsEl = root.querySelector('[data-case-docs]');
   if (docsEl) {
     const docs = Array.isArray(data.documents) ? data.documents : [];
-    docsEl.innerHTML = docs.length
-      ? docs.map((d) => `
-          <div class="cf-card">
-            <span class="cf-tag">${d.docType || 'Document'}</span>
-            <h3>${d.label || 'Case document'}</h3>
-            <a class="cf-btn ghost" href="${d.url || '#'}" ${d.url ? '' : 'aria-disabled="true"'}>Open document</a>
-          </div>
-        `).join('')
-      : '<div class="cf-card">Documents and receipts will be posted here.</div>';
+    if (!docs.length) {
+      setEmptyCard(docsEl, 'Documents and receipts will be posted here.');
+    } else {
+      clearNode(docsEl);
+      docs.forEach((d) => {
+        docsEl.appendChild(appendChildren(makeCard(), [
+          makeEl('span', 'cf-tag', d.docType || 'Document'),
+          makeEl('h3', '', d.label || 'Case document'),
+          makeLink('cf-btn ghost', d.url || '#', 'Open document'),
+        ]));
+      });
+    }
   }
 }
 
@@ -401,109 +467,149 @@ async function loadContentData() {
   const faqHost = qs('[data-content-faq]');
   if (faqHost) {
     const items = data.faq || [];
-    faqHost.innerHTML = items.map((item) => `
-      <div class="cf-card">
-        <span class="cf-tag">${item.tag || 'FAQ'}</span>
-        <h3>${item.q || ''}</h3>
-        <p>${item.a || ''}</p>
-      </div>
-    `).join('') || '<div class="cf-card">FAQ entries will appear here.</div>';
+    if (!items.length) setEmptyCard(faqHost, 'FAQ entries will appear here.');
+    else {
+      clearNode(faqHost);
+      items.forEach((item) => {
+        faqHost.appendChild(appendChildren(makeCard(), [
+          makeEl('span', 'cf-tag', item.tag || 'FAQ'),
+          makeEl('h3', '', item.q || ''),
+          makeEl('p', '', item.a || ''),
+        ]));
+      });
+    }
   }
 
   const partnerHost = qs('[data-content-partners]');
   if (partnerHost) {
     const items = data.partnerSpotlights || [];
-    partnerHost.innerHTML = items.map((item) => `
-      <div class="cf-card">
-        <span class="cf-tag">${item.tag || 'Example partner'}</span>
-        <h3>${item.name || ''}</h3>
-        <p>${item.summary || ''}</p>
-        <div class="cf-notice">Spotlights shared with permission.</div>
-      </div>
-    `).join('') || '<div class="cf-card">Partner spotlights will appear here.</div>';
+    if (!items.length) setEmptyCard(partnerHost, 'Partner spotlights will appear here.');
+    else {
+      clearNode(partnerHost);
+      items.forEach((item) => {
+        partnerHost.appendChild(appendChildren(makeCard(), [
+          makeEl('span', 'cf-tag', item.tag || 'Example partner'),
+          makeEl('h3', '', item.name || ''),
+          makeEl('p', '', item.summary || ''),
+          makeEl('div', 'cf-notice', 'Spotlights shared with permission.'),
+        ]));
+      });
+    }
   }
 
   const highlightHost = qs('[data-content-highlights]');
   if (highlightHost) {
     const items = data.monthlyHighlights || [];
-    highlightHost.innerHTML = items.map((item) => `
-      <div class="cf-card cf-receipt-card">
-        <span class="cf-tag">${item.tag || 'Example highlight'}</span>
-        <h3>${item.title || ''}</h3>
-        <p>${item.summary || ''}</p>
-      </div>
-    `).join('') || '<div class="cf-card">Monthly highlights will appear here.</div>';
+    if (!items.length) setEmptyCard(highlightHost, 'Monthly highlights will appear here.');
+    else {
+      clearNode(highlightHost);
+      items.forEach((item) => {
+        highlightHost.appendChild(appendChildren(makeEl('div', 'cf-card cf-receipt-card'), [
+          makeEl('span', 'cf-tag', item.tag || 'Example highlight'),
+          makeEl('h3', '', item.title || ''),
+          makeEl('p', '', item.summary || ''),
+        ]));
+      });
+    }
   }
 
   const reportsHost = qs('[data-content-reports]');
   if (reportsHost) {
     const items = data.reports || [];
-    reportsHost.innerHTML = items.map((item) => `
-      <div class="cf-card">
-        <span class="cf-tag">${item.date || 'Report'}</span>
-        <h3>${item.title || ''}</h3>
-        <a class="cf-btn ghost" href="${item.url || '#'}" ${item.url && item.url !== '#' ? '' : 'aria-disabled="true"'}>View report</a>
-      </div>
-    `).join('') || '<div class="cf-card">Reports will appear here.</div>';
+    if (!items.length) setEmptyCard(reportsHost, 'Reports will appear here.');
+    else {
+      clearNode(reportsHost);
+      items.forEach((item) => {
+        reportsHost.appendChild(appendChildren(makeCard(), [
+          makeEl('span', 'cf-tag', item.date || 'Report'),
+          makeEl('h3', '', item.title || ''),
+          makeLink('cf-btn ghost', item.url || '#', 'View report'),
+        ]));
+      });
+    }
   }
 
   const pressHost = qs('[data-content-press]');
   if (pressHost) {
     const items = data.press || [];
-    pressHost.innerHTML = items.map((item) => `
-      <div class="cf-card">
-        <span class="cf-tag">${item.outlet || 'Press'}</span>
-        <h3>${item.title || ''}</h3>
-        <div class="cf-notice">${item.date || ''}</div>
-        <a class="cf-btn ghost" href="${item.url || '#'}" ${item.url && item.url !== '#' ? '' : 'aria-disabled="true"'}>Read coverage</a>
-      </div>
-    `).join('') || '<div class="cf-card">Press mentions will appear here.</div>';
+    if (!items.length) setEmptyCard(pressHost, 'Press mentions will appear here.');
+    else {
+      clearNode(pressHost);
+      items.forEach((item) => {
+        pressHost.appendChild(appendChildren(makeCard(), [
+          makeEl('span', 'cf-tag', item.outlet || 'Press'),
+          makeEl('h3', '', item.title || ''),
+          makeEl('div', 'cf-notice', item.date || ''),
+          makeLink('cf-btn ghost', item.url || '#', 'Read coverage'),
+        ]));
+      });
+    }
   }
 
   const boardHost = qs('[data-content-board]');
   if (boardHost) {
     const items = data.board || [];
-    boardHost.innerHTML = items.map((item) => `
-      <div class="cf-card">
-        <h3>${item.name || ''}</h3>
-        <p>${item.role || ''}</p>
-      </div>
-    `).join('') || '<div class="cf-card">Board listings will appear here.</div>';
+    if (!items.length) setEmptyCard(boardHost, 'Board listings will appear here.');
+    else {
+      clearNode(boardHost);
+      items.forEach((item) => {
+        boardHost.appendChild(appendChildren(makeCard(), [
+          makeEl('h3', '', item.name || ''),
+          makeEl('p', '', item.role || ''),
+        ]));
+      });
+    }
   }
 
   const statsHost = qs('[data-content-stats]');
   if (statsHost) {
     const items = data.homeStats || [];
-    statsHost.innerHTML = items.map((item) => `
-      <div class="cf-stat">
-        <div class="cf-stat-value">${item.value || ''}</div>
-        <div class="cf-notice">${item.label || ''}</div>
-      </div>
-    `).join('') || '<div class="cf-stat"><div class="cf-stat-value">--</div><div class="cf-notice">Loading stats...</div></div>';
+    clearNode(statsHost);
+    if (!items.length) {
+      statsHost.appendChild(appendChildren(makeEl('div', 'cf-stat'), [
+        makeEl('div', 'cf-stat-value', '--'),
+        makeEl('div', 'cf-notice', 'Loading stats...'),
+      ]));
+    } else {
+      items.forEach((item) => {
+        statsHost.appendChild(appendChildren(makeEl('div', 'cf-stat'), [
+          makeEl('div', 'cf-stat-value', item.value || ''),
+          makeEl('div', 'cf-notice', item.label || ''),
+        ]));
+      });
+    }
   }
 
   const trustHost = qs('[data-content-trust]');
   if (trustHost) {
     const items = data.trustCards || [];
-    trustHost.innerHTML = items.map((item) => `
-      <div class="cf-card">
-        <span class="cf-tag">${item.tag || 'Trust'}</span>
-        <h3>${item.title || ''}</h3>
-        <p>${item.summary || ''}</p>
-        <a class="cf-btn ghost" href="${item.href || '#'}">Learn more</a>
-      </div>
-    `).join('') || '<div class="cf-card">Trust resources will appear here.</div>';
+    if (!items.length) setEmptyCard(trustHost, 'Trust resources will appear here.');
+    else {
+      clearNode(trustHost);
+      items.forEach((item) => {
+        trustHost.appendChild(appendChildren(makeCard(), [
+          makeEl('span', 'cf-tag', item.tag || 'Trust'),
+          makeEl('h3', '', item.title || ''),
+          makeEl('p', '', item.summary || ''),
+          makeLink('cf-btn ghost', item.href || '#', 'Learn more'),
+        ]));
+      });
+    }
   }
 
   const policiesHost = qs('[data-content-policies]');
   if (policiesHost) {
     const items = data.policies || [];
-    policiesHost.innerHTML = items.map((item) => `
-      <div class="cf-card">
-        <h3>${item.title || ''}</h3>
-        <a class="cf-btn ghost" href="${item.url || '#'}" ${item.url && item.url !== '#' ? '' : 'aria-disabled="true"'}>View policy</a>
-      </div>
-    `).join('') || '<div class="cf-card">Policies will appear here.</div>';
+    if (!items.length) setEmptyCard(policiesHost, 'Policies will appear here.');
+    else {
+      clearNode(policiesHost);
+      items.forEach((item) => {
+        policiesHost.appendChild(appendChildren(makeCard(), [
+          makeEl('h3', '', item.title || ''),
+          makeLink('cf-btn ghost', item.url || '#', 'View policy'),
+        ]));
+      });
+    }
   }
 }
 
@@ -514,26 +620,30 @@ async function loadCaseSpotlight() {
   const isPlaceholder = Boolean(data.placeholder);
   const caseItem = (data.cases || [])[0];
   if (!caseItem) {
-    host.innerHTML = '<div class="cf-card">Case spotlight will appear here.</div>';
+    setEmptyCard(host, 'Case spotlight will appear here.');
     return;
   }
 
   const pct = caseItem.goalAmount ? Math.min(100, Math.round((caseItem.fundedAmount / caseItem.goalAmount) * 100)) : 0;
-  const link = caseItem.id ? `/cases/${caseItem.id}` : '/cases';
+  const link = caseItem.id ? `/cases/${encodeURIComponent(caseItem.id)}` : '/cases';
+  const progress = makeEl('div', 'cf-progress');
+  const bar = makeEl('span');
+  bar.style.width = `${pct}%`;
+  progress.appendChild(bar);
+  const cta = appendChildren(makeEl('div', 'cf-cta'), [
+    makeLink('cf-btn', link, 'View case'),
+    makeLink('cf-btn ghost', '/donate', 'Support CHARM'),
+  ]);
 
-  host.innerHTML = `
-    <div class="cf-card cf-spotlight-card">
-      <span class="cf-tag">${isPlaceholder ? 'Example case spotlight' : 'Case spotlight'}</span>
-      <h3>${caseItem.title || 'Case spotlight'}</h3>
-      <p>${caseItem.summary || ''}</p>
-      <div class="cf-notice">${formatMoney(caseItem.fundedAmount || 0, caseItem.currency || 'USD')} of ${formatMoney(caseItem.goalAmount || 0, caseItem.currency || 'USD')} funded - ${pct}%</div>
-      <div class="cf-progress"><span style="width: ${pct}%;"></span></div>
-      <div class="cf-cta">
-        <a class="cf-btn" href="${link}">View case</a>
-        <a class="cf-btn ghost" href="/donate">Support CHARM</a>
-      </div>
-    </div>
-  `;
+  clearNode(host);
+  host.appendChild(appendChildren(makeEl('div', 'cf-card cf-spotlight-card'), [
+    makeEl('span', 'cf-tag', isPlaceholder ? 'Example case spotlight' : 'Case spotlight'),
+    makeEl('h3', '', caseItem.title || 'Case spotlight'),
+    makeEl('p', '', caseItem.summary || ''),
+    makeEl('div', 'cf-notice', `${formatMoney(caseItem.fundedAmount || 0, caseItem.currency || 'USD')} of ${formatMoney(caseItem.goalAmount || 0, caseItem.currency || 'USD')} funded - ${pct}%`),
+    progress,
+    cta,
+  ]));
 }
 
 window.addEventListener('DOMContentLoaded', () => {

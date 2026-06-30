@@ -1,0 +1,34 @@
+{
+  "example_type": "desktop_panel_render_failure_modes",
+  "demo": true,
+  "production_enabled": false,
+  "read_only": true,
+  "local_only": true,
+  "in_memory_only": true,
+  "stdout_only": true,
+  "runtime_state_persistence_enabled": false,
+  "packaged_app": false,
+  "official_balance_status": "disabled",
+  "official_report_status": "disabled",
+  "final_export_status": "disabled",
+  "source_mode": "local_non_production_desktop_panel_render_contract",
+  "safe_failure_triggers": [
+    "unsafe_vault_path",
+    "public_path",
+    "malformed_ndjson",
+    "failed_contract_inspection",
+    "invalid_panel_contract",
+    "invalid_region_map",
+    "invalid_summary_surface",
+    "runtime_panel_state_detected"
+  ],
+  "failure_output": "stderr_only_error",
+  "forbidden_failure_behavior": [
+    "write_runtime_snapshot",
+    "persist_panel_state",
+    "create_export",
+    "create_official_report",
+    "create_official_balance",
+    "include_raw_document_content"
+  ]
+}

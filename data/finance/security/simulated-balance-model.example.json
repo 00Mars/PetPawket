@@ -1,0 +1,34 @@
+{
+  "fixture": "simulated-balance-model",
+  "status": "simulated_only_not_official_accounting",
+  "simulated_balance": {
+    "simulated_balance_id": "simb_income_product_sales_2026_05",
+    "source_mode": "proposed",
+    "production_status": "non_production_preview",
+    "nonproduction_label": "simulated_not_official_accounting",
+    "official_balance": false,
+    "entity_id": "ent_petpawket",
+    "fund_id": "fund_operating",
+    "class_id": "class_commerce",
+    "account_id": "income_product_sales",
+    "account_type": "income",
+    "normal_balance": "credit",
+    "period": "2026-05",
+    "currency": "USD",
+    "debit_total": 0,
+    "credit_total": 60,
+    "simulated_balance": 60,
+    "source_record_ids": [
+      "proposed_sales_credit_0001"
+    ],
+    "evidence_manifest_ids": [
+      "cem_pje_sale_0001"
+    ],
+    "warnings": [
+      "Simulated balance only. Not official accounting truth.",
+      "Do not use for tax filing, investor reliance, or public reporting."
+    ],
+    "generated_at": "2026-05-29T11:15:00Z",
+    "generated_by": "finance_admin_example"
+  }
+}

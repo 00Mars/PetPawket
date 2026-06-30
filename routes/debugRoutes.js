@@ -4,6 +4,10 @@ import { softSession } from '../middleware/requireAuth.js';
 const router = express.Router();
 
 router.get('/whoami', async (req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(404).json({ ok: false, error: 'Not found' });
+  }
+
   try {
     const cookieHeader = req.headers.cookie || '';
     const cookies = Object.fromEntries(

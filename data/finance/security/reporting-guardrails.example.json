@@ -1,0 +1,32 @@
+{
+  "fixture": "reporting-guardrails",
+  "status": "production_reporting_disabled",
+  "production_reports_enabled": false,
+  "official_balances_enabled": false,
+  "final_exports_enabled": false,
+  "required_nonproduction_labels": [
+    "non_production_preview",
+    "not_official_accounting",
+    "not_for_tax_filing",
+    "not_for_investor_reliance"
+  ],
+  "blocked_outputs": [
+    "irs_final_exports",
+    "accountant_final_exports",
+    "investor_final_reports",
+    "foundation_final_reports",
+    "public_impact_reports",
+    "official_balances",
+    "production_report_packages",
+    "pdf_csv_xlsx_zip_exports"
+  ],
+  "allowed_current_files": [
+    "manifests/report-manifests.ndjson"
+  ],
+  "privacy_redaction_guardrails": [
+    "Public impact previews require public-safe or redacted evidence.",
+    "Accountant and IRS previews may reference sensitive financial metadata but do not create final exports.",
+    "Investor summaries must remain aggregate or sanitized until reviewed.",
+    "Connector debug previews must not include raw or decrypted document content."
+  ]
+}

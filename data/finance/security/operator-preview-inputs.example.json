@@ -1,0 +1,32 @@
+{
+  "schema_version": "pawket-admin-operator-preview-inputs-example-v0",
+  "accepted_inputs": {
+    "argv": [
+      "--vault /path/to/local/pawket-admin-vault",
+      "--vault=/path/to/local/pawket-admin-vault"
+    ],
+    "environment": [
+      "PAWKET_ADMIN_VAULT_PATH",
+      "PAWKET_ADMIN_OPERATOR_VAULT_PATH",
+      "PAWKET_ADMIN_OPERATOR_PREVIEW_VAULT_PATH"
+    ],
+    "safe_help_flags": [
+      "--help",
+      "-h"
+    ]
+  },
+  "record_sources": [
+    "quarantine/index.ndjson",
+    "events/staged-source-events.ndjson",
+    "events/draft-finance-records.ndjson",
+    "events/review-queue.ndjson",
+    "events/proposed-ledger-records.ndjson",
+    "events/proposed-journal-entries.ndjson",
+    "manifests/commit-evidence-manifests.ndjson",
+    "manifests/report-manifests.ndjson",
+    "manifests/export-intent-records.ndjson",
+    "manifests/report-review-decisions.ndjson"
+  ],
+  "missing_files_behavior": "treated_as_empty",
+  "malformed_records_behavior": "nonzero_safe_failure"
+}

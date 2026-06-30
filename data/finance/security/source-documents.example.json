@@ -1,0 +1,92 @@
+{
+  "fixture": "source-documents.example",
+  "status": "example_only_not_real_finance_data",
+  "documents": [
+    {
+      "document_id": "doc_order_source_example_0001",
+      "document_type": "order_source",
+      "document_title": "Example order source event evidence",
+      "source_system": "petpawket_website_connector",
+      "source_record_id": "source_event_order_created_example_0001",
+      "entity_id": "ent_petpawket",
+      "fund_id": "fund_operating",
+      "class_id": "class_commerce",
+      "related_customer_ref": "customer_ref_example_redacted",
+      "related_vendor_ref": null,
+      "related_order_ref": "order_example_0001",
+      "related_payment_ref": null,
+      "related_donation_ref": null,
+      "related_assistance_ref": null,
+      "related_story_ref": null,
+      "related_pawket_pal_ref": null,
+      "file_name": "order-example-0001-source.json",
+      "file_mime_type": "application/json",
+      "file_size_bytes": 512,
+      "file_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "blob_ref_placeholder": "vault://documents/example/order-source-0001",
+      "hash_algorithm": "sha256",
+      "document_date": "2026-05-28",
+      "received_at": "2026-05-28T12:00:00Z",
+      "uploaded_by": "connector_petpawket_website_readonly_v0",
+      "retention_class": "finance_source",
+      "privacy_class": "financial_sensitive",
+      "redaction_state": "none_required",
+      "evidence_status": "complete",
+      "export_allowlist_tags": ["accountant_pack", "owner_archive"],
+      "linked_record_ids": [
+        {
+          "target_type": "proposed_journal_entry",
+          "target_id": "pje_sale_example_0001",
+          "relationship": "supporting_evidence",
+          "linked_at": "2026-05-28T12:05:00Z"
+        }
+      ],
+      "notes": "Example metadata only. No raw document content.",
+      "created_at": "2026-05-28T12:00:00Z",
+      "updated_at": "2026-05-28T12:05:00Z"
+    },
+    {
+      "document_id": "doc_story_consent_example_0001",
+      "document_type": "pawket_pal_story_consent",
+      "document_title": "Example Pawket Pal story consent record",
+      "source_system": "pawket_admin_manual_review",
+      "source_record_id": "story_submission_example_0001",
+      "entity_id": "ent_petpawket",
+      "fund_id": "fund_operating",
+      "class_id": "class_pawket_pals",
+      "related_customer_ref": "customer_ref_example_redacted",
+      "related_vendor_ref": null,
+      "related_order_ref": null,
+      "related_payment_ref": null,
+      "related_donation_ref": null,
+      "related_assistance_ref": null,
+      "related_story_ref": "story_submission_example_0001",
+      "related_pawket_pal_ref": "pal_example_0001",
+      "file_name": "story-consent-example-0001.pdf",
+      "file_mime_type": "application/pdf",
+      "file_size_bytes": 2048,
+      "file_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "blob_ref_placeholder": "vault://documents/example/story-consent-0001",
+      "hash_algorithm": "sha256",
+      "document_date": "2026-05-28",
+      "received_at": "2026-05-28T12:10:00Z",
+      "uploaded_by": "finance_admin_example",
+      "retention_class": "privacy_consent",
+      "privacy_class": "story_sensitive",
+      "redaction_state": "pending_review",
+      "evidence_status": "complete",
+      "export_allowlist_tags": ["internal_only"],
+      "linked_record_ids": [
+        {
+          "target_type": "story_submission",
+          "target_id": "story_submission_example_0001",
+          "relationship": "consent_evidence",
+          "linked_at": "2026-05-28T12:15:00Z"
+        }
+      ],
+      "notes": "Example consent metadata only. Do not publish private story details from this record.",
+      "created_at": "2026-05-28T12:10:00Z",
+      "updated_at": "2026-05-28T12:15:00Z"
+    }
+  ]
+}

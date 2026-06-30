@@ -106,17 +106,17 @@ function buildModal() {
       <button class="pp-loop-close" type="button" data-loop-close aria-label="Close">×</button>
       <span class="pp-loop-kicker">Pawket Pass</span>
       <h2 class="pp-loop-title">Share your Pawket Pass</h2>
-      <p>A Pawket Pass can help someone else discover Pet Pawket while keeping CHARM impact connected to the account trail.</p>
+      <p>A Pawket Pass can help someone else discover Pet Pawket while keeping private details protected.</p>
       <div class="pp-loop-flow" aria-label="Pawket Pass flow">
         <span>Share Pass</span>
         <span class="pp-loop-flow-arrow">&gt;</span>
         <span>Friend Shops</span>
         <span class="pp-loop-flow-arrow">&gt;</span>
-        <span class="pp-loop-flow-final">Impact Stays Visible</span>
+        <span class="pp-loop-flow-final">Care Moves Forward</span>
       </div>
       <div class="pp-loop-empty-modal" data-loop-empty hidden>
         <strong>No shareable pass yet.</strong>
-        <span>Passes appear here after eligible purchases, gifts, or claims. You can still open the Pass Hub to learn how the path works.</span>
+        <span>Passes appear here after purchases, gifts, or saved links. You can still open the Pass Hub to learn how they work.</span>
         <div class="pp-loop-actions-row">
           <a class="pp-loop-mini-btn is-link" href="/shop.html">Shop</a>
           <a class="pp-loop-mini-btn is-link" href="/loop.html">Pass Hub</a>

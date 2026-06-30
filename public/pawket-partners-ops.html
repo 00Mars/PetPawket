@@ -20,8 +20,8 @@
       <div class="pp-band-inner">
         <div class="pp-section-head">
           <span class="pp-kicker">Pawket Partners Ops</span>
-          <h2>Review claims and manage partner readiness.</h2>
-          <p>This portal is dedicated to Pawket Network operations only. It is separate from broader site administration.</p>
+          <h2>Review claims, nominations, and launch readiness.</h2>
+          <p>This portal keeps Pawket Network honest: public listings come from approved data, claims move through review, and partner status stays gated.</p>
         </div>
 
         <div class="pp-network-grid">
@@ -41,7 +41,137 @@
           </aside>
 
           <section class="pp-network-panel">
-            <h3>Listings</h3>
+            <h3>Provider nominations</h3>
+            <div class="pp-network-actions">
+              <select class="pp-network-select" data-ops-nomination-status>
+                <option value="pending">Pending</option>
+                <option value="reviewed">Reviewed</option>
+                <option value="dismissed">Dismissed</option>
+                <option value="converted">Converted</option>
+              </select>
+            </div>
+            <div class="pp-network-chip-row" data-ops-nomination-summary></div>
+            <div class="pp-network-queue" data-ops-nominations></div>
+          </section>
+        </div>
+
+        <section class="pp-network-panel pp-network-panel--wide">
+          <div>
+            <h3>Pawket Pal story review</h3>
+            <p class="pp-network-muted">Consent review for private Honorary Pal certificates that request future public story, Community Pal, CHARM, CHERISH, marketing, or transfer consideration. This queue does not publish Pals.</p>
+          </div>
+          <div class="pp-network-actions">
+            <select class="pp-network-select" data-ops-pal-review-status>
+              <option value="review_required">Review requested</option>
+              <option value="pending">Pending</option>
+              <option value="granted">Granted</option>
+              <option value="revoked">Revoked</option>
+              <option value="all">All</option>
+            </select>
+          </div>
+          <div class="pp-network-chip-row" data-ops-pal-review-summary></div>
+          <div class="pp-network-queue" data-ops-pal-reviews></div>
+          <div class="pp-network-stack">
+            <div>
+              <h3>Community Pal drafts</h3>
+              <p class="pp-network-muted">Internal draft templates created only from granted Community Pal review consent. Drafts stay private and unreleased.</p>
+            </div>
+            <div class="pp-network-queue" data-ops-community-drafts></div>
+          </div>
+        </section>
+
+        <div class="pp-network-grid pp-network-grid--ops-main">
+          <aside class="pp-network-panel">
+            <h3>Source candidates</h3>
+            <p class="pp-network-muted">Review imported Overture, IRS, OSM, partner API, or licensed POI records before they become public Network Listings.</p>
+            <div class="pp-network-actions">
+              <select class="pp-network-select" data-ops-candidate-status>
+                <option value="new">New</option>
+                <option value="needs_review">Needs review</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+                <option value="promoted">Promoted</option>
+                <option value="all">All</option>
+              </select>
+              <select class="pp-network-select" data-ops-candidate-source>
+                <option value="">All sources</option>
+                <option value="overture">Overture</option>
+                <option value="irs_eo_bmf">IRS EO BMF</option>
+                <option value="osm">OpenStreetMap</option>
+                <option value="paid_provider">Paid provider</option>
+                <option value="partner_api">Partner API</option>
+                <option value="manual">Manual</option>
+              </select>
+              <select class="pp-network-select" data-ops-candidate-readiness>
+                <option value="">All readiness</option>
+                <option value="promotable">Promotable basics</option>
+                <option value="needs_contact">Needs contact</option>
+                <option value="needs_location">Needs location</option>
+                <option value="contact_ready">Contact ready</option>
+                <option value="location_ready">Location ready</option>
+              </select>
+            </div>
+            <div class="pp-network-row">
+              <input class="pp-network-input" data-ops-candidate-state placeholder="State" maxlength="2" />
+              <input class="pp-network-input" data-ops-candidate-search placeholder="Search candidates" />
+            </div>
+            <div class="pp-network-actions">
+              <button class="pp-network-btn ghost" type="button" data-ops-action="candidate-search">Search candidates</button>
+            </div>
+            <div class="pp-network-actions">
+              <button class="pp-network-btn ghost" type="button" data-ops-action="candidate-select-visible">Select visible</button>
+              <button class="pp-network-btn ghost" type="button" data-ops-action="candidate-clear-selected">Clear selected</button>
+              <select class="pp-network-select" data-ops-candidate-bulk-status>
+                <option value="">Bulk status</option>
+                <option value="new">New</option>
+                <option value="needs_review">Needs review</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
+            <div class="pp-network-row">
+              <input class="pp-network-input" data-ops-candidate-bulk-notes placeholder="Bulk review note (optional)" />
+              <button class="pp-network-btn" type="button" data-ops-action="candidate-bulk-apply">Apply to selected</button>
+            </div>
+            <div class="pp-network-chip-row" data-ops-candidate-summary></div>
+            <div class="pp-network-chip-row" data-ops-candidate-breakdown></div>
+            <div class="pp-network-queue" data-ops-candidates></div>
+          </aside>
+
+          <aside class="pp-network-panel">
+            <h3>Candidate import</h3>
+            <p class="pp-network-muted">Paste normalized candidates or use the Overture/IRS scripts. Imports stay internal until promoted through review.</p>
+            <form data-ops-candidate-import-form>
+              <select class="pp-network-select" data-ops-candidate-import-source>
+                <option value="overture">Overture</option>
+                <option value="irs_eo_bmf">IRS EO BMF</option>
+                <option value="osm">OpenStreetMap</option>
+                <option value="paid_provider">Paid provider</option>
+                <option value="partner_api">Partner API</option>
+                <option value="manual">Manual</option>
+              </select>
+              <textarea class="pp-network-textarea pp-network-textarea--import" data-ops-candidate-import-json placeholder='[{"name":"Provider Name","category_primary":"vet","city":"City","state":"ST","website_url":"https://provider.org","source_record_id":"source-id"}]'></textarea>
+              <div class="pp-network-actions">
+                <button class="pp-network-btn" type="submit">Import candidates</button>
+              </div>
+            </form>
+          </aside>
+        </div>
+
+        <div class="pp-network-grid pp-network-grid--ops-main">
+          <aside class="pp-network-panel">
+            <h3>Launch import</h3>
+            <p class="pp-network-muted">Paste a team-approved JSON array. Imports are forced to Network Listing status; claimed, partner, fake contacts, and unreviewed CHARM states are rejected.</p>
+            <form data-ops-launch-import-form>
+              <textarea class="pp-network-textarea pp-network-textarea--import" data-ops-launch-import-json placeholder='[{"slug":"provider-city-st","name":"Provider Name","category_primary":"vet","city":"City","state":"ST","short_description":"Approved provider record.","website_url":"https://..."}]'></textarea>
+              <div class="pp-network-actions">
+                <button class="pp-network-btn" type="submit">Import approved listings</button>
+              </div>
+            </form>
+          </aside>
+
+          <section class="pp-network-panel">
+            <h3>Listing readiness</h3>
             <div class="pp-network-queue" data-ops-listings></div>
           </section>
         </div>

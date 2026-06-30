@@ -1,0 +1,22 @@
+{
+  "schema_version": "pawket-admin-sample-vault-limitations-example-v0",
+  "demo": true,
+  "is_production_vault": false,
+  "is_real_ledger": false,
+  "stores_raw_documents": false,
+  "creates_live_ledger_truth": false,
+  "creates_official_balances": false,
+  "creates_official_reports": false,
+  "creates_final_exports": false,
+  "packages_desktop_app": false,
+  "remaining_blocked": [
+    "production encryption",
+    "raw document storage",
+    "live ledger commits",
+    "official balances",
+    "official reports",
+    "final exports",
+    "connector networking",
+    "packaged desktop UI"
+  ]
+}

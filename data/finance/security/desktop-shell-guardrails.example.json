@@ -1,0 +1,25 @@
+{
+  "schema_version": "pawket-admin-desktop-shell-guardrails-example-v0",
+  "production_enabled": false,
+  "read_only": true,
+  "official_balance_status": "disabled",
+  "official_report_status": "disabled",
+  "final_export_status": "disabled",
+  "source_mode": "local_non_production_view",
+  "raw_document_content_included": false,
+  "forbidden_outputs": [
+    ".pdf",
+    ".csv",
+    ".xlsx",
+    ".zip",
+    "official-report",
+    "official-balance",
+    "public-impact-claim",
+    "production-ledger"
+  ],
+  "allowed_current_outputs": [
+    "in-memory pipeline status view model",
+    "in-memory operator dashboard read model",
+    "metadata-only example fixtures under data/finance/security"
+  ]
+}

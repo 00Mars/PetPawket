@@ -1,6 +1,14 @@
 // apps/charmfoundation/routes/eventsRoutes.js
 import express from 'express';
 import { query } from '../db/pg.js';
+import { sendPrototypeOrUnavailable } from '../utils/prototypeMode.js';
+import {
+  cleanEmail,
+  cleanPhone,
+  cleanPositiveInt,
+  cleanString,
+  sendValidationError,
+} from '../utils/inputValidation.js';
 
 const router = express.Router();
 
@@ -33,23 +41,29 @@ router.get('/', async (_req, res) => {
         LIMIT 12;`
     );
     if (!rows.length) {
-      return res.json({ ok: true, events: PLACEHOLDER_EVENTS, placeholder: true });
+      return res.json({ ok: true, events: PLACEHOLDER_EVENTS, placeholder: true, prototype: true });
     }
     res.json({ ok: true, events: rows });
   } catch {
-    res.json({ ok: true, events: PLACEHOLDER_EVENTS, placeholder: true });
+    res.json({ ok: true, events: PLACEHOLDER_EVENTS, placeholder: true, prototype: true });
   }
 });
 
 router.post('/:id/rsvp', async (req, res) => {
-  const eventId = Number(req.params.id || 0);
-  const { name, email, phone, attendees } = req.body || {};
-
-  if (!eventId || !name || !email) {
-    return res.status(400).json({ ok: false, error: 'Event, name, and email are required' });
+  let eventId;
+  let name;
+  let email;
+  let phone;
+  let attendeeCount;
+  try {
+    eventId = cleanPositiveInt(req.params.id, { max: 1_000_000, required: true, label: 'Event id' });
+    name = cleanString(req.body?.name, { max: 140, required: true, label: 'Name' });
+    email = cleanEmail(req.body?.email);
+    phone = cleanPhone(req.body?.phone, { required: false });
+    attendeeCount = cleanPositiveInt(req.body?.attendees || 1, { max: 10, required: true, label: 'Attendees' });
+  } catch (err) {
+    return sendValidationError(res, err);
   }
-
-  const attendeeCount = Math.max(1, Number(attendees || 1));
 
   try {
     await query(
@@ -60,7 +74,7 @@ router.post('/:id/rsvp', async (req, res) => {
     );
     res.json({ ok: true, status: 'confirmed' });
   } catch {
-    res.json({ ok: true, status: 'queued', placeholder: true });
+    return sendPrototypeOrUnavailable(res, 'Prototype only: RSVP was queued locally and no live event roster was updated.');
   }
 });
 

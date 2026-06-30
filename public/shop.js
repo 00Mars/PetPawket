@@ -378,8 +378,8 @@ function openSubscribeModalForKey(key) {
   if (!p) return;
 
   const { intervals } = getSubConfig(p);
-  MODAL_TITLE.textContent   = 'Save as pack-eligible add-on';
-  MODAL_SUMMARY && (MODAL_SUMMARY.textContent = `${p.title || 'This product'} can be saved for future Pawket Pack, Packet, or Pick planning. The curated box pages stay separate from the shop catalog.`);
+  MODAL_TITLE.textContent   = 'Save as box-friendly add-on';
+  MODAL_SUMMARY && (MODAL_SUMMARY.textContent = `${p.title || 'This product'} can be saved as an idea for a future Pawket Pack, Packet, or Pick.`);
   if (MODAL_CONFIRM) MODAL_CONFIRM.textContent = 'Save add-on';
   MODAL_INTERVAL.innerHTML  = intervals.map(v => `<option value="${v}">${formatInterval(v)}</option>`).join('');
 
@@ -396,7 +396,7 @@ function openSubscribeModalForKey(key) {
       PetsBus?.emit?.('subscribe:add', { product: p.handle || p.id, interval: MODAL_INTERVAL.value });
     } catch {}
     savePackPreview(p, MODAL_INTERVAL.value);
-    gentleToast('Saved as pack-eligible.');
+    gentleToast('Saved as box-friendly.');
     bsModal?.hide();
     MODAL_CONFIRM.removeEventListener('click', onConfirm);
   };
@@ -942,26 +942,26 @@ function renderCuratedShelves() {
 
   const shelves = [
     {
-      title: 'Low-friction cart starters',
-      copy: 'Useful add-ons under $25 for testing the live shop without turning the page into a discount bin.',
+      title: 'Easy cart starters',
+      copy: 'Useful add-ons under $25 for a simple first order.',
       href: '/shop.html?sort=price-asc&per=24',
       items: value,
     },
     {
       title: 'Care rhythm goods',
-      copy: 'Dental, cleaning, hygiene, and daily support products that connect naturally to pet profiles.',
+      copy: 'Dental, cleaning, hygiene, and daily support products for real routines.',
       href: '/shop.html?q=care',
       items: care,
     },
     {
       title: 'Play and enrichment shelf',
-      copy: 'Toys and comfort items that make the catalog feel alive before deeper Pawket Pal systems arrive.',
+      copy: 'Toys and comfort items that bring more play into the day.',
       href: '/shop.html?q=toy',
       items: play,
     },
     {
-      title: 'Pack-eligible add-ons',
-      copy: 'Catalog items that could support future Pack, Packet, or Pick planning while the curated box pages stay separate.',
+      title: 'Box-friendly add-ons',
+      copy: 'Shop items that could make sense in a future Pack, Packet, or Pick.',
       href: '/shop.html?subscribe=1',
       items: packReady,
     },

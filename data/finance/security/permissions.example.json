@@ -1,0 +1,148 @@
+{
+  "status": "example_only",
+  "last_updated": "2026-05-26",
+  "roles": [
+    {
+      "role_key": "owner_root",
+      "label": "Owner Root",
+      "description": "Highest local authority for vault ownership, role grants, recovery, full archive, and period reopen approval."
+    },
+    {
+      "role_key": "finance_admin",
+      "label": "Finance Admin",
+      "description": "Operational finance administrator for import review, ledger approval, documents, reports, corrections, and scoped exports."
+    },
+    {
+      "role_key": "bookkeeper",
+      "label": "Bookkeeper",
+      "description": "Staging role for expenses, documents, reconciliations, and draft corrections."
+    },
+    {
+      "role_key": "accountant_export_user",
+      "label": "Accountant Export User",
+      "description": "Limited export role for accountant and IRS support packs."
+    },
+    {
+      "role_key": "foundation_admin",
+      "label": "Foundation Admin",
+      "description": "Mission reporting role for CHARM and future CHERISH records once approved."
+    },
+    {
+      "role_key": "investor_read_only",
+      "label": "Investor Read-Only",
+      "description": "Restricted role for reviewed investor packages only."
+    },
+    {
+      "role_key": "connector_node",
+      "label": "Connector Node",
+      "description": "Machine role for encrypted read-only source-event bundles."
+    }
+  ],
+  "permissions": [
+    {
+      "permission_key": "vault.unlock",
+      "owner_root": true,
+      "finance_admin": true,
+      "bookkeeper": true,
+      "accountant_export_user": false,
+      "foundation_admin": true,
+      "investor_read_only": false,
+      "connector_node": false
+    },
+    {
+      "permission_key": "vault.full_archive",
+      "owner_root": true,
+      "finance_admin": false,
+      "bookkeeper": false,
+      "accountant_export_user": false,
+      "foundation_admin": false,
+      "investor_read_only": false,
+      "connector_node": false
+    },
+    {
+      "permission_key": "connector.import",
+      "owner_root": true,
+      "finance_admin": true,
+      "bookkeeper": false,
+      "accountant_export_user": false,
+      "foundation_admin": false,
+      "investor_read_only": false,
+      "connector_node": false
+    },
+    {
+      "permission_key": "documents.stage",
+      "owner_root": true,
+      "finance_admin": true,
+      "bookkeeper": true,
+      "accountant_export_user": false,
+      "foundation_admin": true,
+      "investor_read_only": false,
+      "connector_node": false
+    },
+    {
+      "permission_key": "ledger.approve",
+      "owner_root": true,
+      "finance_admin": true,
+      "bookkeeper": false,
+      "accountant_export_user": false,
+      "foundation_admin": false,
+      "investor_read_only": false,
+      "connector_node": false
+    },
+    {
+      "permission_key": "period.close",
+      "owner_root": true,
+      "finance_admin": true,
+      "bookkeeper": false,
+      "accountant_export_user": false,
+      "foundation_admin": false,
+      "investor_read_only": false,
+      "connector_node": false
+    },
+    {
+      "permission_key": "period.reopen",
+      "owner_root": true,
+      "finance_admin": false,
+      "bookkeeper": false,
+      "accountant_export_user": false,
+      "foundation_admin": false,
+      "investor_read_only": false,
+      "connector_node": false
+    },
+    {
+      "permission_key": "exports.accountant",
+      "owner_root": true,
+      "finance_admin": true,
+      "bookkeeper": false,
+      "accountant_export_user": true,
+      "foundation_admin": false,
+      "investor_read_only": false,
+      "connector_node": false
+    },
+    {
+      "permission_key": "exports.public_impact",
+      "owner_root": true,
+      "finance_admin": true,
+      "bookkeeper": false,
+      "accountant_export_user": false,
+      "foundation_admin": true,
+      "investor_read_only": false,
+      "connector_node": false
+    },
+    {
+      "permission_key": "connector.bundle.provide",
+      "owner_root": false,
+      "finance_admin": false,
+      "bookkeeper": false,
+      "accountant_export_user": false,
+      "foundation_admin": false,
+      "investor_read_only": false,
+      "connector_node": true
+    }
+  ],
+  "notes": [
+    "This matrix is example-only and not production authorization.",
+    "Connector Node can provide source bundles only. It cannot import, approve, unlock, export, or write to the vault.",
+    "Do not collapse these roles into one generic admin flag."
+  ]
+}

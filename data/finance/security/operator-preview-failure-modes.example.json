@@ -1,0 +1,31 @@
+{
+  "schema_version": "pawket-admin-operator-preview-failure-modes-example-v0",
+  "failure_modes": [
+    {
+      "failure": "missing_vault_path",
+      "exit_code": 2,
+      "output": "usage_error"
+    },
+    {
+      "failure": "help_requested",
+      "exit_code": 0,
+      "output": "usage_only_no_vault_read"
+    },
+    {
+      "failure": "malformed_ndjson",
+      "exit_code": 1,
+      "output": "safe_validation_error"
+    },
+    {
+      "failure": "public_path",
+      "exit_code": 2,
+      "output": "safe_rejection"
+    },
+    {
+      "failure": "export_artifact_present",
+      "exit_code": 1,
+      "output": "safe_guardrail_error"
+    }
+  ],
+  "no_recovery_mutation": true
+}

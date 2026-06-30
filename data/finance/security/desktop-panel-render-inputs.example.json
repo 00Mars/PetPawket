@@ -1,0 +1,33 @@
+{
+  "example_type": "desktop_panel_render_inputs",
+  "demo": true,
+  "production_enabled": false,
+  "read_only": true,
+  "local_only": true,
+  "in_memory_only": true,
+  "stdout_only": true,
+  "runtime_state_persistence_enabled": false,
+  "packaged_app": false,
+  "official_balance_status": "disabled",
+  "official_report_status": "disabled",
+  "final_export_status": "disabled",
+  "source_mode": "local_non_production_desktop_panel_render_contract",
+  "default_sample_vault_path": "data/finance/security/sample-vault",
+  "accepted_inputs": [
+    "--vault <path>",
+    "--vault=<path>",
+    "PAWKET_ADMIN_VAULT_PATH"
+  ],
+  "consumed_layers": [
+    "desktop_contract_smoke_runner",
+    "desktop_contract_inspection",
+    "desktop_shell_composition",
+    "desktop_shell_scaffold_panel_registry"
+  ],
+  "forbidden_inputs": [
+    "public_paths",
+    "export_artifact_paths",
+    "runtime_panel_state_paths",
+    "production_source_mode"
+  ]
+}

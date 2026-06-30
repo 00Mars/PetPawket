@@ -1,0 +1,125 @@
+{
+  "status": "example_only",
+  "last_updated": "2026-05-26",
+  "hash_model": "sha256 over canonical event content excluding event_hash",
+  "genesis_previous_hash": "GENESIS",
+  "events": [
+    {
+      "event_id": "audit_2026_05_26_0001",
+      "event_type": "vault_initialized",
+      "occurred_at": "2026-05-26T18:00:00Z",
+      "actor": {
+        "actor_type": "owner_root",
+        "actor_id": "owner_root_example"
+      },
+      "role": "owner_root",
+      "permission": "vault.full_archive",
+      "target": {
+        "target_type": "vault",
+        "target_id": "pawket_admin_local_vault_example"
+      },
+      "action": "initialize_trust_kernel",
+      "reason": "Create local-first finance trust baseline example.",
+      "source": "pawket_admin_example",
+      "period_id": null,
+      "connector_bundle_id": null,
+      "export_id": null,
+      "document_ids": [],
+      "metadata": {
+        "vault_mode": "local_first",
+        "encryption_status": "design_requirement_only"
+      },
+      "previous_hash": "GENESIS",
+      "event_hash": "4181c46b62cbf5916ae1d8fbebea38bca5b1d63d54f6850979bd86bf3039fde8"
+    },
+    {
+      "event_id": "audit_2026_05_26_0002",
+      "event_type": "connector_bundle_received",
+      "occurred_at": "2026-05-26T18:31:00Z",
+      "actor": {
+        "actor_type": "connector_node",
+        "actor_id": "connector_petpawket_website_readonly_v0"
+      },
+      "role": "connector_node",
+      "permission": "connector.bundle.provide",
+      "target": {
+        "target_type": "connector_bundle",
+        "target_id": "connector_bundle_web_2026_05_26_0001"
+      },
+      "action": "receive_read_only_source_bundle",
+      "reason": "Stage website source events for quarantine review.",
+      "source": "petpawket_website_connector",
+      "period_id": "period_2026_05",
+      "connector_bundle_id": "connector_bundle_web_2026_05_26_0001",
+      "export_id": null,
+      "document_ids": [],
+      "metadata": {
+        "schema_version": "pawket-admin.connector-bundle.v0",
+        "payload_hash": "0f1d2c3b4a59687766554433221100ffeeddccbbaa99887766554433221100ff",
+        "idempotency_key": "petpawket-website:2026-05-26:cursor-0001-to-0002"
+      },
+      "previous_hash": "4181c46b62cbf5916ae1d8fbebea38bca5b1d63d54f6850979bd86bf3039fde8",
+      "event_hash": "410b5a87df315be99058026dc856653609fd5d804fd674ee41883367675b7a42"
+    },
+    {
+      "event_id": "audit_2026_05_26_0003",
+      "event_type": "connector_bundle_quarantined",
+      "occurred_at": "2026-05-26T18:31:02Z",
+      "actor": {
+        "actor_type": "system",
+        "actor_id": "pawket_admin_import_guard"
+      },
+      "role": "system",
+      "permission": "connector.import",
+      "target": {
+        "target_type": "connector_bundle",
+        "target_id": "connector_bundle_web_2026_05_26_0001"
+      },
+      "action": "quarantine_before_review",
+      "reason": "All connector bundles enter quarantine before import.",
+      "source": "pawket_admin_import_guard",
+      "period_id": "period_2026_05",
+      "connector_bundle_id": "connector_bundle_web_2026_05_26_0001",
+      "export_id": null,
+      "document_ids": [],
+      "metadata": {
+        "quarantine_status": "pending_review",
+        "can_write_to_vault": false
+      },
+      "previous_hash": "410b5a87df315be99058026dc856653609fd5d804fd674ee41883367675b7a42",
+      "event_hash": "3e8e84ea7df69b78ce862f79d0fce923a479e74d6ebba5b426ca379b5b595ad8"
+    },
+    {
+      "event_id": "audit_2026_05_26_0004",
+      "event_type": "export_generated",
+      "occurred_at": "2026-05-26T19:00:00Z",
+      "actor": {
+        "actor_type": "admin_user",
+        "actor_id": "finance_admin_example"
+      },
+      "role": "finance_admin",
+      "permission": "exports.accountant",
+      "target": {
+        "target_type": "export",
+        "target_id": "export_accountant_pack_2026_05_example"
+      },
+      "action": "generate_accountant_pack_manifest",
+      "reason": "Example export audit event for manifest-controlled accountant pack.",
+      "source": "pawket_admin_example",
+      "period_id": "period_2026_05",
+      "connector_bundle_id": null,
+      "export_id": "export_accountant_pack_2026_05_example",
+      "document_ids": [
+        "doc_shopify_export_may",
+        "doc_processor_report_may"
+      ],
+      "metadata": {
+        "export_profile_id": "export_profile_accountant_pack_v0",
+        "export_hash": "11223344556677889900aabbccddeeff00112233445566778899aabbccddeeff",
+        "manifest_required": true
+      },
+      "previous_hash": "3e8e84ea7df69b78ce862f79d0fce923a479e74d6ebba5b426ca379b5b595ad8",
+      "event_hash": "c233908bb164f89dfbd337073747df488a2bb82bad92acee18a19820a3b8528e"
+    }
+  ]
+}

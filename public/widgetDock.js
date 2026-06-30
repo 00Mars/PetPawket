@@ -136,7 +136,7 @@ function clamp(value, min, max) {
   return Math.min(max, Math.max(min, numeric));
 }
 
-const MOBILE_DOCK_MAX_WIDTH = 980;
+const MOBILE_DOCK_MAX_WIDTH = 1240;
 
 function shouldUseMobileDockByWidth() {
   return window.matchMedia(`(max-width: ${MOBILE_DOCK_MAX_WIDTH}px)`).matches;
@@ -523,6 +523,8 @@ function updateHeroAlignment() {
     shell.style.removeProperty('--pp-widget-dock-top');
     shell.style.removeProperty('--pp-help-pill-bottom');
     shell.style.removeProperty('--pp-widget-scale');
+    root.style.removeProperty('--pp-side-control-center');
+    root.style.removeProperty('--pp-side-dock-inline-size');
     root.style.removeProperty('--pp-widget-panel-top');
     root.style.removeProperty('--pp-widget-panel-max');
     const mobileShort = isXShort || viewportHeight <= 700;
@@ -547,7 +549,7 @@ function updateHeroAlignment() {
     shell.style.setProperty('--pp-mobile-bubble-size', `${mobileBubbleSize}px`);
     shell.style.setProperty('--pp-mobile-dock-gap', `${mobileDockGap}px`);
 
-    const bottomBase = isXShort ? 24 : (mobileShort ? 20 : (isShort ? 16 : 14));
+    const bottomBase = isXShort ? 18 : (mobileShort ? 15 : (isShort ? 12 : 10));
     const mobileBottom = Math.max(10, bottomBase + keyboardInset);
     shell.style.setProperty('--pp-widget-mobile-bottom', `${mobileBottom}px`);
     shell.style.removeProperty('--pp-help-pill-mobile-bottom');
@@ -607,7 +609,7 @@ function updateHeroAlignment() {
   const maxTop = Math.max(minTop + 30, maxTopByViewport);
 
   let targetCenter = headerBottom + (available / 2) + offset;
-  const hero = document.querySelector('.hero-slider-container') || document.querySelector('.hero-backdrop');
+  const hero = document.querySelector('.hero-rail') || document.querySelector('.hero-slider-container') || document.querySelector('.hero-backdrop');
   const heroRect = hero?.getBoundingClientRect?.() || null;
   const heroVisible = !!(heroRect && heroRect.height > 0 && heroRect.bottom > (headerBottom + 40) && heroRect.top < (window.innerHeight - 80));
   const visibleHeight = heroRect
@@ -618,9 +620,9 @@ function updateHeroAlignment() {
 
   if (heroAnchorActive) {
     const visibleTop = Math.max(heroRect.top, headerBottom + 8);
-    const visibleBottom = Math.min(heroRect.bottom, window.innerHeight - 80);
+    const visibleBottom = Math.min(heroRect.bottom, window.innerHeight - 12);
     if (visibleBottom > visibleTop) {
-      const anchor = isShort ? 0.62 : 0.5;
+      const anchor = isShort ? 0.58 : 0.5;
       targetCenter = visibleTop + (visibleBottom - visibleTop) * anchor;
     }
   } else {
@@ -633,13 +635,17 @@ function updateHeroAlignment() {
   shell.style.setProperty('--pp-widget-dock-top', `${Math.round(finalCenter)}px`);
   if (dock) {
     const positionedRect = dock.getBoundingClientRect();
+    root.style.setProperty('--pp-side-dock-inline-size', `${Math.ceil(positionedRect.width)}px`);
     const topGuard = headerBottom + 8;
     if (positionedRect.top < topGuard) {
       const nudge = Math.round(topGuard - positionedRect.top);
       finalCenter = Math.min(window.innerHeight - 60, finalCenter + nudge);
       shell.style.setProperty('--pp-widget-dock-top', `${Math.round(finalCenter)}px`);
     }
+  } else {
+    root.style.removeProperty('--pp-side-dock-inline-size');
   }
+  root.style.setProperty('--pp-side-control-center', `${Math.round(finalCenter)}px`);
   shell.dataset.compact = (isNarrow || isShort) ? '1' : '0';
   shell.dataset.dockMode = 'side';
 
@@ -792,6 +798,8 @@ function clearViewportSizingState(shell) {
   root.style.setProperty('--pp-widget-content-gutter-left', '0px');
   root.style.setProperty('--pp-widget-content-gutter-right', '0px');
   root.style.setProperty('--pp-hero-rail-shift', '0px');
+  root.style.removeProperty('--pp-side-control-center');
+  root.style.removeProperty('--pp-side-dock-inline-size');
   root.style.removeProperty('--pp-widget-mobile-reserve');
   root.style.removeProperty('--pp-widget-panel-top');
   root.style.removeProperty('--pp-widget-panel-max');

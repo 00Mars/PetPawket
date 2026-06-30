@@ -1,0 +1,36 @@
+{
+  "schema_version": "pawket-admin-report-package-guardrails-example-v0",
+  "required_nonproduction_labels": [
+    "non_production_preview",
+    "not_official_report",
+    "not_final_export",
+    "not_for_tax_filing"
+  ],
+  "forbidden_export_file_extensions": [
+    ".pdf",
+    ".csv",
+    ".xlsx",
+    ".zip"
+  ],
+  "forbidden_export_path_markers": [
+    "official-report",
+    "irs-export",
+    "accountant-export",
+    "investor-export",
+    "public-impact-export",
+    "foundation-export"
+  ],
+  "public_impact_blocked_context": [
+    "private donor data",
+    "private customer data",
+    "assistance data",
+    "story-sensitive data",
+    "medical-adjacent data",
+    "minor or family-sensitive data",
+    "raw document content"
+  ],
+  "allowed_current_phase_files": [
+    "manifests/export-intent-records.ndjson",
+    "manifests/report-preview-packages.ndjson"
+  ]
+}

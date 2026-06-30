@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pawket Places | Pet Pawket</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/globals.css" />
+  <link rel="stylesheet" href="/css/core.css" />
+  <link rel="stylesheet" href="/css/pawket-network.css" />
+  <link rel="stylesheet" href="/css/footer.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div id="navbar-container"></div>
+
+  <main class="pp-network pp-places">
+    <section class="pp-band pp-band--play pp-network-hero pp-places-hero" aria-labelledby="places-title">
+      <div class="pp-band-inner">
+        <div class="pp-network-entry-head">
+          <div class="pp-network-entry-copy">
+            <span class="pp-kicker">Pawket Places</span>
+            <h1 id="places-title">Find pet-safe places, not providers.</h1>
+            <p>Pawket Places is for dog parks, pet-friendly parks, trails, beaches, travel relief areas, and other stops to check before heading out.</p>
+            <a class="pp-network-inline-route" href="/pawket-network.html"><i class="bi bi-patch-check" aria-hidden="true"></i> Looking for vets, groomers, rescues, or other care providers?</a>
+          </div>
+          <div class="pp-network-entry-actions">
+            <div class="pp-network-cta">
+              <a class="pp-network-btn" href="/pawket-network.html"><i class="bi bi-patch-check" aria-hidden="true"></i> Find Care Providers</a>
+              <a class="pp-network-btn ghost" href="#places-reference"><i class="bi bi-map" aria-hidden="true"></i> View Place Types</a>
+            </div>
+            <div class="pp-network-trust-row" aria-label="Pawket Places safeguards">
+              <span><i class="bi bi-map" aria-hidden="true"></i> Reference locations</span>
+              <span><i class="bi bi-signpost-split" aria-hidden="true"></i> Rules before visits</span>
+              <span><i class="bi bi-patch-check" aria-hidden="true"></i> Providers stay in Network</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="pp-network-entry-grid">
+          <aside class="pp-network-context-rail" aria-label="Pawket Places context">
+            <div class="pp-network-hero-card">
+              <div class="pp-network-preview-head">
+                <div class="pp-network-preview-mark" aria-hidden="true"><i class="bi bi-patch-check"></i></div>
+                <div>
+                  <span>Need a provider?</span>
+                  <strong>Use Pawket Network for care teams.</strong>
+                </div>
+              </div>
+              <p class="pp-network-muted">Veterinarians, groomers, shelters, rescues, trainers, boarding, sitters, walkers, daycare, and cleaners belong in Pawket Network because they are care providers.</p>
+              <a class="pp-network-btn" href="/pawket-network.html"><i class="bi bi-search" aria-hidden="true"></i> Search Pawket Network</a>
+            </div>
+
+            <div class="pp-network-search-note">
+              <i class="bi bi-info-circle" aria-hidden="true"></i>
+              <div>
+                <span>Launch note</span>
+                <p>Places are not endorsements. Check current local rules, leash requirements, weather, closures, and safety before visiting.</p>
+              </div>
+            </div>
+
+            <div class="pp-network-search-note pp-network-search-note--warm">
+              <i class="bi bi-heart-pulse" aria-hidden="true"></i>
+              <div>
+                <span>Coming later</span>
+                <p>Places can later support Pawket Pal outings, Pawprints, park-day checklists, and local community moments.</p>
+              </div>
+            </div>
+          </aside>
+
+          <section class="pp-network-finder-shell pp-places-desk" aria-labelledby="places-desk-title">
+            <div class="pp-network-primary-search">
+              <div class="pp-network-primary-search-head">
+                <span class="pp-kicker">Reference Desk</span>
+                <strong id="places-desk-title" class="pp-network-field-label">Place search</strong>
+              </div>
+              <div class="pp-places-search-preview" role="search" aria-label="Pawket Places search preview">
+                <label class="pp-places-field">
+                  <span>Search later by place, city, ZIP, or feature</span>
+                  <input class="pp-network-input" type="search" placeholder="Dog park, trail, beach, relief area, fenced, water access" disabled />
+                </label>
+                <a class="pp-network-btn ghost" href="/contact.html"><i class="bi bi-plus-circle" aria-hidden="true"></i> Nominate a Place</a>
+              </div>
+              <p class="pp-network-muted">Parks and pet-friendly stops need different details than providers: rules, access notes, safety tips, and what to check before you go.</p>
+            </div>
+
+            <div class="pp-places-type-grid" id="places-reference">
+              <article class="pp-places-type-card">
+                <i class="bi bi-tree" aria-hidden="true"></i>
+                <div>
+                  <span>Dog parks and off-leash areas</span>
+                  <h3>Fenced, leash, surface, and rule notes matter.</h3>
+                  <p>These places should show local rules before a pet parent treats them as safe.</p>
+                </div>
+              </article>
+              <article class="pp-places-type-card">
+                <i class="bi bi-signpost-split" aria-hidden="true"></i>
+                <div>
+                  <span>Trails, parks, and beaches</span>
+                  <h3>Pet-friendly does not always mean off-leash.</h3>
+                  <p>Seasonal rules, trail conditions, water access, and accessibility should be visible.</p>
+                </div>
+              </article>
+              <article class="pp-places-type-card">
+                <i class="bi bi-car-front" aria-hidden="true"></i>
+                <div>
+                  <span>Travel relief stops</span>
+                  <h3>Useful stops for road trips and errands.</h3>
+                  <p>Relief areas, rest-stop lawns, and pet-friendly travel points need location-focused checks.</p>
+                </div>
+              </article>
+              <article class="pp-places-type-card">
+                <i class="bi bi-shop-window" aria-hidden="true"></i>
+                <div>
+                  <span>Pet-friendly public stops</span>
+                  <h3>Helpful stops, not care providers.</h3>
+                  <p>Outdoor markets, patios, and venue areas can be listed without becoming Network partners.</p>
+                </div>
+              </article>
+            </div>
+          </section>
+        </div>
+
+        <div class="pp-realworld-switchboard pp-realworld-switchboard--places" aria-labelledby="places-lanes-title">
+          <div class="pp-realworld-switchboard-head">
+            <span class="pp-kicker">Choose The Right Tool</span>
+            <h2 id="places-lanes-title">Places are for where pets can go. Network is for who provides care.</h2>
+            <p>If you land in the wrong place, the next click should be obvious.</p>
+          </div>
+          <div class="pp-realworld-switchboard-grid">
+            <article class="pp-realworld-lane-card is-active pp-realworld-lane-card--places">
+              <div class="pp-realworld-lane-icon" aria-hidden="true"><i class="bi bi-map"></i></div>
+              <div>
+                <span>Pet-friendly places</span>
+                <h3>Check places before heading out.</h3>
+                <p>Dog parks, trails, beaches, relief areas, patios, and venue stops should carry rules and safety context.</p>
+                <a class="pp-network-link" href="#places-reference">View place types</a>
+              </div>
+            </article>
+            <article class="pp-realworld-lane-card">
+              <div class="pp-realworld-lane-icon" aria-hidden="true"><i class="bi bi-patch-check"></i></div>
+              <div>
+                <span>Provider directory</span>
+                <h3>Search care teams and organizations.</h3>
+                <p>Vets, groomers, shelters, rescues, trainers, boarding, sitters, walkers, daycare, and cleaners belong in Pawket Network.</p>
+                <a class="pp-network-link" href="/pawket-network.html#network-primary-search">Open Pawket Network</a>
+              </div>
+            </article>
+            <article class="pp-realworld-lane-card pp-realworld-lane-card--account">
+              <div class="pp-realworld-lane-icon" aria-hidden="true"><i class="bi bi-journal-heart"></i></div>
+              <div>
+                <span>Saved for later</span>
+                <h3>Keep saved places and providers private.</h3>
+                <p>Future account tools can keep outings, care notes, Pawprints, and Pawket Pal moments private by default.</p>
+                <a class="pp-network-link" href="/account.html#account-story-trail">Open saved stories</a>
+              </div>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="pp-band pp-band--cool pp-network-overview" aria-labelledby="places-compare-title">
+      <div class="pp-band-inner">
+        <div class="pp-section-head">
+          <span class="pp-kicker">Choose The Right Tool</span>
+          <h2 id="places-compare-title">Places and Network help you recover fast.</h2>
+          <p>Use Places for pet-friendly locations. Use Network for care providers and organizations.</p>
+        </div>
+
+        <div class="pp-places-compare-grid">
+          <article class="pp-network-path-card">
+            <div class="pp-network-card-icon" aria-hidden="true"><i class="bi bi-map"></i></div>
+            <span>Pawket Places</span>
+            <h3>Use this for where pets can safely go.</h3>
+            <p>Dog parks, trails, beaches, relief areas, and pet-friendly stops should show rules and safety context.</p>
+            <a class="pp-network-link" href="/pawket-places.html">Stay in Pawket Places</a>
+          </article>
+          <article class="pp-network-path-card">
+            <div class="pp-network-card-icon pp-network-card-icon--green" aria-hidden="true"><i class="bi bi-patch-check"></i></div>
+            <span>Pawket Network</span>
+            <h3>Use this for who provides pet care.</h3>
+            <p>Vets, groomers, trainers, rescues, shelters, sitters, walkers, boarders, daycare, and cleaners belong in the provider directory.</p>
+            <a class="pp-network-link" href="/pawket-network.html">Open Pawket Network</a>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="footer-container"></div>
+  <script type="module" src="/main.js"></script>
+</body>
+</html>

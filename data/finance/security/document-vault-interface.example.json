@@ -1,0 +1,44 @@
+{
+  "fixture": "document-vault-interface.example",
+  "status": "example_only_not_real_finance_data",
+  "storage_policy": {
+    "allowed_storage_providers": [
+      "local_metadata_only",
+      "local_encrypted_vault",
+      "encrypted_backup",
+      "external_encrypted_archive"
+    ],
+    "metadata_only_current_phase": true,
+    "production_encryption_implemented": false,
+    "public_path_rejection": true,
+    "supported_encryption_statuses": [
+      "metadata_only",
+      "encryption_pending",
+      "encrypted",
+      "rotation_required",
+      "quarantined",
+      "destroyed"
+    ]
+  },
+  "blob_references": [
+    {
+      "blob_ref_id": "blobref_doc_order_source_example_0001",
+      "document_id": "doc_order_source_example_0001",
+      "storage_provider": "local_metadata_only",
+      "vault_relative_path": "documents/2026/05",
+      "encrypted_blob_name": "doc_order_source_example_0001.enc",
+      "blob_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "plaintext_hash_if_allowed_placeholder": "",
+      "encryption_status": "metadata_only",
+      "encryption_algorithm_placeholder": "",
+      "key_id_placeholder": "",
+      "created_at": "2026-05-28T14:00:00Z",
+      "updated_at": "2026-05-28T14:00:00Z",
+      "blob_size_bytes": 512,
+      "content_type": "application/json",
+      "storage_status": "reference_created",
+      "retention_class": "accounting_support",
+      "privacy_class": "financial_sensitive"
+    }
+  ]
+}

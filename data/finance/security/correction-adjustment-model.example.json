@@ -1,0 +1,34 @@
+{
+  "status": "example_only_proposed_corrections_not_live_ledger",
+  "last_updated": "2026-05-28",
+  "request_types": ["correction", "adjustment", "reversal"],
+  "example_request": {
+    "request_type": "correction",
+    "target_entry_id": "pje_order_1001_sales",
+    "source_proposed_journal_entry_id": "pje_order_1001_sales",
+    "source_proposed_ledger_record_ids": [
+      "proposed_review_order_sales_0001_draft_order_sales_0001_debit_01",
+      "proposed_review_order_sales_0001_draft_order_sales_0001_credit_02"
+    ],
+    "source_event_ids": ["source_event_order_created_0001"],
+    "source_bundle_ids": ["bundle_import_test_0001"],
+    "document_links": ["doc_order_1001"],
+    "reason": "Correct proposed memo before any final commit.",
+    "silent_edit": false,
+    "delete_original": false
+  },
+  "example_proposed_record": {
+    "proposed_correction_adjustment_id": "pca_order_1001_memo_correction",
+    "request_type": "correction",
+    "target_entry_id": "pje_order_1001_sales",
+    "status": "proposed",
+    "proposed_action": "create_new_append_only_record",
+    "live_ledger_write": false
+  },
+  "rules": [
+    "Never silently edit committed ledger truth.",
+    "Never delete original proposed or committed records.",
+    "Corrections, adjustments, and reversals must preserve reason, actor, source proof, and audit events.",
+    "Closed or locked periods require explicit correction-period handling."
+  ]
+}

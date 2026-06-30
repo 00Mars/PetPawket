@@ -16,98 +16,360 @@
   <div id="navbar-container"></div>
 
   <main class="pp-network">
-    <section class="pp-band pp-band--cool pp-network-hero">
+    <section class="pp-band pp-band--play pp-network-hero pp-network-directory" id="network-directory" aria-labelledby="network-directory-title">
       <div class="pp-band-inner">
-        <div class="pp-section-head">
-          <span class="pp-kicker">Pawket Network</span>
-          <h2>Find trusted pet care and rescue partners nearby.</h2>
-          <p>Discover unclaimed listings, owner-managed profiles, and verified Pawket Partners with interactive modules.</p>
+        <div class="pp-network-entry-head">
+          <div class="pp-network-entry-copy">
+            <span class="pp-kicker">Pawket Network</span>
+            <h1 id="network-directory-title">Search the Pawket Network.</h1>
+            <p>Find pet care providers, rescues, shelters, and local helpers by category and location, then open listings with clear badges.</p>
+            <a class="pp-network-inline-route" href="/pawket-places.html"><i class="bi bi-map" aria-hidden="true"></i> Looking for dog parks or pet-safe places?</a>
+          </div>
+          <div class="pp-network-entry-actions">
+            <div class="pp-network-cta">
+              <a class="pp-network-btn" href="#network-primary-search"><i class="bi bi-search" aria-hidden="true"></i> Start Search</a>
+              <a class="pp-network-btn ghost" href="/pawket-places.html"><i class="bi bi-map" aria-hidden="true"></i> Pet-Safe Places</a>
+              <a class="pp-network-btn ghost" href="/partner-portal.html"><i class="bi bi-building-check" aria-hidden="true"></i> Partner Portal</a>
+            </div>
+            <div class="pp-network-trust-row" aria-label="Network safeguards">
+              <span><i class="bi bi-shield-check" aria-hidden="true"></i> Clear badges</span>
+              <span><i class="bi bi-lock" aria-hidden="true"></i> Private stories protected</span>
+              <span><i class="bi bi-heart-pulse" aria-hidden="true"></i> CHARM checked with care</span>
+            </div>
+          </div>
         </div>
 
-        <div class="pp-network-grid">
-          <aside class="pp-network-panel pp-network-panel--filters">
-            <h3>Filters</h3>
-            <div class="pp-network-filter-group">
-              <label class="pp-network-field-label" for="network-search">Search</label>
-              <input id="network-search" class="pp-network-input" type="search" placeholder="Name, city, or category" data-network-filter="q" />
-            </div>
-
-            <div class="pp-network-filter-group">
-              <label class="pp-network-field-label" for="network-category">Category</label>
-              <select id="network-category" class="pp-network-select" data-network-filter="category">
-                <option value="">All categories</option>
-                <option value="vet">Veterinarians</option>
-                <option value="groomer">Groomers</option>
-                <option value="shelter">Shelters</option>
-                <option value="trainer">Trainers</option>
-                <option value="boarding">Boarding</option>
-                <option value="sitter">Sitters</option>
-                <option value="walker">Walkers</option>
-                <option value="daycare">Daycare</option>
-                <option value="rescue">Rescue</option>
-              </select>
-            </div>
-
-            <div class="pp-network-filter-group">
-              <span class="pp-network-field-label">Location</span>
-              <div class="pp-network-row">
-                <input class="pp-network-input" type="text" placeholder="City" data-network-filter="city" />
-                <input class="pp-network-input" type="text" placeholder="State" data-network-filter="state" maxlength="2" />
+        <div class="pp-network-entry-grid">
+          <aside class="pp-network-context-rail" aria-label="Network search context">
+            <div class="pp-network-hero-card">
+              <div class="pp-network-preview-head">
+                <div class="pp-network-preview-mark" aria-hidden="true"><i class="bi bi-patch-check"></i></div>
+                <div>
+                  <span>Badge guide</span>
+                  <strong>Know what each badge means before you choose.</strong>
+                </div>
               </div>
-              <input class="pp-network-input" type="text" placeholder="ZIP code" data-network-filter="postal_code" />
-            </div>
-
-            <div class="pp-network-filter-group">
-              <span class="pp-network-field-label">Listing status</span>
-              <div class="pp-network-check-grid">
-                <label class="pp-network-inline-check"><input type="checkbox" data-network-filter="claimed" value="1" /> Claimed</label>
-                <label class="pp-network-inline-check"><input type="checkbox" data-network-filter="partner" value="1" /> Pawket Partners</label>
-                <label class="pp-network-inline-check"><input type="checkbox" data-network-filter="supports_charm" value="1" /> Supports CHARM</label>
-              </div>
-              <select class="pp-network-select" data-network-filter="tier">
-                <option value="">All partner tiers</option>
-                <option value="partner">Partner</option>
-                <option value="partner_plus">Partner+</option>
-                <option value="partner_elite">Partner Elite</option>
-              </select>
-            </div>
-
-            <div class="pp-network-filter-group">
-              <span class="pp-network-field-label">Distance and sort</span>
-              <div class="pp-network-row">
-                <input class="pp-network-input" type="number" min="1" max="100" value="25" data-network-filter="radius_mi" />
-                <select class="pp-network-select" data-network-filter="sort">
-                  <option value="relevance">Sort: Relevance</option>
-                  <option value="featured">Sort: Featured</option>
-                  <option value="distance">Sort: Distance</option>
-                  <option value="newest">Sort: Newest</option>
-                </select>
+              <div class="pp-network-status-grid">
+                <div>
+                  <span class="pp-network-status-dot pp-network-status-dot--listing" aria-hidden="true"></span>
+                  <strong>Network Listing</strong>
+                  <p>A public listing we know about, even if the owner has not updated it yet.</p>
+                </div>
+                <div>
+                  <span class="pp-network-status-dot pp-network-status-dot--claimed" aria-hidden="true"></span>
+                  <strong>Owner Claimed</strong>
+                  <p>The business or organization can help keep details current.</p>
+                </div>
+                <div>
+                  <span class="pp-network-status-dot pp-network-status-dot--partner" aria-hidden="true"></span>
+                  <strong>Pawket Verified Partner</strong>
+                  <p>A closer Pet Pawket relationship may be available here.</p>
+                </div>
+                <div>
+                  <span class="pp-network-status-dot pp-network-status-dot--charm" aria-hidden="true"></span>
+                  <strong>CHARM Support</strong>
+                  <p>CHARM-related updates are checked before they are shared.</p>
+                </div>
               </div>
             </div>
 
-            <div class="pp-network-actions">
-              <button class="pp-network-btn" type="button" data-network-action="search">Apply filters</button>
-              <button class="pp-network-btn ghost" type="button" data-network-action="near-me">Use my location</button>
-              <button class="pp-network-btn ghost" type="button" data-network-action="reset">Reset</button>
+            <div class="pp-network-search-note">
+              <i class="bi bi-info-circle" aria-hidden="true"></i>
+              <div>
+                <span>Launch note</span>
+                <p>Listings are not endorsements unless the Pawket Verified Partner badge or CHARM support signal is present.</p>
+              </div>
             </div>
-            <div class="pp-network-chip-row pp-network-active-filters" data-network-active-filters></div>
-            <p class="pp-network-status" data-network-status></p>
+
+            <div class="pp-network-search-note pp-network-search-note--places">
+              <i class="bi bi-map" aria-hidden="true"></i>
+              <div>
+                <span>Looking for places?</span>
+                <p>Dog parks, trails, pet-friendly stops, and relief areas belong in Pawket Places.</p>
+                <a class="pp-network-link" href="/pawket-places.html">Open Pawket Places</a>
+              </div>
+            </div>
+
+            <div class="pp-network-search-note pp-network-search-note--warm">
+              <i class="bi bi-journal-heart" aria-hidden="true"></i>
+              <div>
+                <span>Privacy rule</span>
+                <p>Care notes, rescue stories, adoption updates, medical details, and memorial content stay private or review-led.</p>
+              </div>
+            </div>
           </aside>
 
-          <section class="pp-network-panel pp-network-panel--results">
-            <div class="pp-network-item-head">
-              <h3>Directory results</h3>
-              <span class="pp-network-muted" data-network-count></span>
+          <div class="pp-network-finder-shell" id="network-search">
+            <div class="pp-network-primary-search" id="network-primary-search">
+              <div class="pp-network-primary-search-head">
+                <span class="pp-kicker">Live Directory</span>
+                <label class="pp-network-field-label" for="network-search-input">Search the Network</label>
+              </div>
+              <div class="pp-network-primary-search-row">
+                <div class="pp-network-autocomplete" data-network-autocomplete>
+                  <input
+                    id="network-search-input"
+                    class="pp-network-input"
+                    type="search"
+                    placeholder="Name, service, street address, city/town + state, or ZIP"
+                    data-network-filter="q"
+                    autocomplete="off"
+                    role="combobox"
+                    aria-autocomplete="list"
+                    aria-expanded="false"
+                    aria-controls="network-search-suggestions"
+                  />
+                  <div class="pp-network-suggestions" id="network-search-suggestions" role="listbox" data-network-suggestions hidden></div>
+                </div>
+                <button class="pp-network-btn" type="button" data-network-action="search"><i class="bi bi-search" aria-hidden="true"></i> Search</button>
+              </div>
+              <div class="pp-network-filter-strip" aria-label="Directory filters">
+                <div class="pp-network-filter-grid">
+                  <div class="pp-network-filter-group pp-network-filter-card pp-network-filter-card--category">
+                    <label class="pp-network-field-label" for="network-category">Category</label>
+                    <select id="network-category" class="pp-network-select" data-network-filter="category">
+                      <option value="">All categories</option>
+                      <option value="vet">Veterinarians</option>
+                      <option value="groomer">Groomers</option>
+                      <option value="cleaner">Cleaners</option>
+                      <option value="shelter">Shelters</option>
+                      <option value="trainer">Trainers</option>
+                      <option value="boarding">Boarding</option>
+                      <option value="sitter">Sitters</option>
+                      <option value="walker">Walkers</option>
+                      <option value="daycare">Daycare</option>
+                      <option value="rescue">Rescue</option>
+                    </select>
+                  </div>
+
+                  <div class="pp-network-filter-group pp-network-filter-card pp-network-filter-card--sort">
+                    <span class="pp-network-field-label">Distance and sort</span>
+                    <div class="pp-network-sort-grid">
+                      <label class="pp-network-mini-field">
+                        <span>Radius</span>
+                        <input class="pp-network-input" type="number" min="1" max="100" value="25" data-network-filter="radius_mi" />
+                      </label>
+                      <label class="pp-network-mini-field">
+                        <span>Sort</span>
+                        <select class="pp-network-select" data-network-filter="sort">
+                          <option value="relevance">Relevance</option>
+                          <option value="featured">Featured</option>
+                          <option value="distance">Distance</option>
+                          <option value="newest">Newest</option>
+                        </select>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="pp-network-filter-group pp-network-filter-card pp-network-filter-card--trust">
+                    <span class="pp-network-field-label">Trust state</span>
+                    <div class="pp-network-trust-layout">
+                      <div class="pp-network-check-grid">
+                        <label class="pp-network-inline-check"><input type="checkbox" data-network-filter="claimed" value="1" /> Claimed</label>
+                        <label class="pp-network-inline-check"><input type="checkbox" data-network-filter="partner" value="1" /> Verified</label>
+                        <label class="pp-network-inline-check"><input type="checkbox" data-network-filter="supports_charm" value="1" /> CHARM</label>
+                      </div>
+                      <select class="pp-network-select" data-network-filter="tier" aria-label="Partner tier">
+                        <option value="">All partner tiers</option>
+                        <option value="partner">Partner</option>
+                        <option value="partner_plus">Partner+</option>
+                        <option value="partner_elite">Partner Elite</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <details class="pp-network-filter-group pp-network-filter-card pp-network-filter-card--location">
+                    <summary class="pp-network-location-summary">
+                      <span class="pp-network-field-label">Location</span>
+                      <span class="pp-network-location-summary-hint">City, State, ZIP</span>
+                      <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                    </summary>
+                    <div class="pp-network-location-grid">
+                      <input class="pp-network-input" type="text" placeholder="City" aria-label="City" data-network-filter="city" />
+                      <input class="pp-network-input" type="text" placeholder="State" aria-label="State" data-network-filter="state" maxlength="2" />
+                      <input class="pp-network-input" type="text" placeholder="ZIP code" aria-label="ZIP code" data-network-filter="postal_code" />
+                    </div>
+                  </details>
+                </div>
+                <div class="pp-network-filter-footer">
+                  <div class="pp-network-chip-row pp-network-active-filters" data-network-active-filters></div>
+                  <div class="pp-network-actions">
+                    <button class="pp-network-btn" type="button" data-network-action="search"><i class="bi bi-search" aria-hidden="true"></i> Apply</button>
+                    <button class="pp-network-btn ghost" type="button" data-network-action="near-me"><i class="bi bi-geo-alt" aria-hidden="true"></i> Near me</button>
+                    <button class="pp-network-btn ghost" type="button" data-network-action="reset"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Reset</button>
+                  </div>
+                </div>
+                <p class="pp-network-status" data-network-status></p>
+              </div>
             </div>
-            <div class="pp-network-chip-row pp-network-badge-legend">
-              <span class="pp-network-badge status-unclaimed">Network Listing</span>
-              <span class="pp-network-badge status-claimed">Claimed</span>
-              <span class="pp-network-badge status-partner">Pawket Partner</span>
-              <span class="pp-network-badge charm">Supports CHARM</span>
+
+            <div class="pp-network-grid pp-network-grid--directory-results">
+              <section class="pp-network-panel pp-network-panel--results">
+                <div class="pp-network-item-head">
+                  <div>
+                    <span class="pp-network-panel-kicker">Network response</span>
+                    <h3>Network listings and launch paths</h3>
+                  </div>
+                  <span class="pp-network-muted" data-network-count></span>
+                </div>
+                <div class="pp-network-chip-row pp-network-badge-legend">
+                  <span class="pp-network-badge status-unclaimed">Network Listing</span>
+                  <span class="pp-network-badge status-claimed">Owner Claimed</span>
+                  <span class="pp-network-badge status-partner">Pawket Verified Partner</span>
+                  <span class="pp-network-badge charm">Supports CHARM</span>
+                </div>
+                <p class="pp-network-muted pp-network-inline-note" data-network-sort-summary></p>
+                <div class="pp-network-card-grid" data-network-results></div>
+              </section>
             </div>
-            <p class="pp-network-muted pp-network-inline-note" data-network-sort-summary></p>
-            <div class="pp-network-card-grid" data-network-results></div>
-          </section>
+          </div>
+        </div>
+
+        <div class="pp-realworld-switchboard pp-realworld-switchboard--network" aria-labelledby="network-lanes-title">
+          <div class="pp-realworld-switchboard-head">
+            <span class="pp-kicker">Right Real-World Lane</span>
+            <h2 id="network-lanes-title">Care providers and pet-safe places work together, but stay separate.</h2>
+            <p>Use the Network when you need a real care team, business, rescue, or partner record. Use Pawket Places when the search is about where a pet can safely go.</p>
+          </div>
+          <div class="pp-realworld-switchboard-grid">
+            <article class="pp-realworld-lane-card is-active">
+              <div class="pp-realworld-lane-icon" aria-hidden="true"><i class="bi bi-patch-check"></i></div>
+              <div>
+                <span>Provider directory</span>
+                <h3>Search who can help with care.</h3>
+                <p>Vets, groomers, shelters, rescues, trainers, boarding, sitters, walkers, daycare, and cleaners belong here.</p>
+                <a class="pp-network-link" href="#network-primary-search">Stay in Network</a>
+              </div>
+            </article>
+            <article class="pp-realworld-lane-card pp-realworld-lane-card--places">
+              <div class="pp-realworld-lane-icon" aria-hidden="true"><i class="bi bi-map"></i></div>
+              <div>
+                <span>Pet-safe places</span>
+                <h3>Find parks, trails, beaches, and stops.</h3>
+                <p>Check rules, access notes, safety details, and what to know before you go.</p>
+                <a class="pp-network-link" href="/pawket-places.html">Open Pawket Places</a>
+              </div>
+            </article>
+            <article class="pp-realworld-lane-card pp-realworld-lane-card--account">
+              <div class="pp-realworld-lane-icon" aria-hidden="true"><i class="bi bi-journal-heart"></i></div>
+              <div>
+                <span>Saved for later</span>
+                <h3>Save useful real-world steps privately.</h3>
+                <p>Saved providers, places, notes, passes, and Pal ideas should stay private unless you choose to share.</p>
+                <a class="pp-network-link" href="/account.html#account-story-trail">Open saved stories</a>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <div class="pp-network-path-grid pp-network-path-grid--entry">
+          <article class="pp-network-path-card">
+            <div class="pp-network-card-icon" aria-hidden="true"><i class="bi bi-compass"></i></div>
+            <span>Pet parents</span>
+            <h3>Search first, then choose what feels right.</h3>
+            <p>Open a listing, read the badges, and use links only when the match makes sense.</p>
+          </article>
+          <article class="pp-network-path-card">
+            <div class="pp-network-card-icon pp-network-card-icon--gold" aria-hidden="true"><i class="bi bi-building-check"></i></div>
+            <span>Businesses and rescues</span>
+            <h3>Business details should stay current.</h3>
+            <p>Claimed profiles can keep hours, services, and helpful links up to date.</p>
+          </article>
+          <article class="pp-network-path-card">
+            <div class="pp-network-card-icon pp-network-card-icon--green" aria-hidden="true"><i class="bi bi-heart-pulse"></i></div>
+            <span>CHARM and community</span>
+            <h3>Shared stories need care.</h3>
+            <p>CHARM, Town Square, and future Pal moments should be shared only when people choose.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="pp-band pp-band--cool pp-network-overview" aria-labelledby="network-overview-title">
+      <div class="pp-band-inner">
+        <div class="pp-section-head">
+          <span class="pp-kicker">After A Match</span>
+          <h2 id="network-overview-title">Network profiles should lead somewhere useful.</h2>
+          <p>Pet Pawket can help real-world care connect to trusted partners, CHARM updates, community posts, Pawket Passes, and future Pawket Pal moments while private pet records stay private.</p>
+        </div>
+
+        <div class="pp-network-path-grid">
+          <article class="pp-network-path-card">
+            <div class="pp-network-card-icon" aria-hidden="true"><i class="bi bi-person-check"></i></div>
+            <span>Owner-managed</span>
+            <h3>Claimed profiles can stay current.</h3>
+            <p>Owners can keep hours, services, photos, and links fresh.</p>
+          </article>
+          <article class="pp-network-path-card">
+            <div class="pp-network-card-icon pp-network-card-icon--gold" aria-hidden="true"><i class="bi bi-ticket-perforated"></i></div>
+            <span>Partner ideas</span>
+            <h3>Partners can connect to Pawket Passes.</h3>
+            <p>Future local offers and care-kit drives can stay connected to normal shopping and account flows.</p>
+          </article>
+          <article class="pp-network-path-card">
+            <div class="pp-network-card-icon pp-network-card-icon--green" aria-hidden="true"><i class="bi bi-shield-check"></i></div>
+            <span>Public sharing</span>
+            <h3>Community and CHARM stay careful.</h3>
+            <p>Partner highlights and rescue updates should be checked before they become public stories.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="pp-band pp-band--cool pp-network-handoffs" aria-labelledby="network-handoffs-title">
+      <div class="pp-band-inner">
+        <div class="pp-section-head">
+          <span class="pp-kicker">Next Steps</span>
+          <h2 id="network-handoffs-title">Where a helpful listing can lead.</h2>
+          <p>The Network helps real-world care connect to Pawket Passes, community, CHARM, account journals, and later Pawket Pals without making private stories public by default.</p>
+        </div>
+
+        <div class="pp-network-handoff-grid">
+          <article class="pp-network-handoff">
+            <i class="bi bi-ticket-perforated" aria-hidden="true"></i>
+            <div>
+              <span>Pawket Passes</span>
+              <h3>Share a useful link.</h3>
+              <p>Future partner moments can create passes that still use the normal cart and account paths.</p>
+              <a class="pp-network-link" href="/loop.html">Open Pawket Passes</a>
+            </div>
+          </article>
+          <article class="pp-network-handoff">
+            <i class="bi bi-chat-heart" aria-hidden="true"></i>
+            <div>
+              <span>Community</span>
+              <h3>Share local good news with care.</h3>
+              <p>Partner highlights, adoption wins, and local events can point to Town Square after a privacy check.</p>
+              <a class="pp-network-link" href="/community.html">Open Community</a>
+            </div>
+          </article>
+          <article class="pp-network-handoff">
+            <i class="bi bi-journal-heart" aria-hidden="true"></i>
+            <div>
+              <span>Care journals</span>
+              <h3>Private account notes stay private.</h3>
+              <p>Vet visits, grooming notes, and care milestones can remain inside account journals unless shared deliberately.</p>
+              <a class="pp-network-link" href="/account.html#account-story-trail">Open saved stories</a>
+            </div>
+          </article>
+          <article class="pp-network-handoff">
+            <i class="bi bi-heart-pulse" aria-hidden="true"></i>
+            <div>
+              <span>CHARM</span>
+              <h3>CHARM support stays careful.</h3>
+              <p>CHARM-linked partners can support rescue and medical work without exposing sensitive stories before they are ready.</p>
+              <a class="pp-network-link" href="/charm.html">Open CHARM</a>
+            </div>
+          </article>
+          <article class="pp-network-handoff pp-network-handoff--wide">
+            <i class="bi bi-map" aria-hidden="true"></i>
+            <div>
+              <span>Pawket Places</span>
+              <h3>Pet-safe locations stay separate from providers.</h3>
+              <p>Dog parks, trails, pet-friendly stops, and travel relief areas should be browsed as reference locations, not claimed care providers.</p>
+              <a class="pp-network-link" href="/pawket-places.html">Open Pawket Places</a>
+            </div>
+          </article>
         </div>
       </div>
     </section>

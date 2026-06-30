@@ -1,49 +1,32 @@
 const HOME_PATHS = new Set(['/', '/index.html']);
 
-const SECTION_SELECTORS = [
-  '#hero-container',
-  '#pp-packs',
-  '#pp-expansion',
-  '#pp-stories',
-  '#mission-container',
-  '#pp-featured',
-  '#news-container'
+const HOME_SECTIONS = [
+  { selector: '#hero-container', label: 'Story' },
+  { selector: '#pp-expansion', label: 'Care' },
+  { selector: '#pp-packs', label: 'Packs' },
+  { selector: '#pp-stories', label: 'Stories' },
+  { selector: '#pp-charm-impact', label: 'CHARM' },
+  { selector: '#pp-world', label: 'Haven' },
+  { selector: '#mission-container', label: 'Mission' },
+  { selector: '#pp-featured', label: 'Featured' },
+  { selector: '#news-container', label: 'News' },
 ];
 
-const SECTION_LABELS = {
-  'hero-container': 'Story',
-  'pp-packs': 'Packs',
-  'pp-expansion': 'Care',
-  'pp-stories': 'Stories',
-  'mission-container': 'Mission',
-  'pp-featured': 'Featured',
-  'news-container': 'News'
+const state = {
+  sections: [],
+  rail: null,
+  track: null,
+  topButton: null,
+  mutationObserver: null,
+  resizeObserver: null,
+  updateFrame: 0,
+  refreshTimer: 0,
+  activeId: '',
+  ready: false,
+  trackDragBound: false,
+  trackDragState: null,
+  suppressTrackClickUntil: 0,
 };
-
-const SECTION_EDGE_TOLERANCE = 4;
-const WHEEL_LINE_PX = 34;
-const IN_SECTION_FINE_WHEEL_MULTIPLIER = 1.45;
-const IN_SECTION_COARSE_WHEEL_MULTIPLIER = 2;
-const IN_SECTION_MIN_COARSE_STEP = 260;
-
-let sections = [];
-let indexEl = null;
-let topButton = null;
-let observer = null;
-let mutationObserver = null;
-let scrollRaf = 0;
-let refreshTimer = 0;
-let snapWheelTimer = 0;
-let snapWheelDelta = 0;
-let snapLockedUntil = 0;
-let snapReleaseTimer = 0;
-let scrollIdleTimer = 0;
-let snapInFlight = false;
-let snapTargetIndex = -1;
-let lastSnapAt = 0;
-let lastScrollY = 0;
-let lastScrollDirection = 0;
-let lastScrollAt = 0;
 
 function isHomePage() {
   const path = (window.location.pathname || '/').replace(/\/+$/, '') || '/';
@@ -56,552 +39,352 @@ function escapeHtml(value = '') {
     '<': '&lt;',
     '>': '&gt;',
     '"': '&quot;',
-    "'": '&#39;'
+    "'": '&#39;',
   }[char]));
-}
-
-function navOffset() {
-  const root = getComputedStyle(document.documentElement);
-  const raw = root.getPropertyValue('--nav-offset')
-    || `calc(${root.getPropertyValue('--pp-header-h')} + ${root.getPropertyValue('--pp-subnav-h')})`;
-  const parsed = Number.parseFloat(raw);
-  if (Number.isFinite(parsed) && parsed > 0) return parsed;
-
-  const header = document.querySelector('#navbar-container .pp-header');
-  const subnav = document.querySelector('#navbar-container .pp-subnav');
-  const headerH = header?.getBoundingClientRect?.().height || 0;
-  const subnavH = subnav?.getBoundingClientRect?.().height || 0;
-  return Math.max(0, Math.round(headerH + subnavH));
-}
-
-function viewportHeight() {
-  return window.innerHeight || document.documentElement.clientHeight || 0;
-}
-
-function maxScrollY() {
-  const doc = document.documentElement;
-  const body = document.body;
-  const scrollHeight = Math.max(doc?.scrollHeight || 0, body?.scrollHeight || 0);
-  return Math.max(0, scrollHeight - viewportHeight());
-}
-
-function currentScrollTop() {
-  return Math.round(window.scrollY || window.pageYOffset || 0);
-}
-
-function sectionTargetTop(section) {
-  if (!section) return 0;
-  const rawTop = window.scrollY + section.getBoundingClientRect().top - navOffset();
-  return Math.min(maxScrollY(), Math.max(0, Math.round(rawTop)));
-}
-
-function sectionDocumentTop(section) {
-  if (!section) return 0;
-  return window.scrollY + section.getBoundingClientRect().top;
-}
-
-function sectionScrollRange(section) {
-  if (!section) return null;
-  const rect = section.getBoundingClientRect();
-  const visibleHeight = Math.max(1, viewportHeight() - navOffset());
-  const start = sectionTargetTop(section);
-  const isScrollable = rect.height > visibleHeight + SECTION_EDGE_TOLERANCE;
-  const bottomAlignedTop = sectionDocumentTop(section) + rect.height - viewportHeight();
-  const end = isScrollable
-    ? Math.max(start, Math.min(maxScrollY(), Math.round(bottomAlignedTop)))
-    : start;
-
-  return { section, start, end, isScrollable };
-}
-
-function sectionViewportHeight() {
-  return Math.max(1, viewportHeight() - navOffset());
 }
 
 function prefersReducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-function supportsScrollEnd() {
-  return 'onscrollend' in window;
+function navOffset() {
+  const root = getComputedStyle(document.documentElement);
+  const fromVar = Number.parseFloat(root.getPropertyValue('--nav-offset'));
+  if (Number.isFinite(fromVar) && fromVar > 0) return Math.round(fromVar);
+
+  const header = document.querySelector('#navbar-container .pp-header');
+  const subnav = document.querySelector('#navbar-container .pp-subnav');
+  const headerHeight = header?.getBoundingClientRect?.().height || 0;
+  const subnavHeight = subnav?.getBoundingClientRect?.().height || 0;
+  return Math.round(headerHeight + subnavHeight);
 }
 
-function normalizeWheelDelta(event) {
-  let deltaY = Number(event.deltaY) || 0;
-  if (event.deltaMode === 1) deltaY *= WHEEL_LINE_PX;
-  else if (event.deltaMode === 2) deltaY *= Math.max(1, viewportHeight() - navOffset());
-
-  const absDelta = Math.abs(deltaY);
-  if (absDelta < 1) return 0;
-
-  const multiplier = absDelta < 50
-    ? IN_SECTION_FINE_WHEEL_MULTIPLIER
-    : IN_SECTION_COARSE_WHEEL_MULTIPLIER;
-  const boosted = deltaY * multiplier;
-
-  if (absDelta >= 50 && Math.abs(boosted) < IN_SECTION_MIN_COARSE_STEP) {
-    return Math.sign(boosted) * IN_SECTION_MIN_COARSE_STEP;
-  }
-
-  return boosted;
+function currentScrollTop() {
+  return Math.round(window.scrollY || window.pageYOffset || 0);
 }
 
-function clearPendingSnap() {
-  window.clearTimeout(snapWheelTimer);
-  window.clearTimeout(scrollIdleTimer);
-  snapWheelDelta = 0;
-  snapLockedUntil = 0;
-  snapInFlight = false;
-  snapTargetIndex = -1;
-}
-
-function deriveLabel(section) {
-  const id = section.id || '';
-  if (SECTION_LABELS[id]) return SECTION_LABELS[id];
-  const heading = section.querySelector('h1, h2, h3');
-  if (heading?.textContent?.trim()) {
-    return heading.textContent.trim().replace(/\s+/g, ' ').slice(0, 34);
-  }
-  return id
-    .replace(/^pp-/, '')
-    .replace(/-/g, ' ')
-    .replace(/\b\w/g, (char) => char.toUpperCase()) || 'Section';
-}
-
-function getSceneNodes() {
-  const nodes = SECTION_SELECTORS
-    .map((selector) => document.querySelector(selector))
-    .filter(Boolean);
-  return Array.from(new Set(nodes))
-    .filter((node) => node.isConnected);
-}
-
-function ensureControls() {
-  if (!indexEl) {
-    indexEl = document.createElement('nav');
-    indexEl.className = 'pp-section-index';
-    indexEl.setAttribute('aria-label', 'Page sections');
-    document.body.appendChild(indexEl);
-  }
-
-  if (!topButton) {
-    topButton = document.createElement('button');
-    topButton.className = 'pp-return-top';
-    topButton.type = 'button';
-    topButton.setAttribute('aria-label', 'Return to top');
-    topButton.innerHTML = '<i class="bi bi-arrow-up-short" aria-hidden="true"></i><span>Top</span>';
-    topButton.addEventListener('click', () => {
-      if (sections[0]) scrollToSection(sections[0]);
-      else window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
-    });
-    document.body.appendChild(topButton);
-  }
-}
-
-function releaseSnap(delay = 900) {
-  window.clearTimeout(snapReleaseTimer);
-  snapReleaseTimer = window.setTimeout(() => {
-    snapInFlight = false;
-    snapTargetIndex = -1;
-    scheduleUpdate();
-  }, delay);
-}
-
-function jumpToScrollTop(top) {
-  const html = document.documentElement;
+function maxScrollTop() {
+  const doc = document.documentElement;
   const body = document.body;
-  const previousHtmlBehavior = html?.style?.scrollBehavior || '';
-  const previousBodyBehavior = body?.style?.scrollBehavior || '';
-  const targetTop = Math.round(top);
-
-  if (html) html.style.scrollBehavior = 'auto';
-  if (body) body.style.scrollBehavior = 'auto';
-  window.scrollTo(0, targetTop);
-  window.setTimeout(() => window.scrollTo(0, targetTop), 0);
-
-  window.setTimeout(() => {
-    window.scrollTo(0, targetTop);
-    if (html) html.style.scrollBehavior = previousHtmlBehavior;
-    if (body) body.style.scrollBehavior = previousBodyBehavior;
-  }, 180);
+  const scrollHeight = Math.max(doc?.scrollHeight || 0, body?.scrollHeight || 0);
+  const viewportHeight = window.innerHeight || doc?.clientHeight || 0;
+  return Math.max(0, scrollHeight - viewportHeight);
 }
 
-function scrollToSection(section, edge = 'start') {
-  if (!section) return;
-  const range = sectionScrollRange(section);
-  const top = edge === 'end' && range?.isScrollable ? range.end : sectionTargetTop(section);
-  const targetTop = Math.round(top);
-  const index = sections.indexOf(section);
-
-  window.clearTimeout(scrollIdleTimer);
-  snapInFlight = true;
-  snapTargetIndex = index >= 0 ? index : snapTargetIndex;
-  lastSnapAt = Date.now();
-
-  jumpToScrollTop(targetTop);
-  releaseSnap(prefersReducedMotion() ? 120 : 180);
+function clampScrollTop(value) {
+  return Math.max(0, Math.min(maxScrollTop(), Math.round(value)));
 }
 
-function getNearestSectionIndex(direction = 0) {
-  if (!sections.length) return -1;
-  const currentTop = currentScrollTop();
-  let nearestIndex = 0;
-  let nearestDistance = Infinity;
-  let nearestTarget = sectionTargetTop(sections[0]);
-  sections.forEach((section, index) => {
-    const targetTop = sectionTargetTop(section);
-    const distance = Math.abs(targetTop - currentTop);
-    const directionalTie = Math.abs(distance - nearestDistance) <= 1
-      && direction !== 0
-      && ((direction > 0 && targetTop > nearestTarget) || (direction < 0 && targetTop < nearestTarget));
-    if (distance < nearestDistance || directionalTie) {
-      nearestDistance = distance;
-      nearestIndex = index;
-      nearestTarget = targetTop;
-    }
+function sectionTargetTop(section) {
+  if (!section) return 0;
+  const rect = section.getBoundingClientRect();
+  const clearance = Math.max(8, Math.min(18, window.innerHeight * 0.018));
+  return clampScrollTop(currentScrollTop() + rect.top - navOffset() - clearance);
+}
+
+function discoverSections() {
+  const found = [];
+  HOME_SECTIONS.forEach((entry) => {
+    const node = document.querySelector(entry.selector);
+    if (!node?.isConnected || found.some((item) => item.node === node)) return;
+    found.push({ node, label: entry.label });
   });
-  return nearestIndex;
+  return found;
 }
 
-function getSectionIndexForScroll(direction = 0) {
-  if (!sections.length) return -1;
-  const currentTop = currentScrollTop();
-  let matchedIndex = -1;
-  let matchedStart = -Infinity;
+function sectionNumber(index) {
+  return String(index + 1).padStart(2, '0');
+}
 
-  sections.forEach((section, index) => {
-    const range = sectionScrollRange(section);
-    if (!range?.isScrollable) return;
-    const inRange = currentTop >= range.start - SECTION_EDGE_TOLERANCE
-      && currentTop <= range.end + SECTION_EDGE_TOLERANCE;
-    if (!inRange) return;
+function ensureRail() {
+  if (!state.rail) {
+    state.rail = document.createElement('nav');
+    state.rail.className = 'pp-section-index';
+    state.rail.setAttribute('aria-label', 'Home sections');
+    state.rail.innerHTML = `
+      <span class="pp-section-index-kicker">Sections</span>
+      <span class="pp-section-index-line" aria-hidden="true"></span>
+      <span class="pp-section-index-track"></span>
+    `;
+    state.track = state.rail.querySelector('.pp-section-index-track');
+  }
 
-    const directionalTie = direction !== 0
-      && ((direction > 0 && range.start >= matchedStart) || (direction < 0 && range.start <= matchedStart));
+  if (state.rail.parentNode !== document.body) {
+    document.body.appendChild(state.rail);
+  }
 
-    if (matchedIndex < 0 || directionalTie) {
-      matchedIndex = index;
-      matchedStart = range.start;
-    }
+  bindTrackScrollInteractions();
+}
+
+function isTrackScrollable(track) {
+  return !!track && track.scrollWidth > track.clientWidth + 2;
+}
+
+function endTrackDrag() {
+  const drag = state.trackDragState;
+  if (!drag) return;
+  drag.track.classList.remove('is-dragging');
+  if (drag.moved) {
+    state.suppressTrackClickUntil = Date.now() + 260;
+  }
+  state.trackDragState = null;
+}
+
+function bindTrackScrollInteractions() {
+  if (!state.track || state.trackDragBound) return;
+  state.trackDragBound = true;
+
+  state.track.addEventListener('pointerdown', (event) => {
+    if (event.button != null && event.button !== 0) return;
+    if (!isTrackScrollable(state.track)) return;
+    state.trackDragState = {
+      track: state.track,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      startLeft: state.track.scrollLeft,
+      axis: '',
+      moved: false,
+    };
+    state.track.setPointerCapture?.(event.pointerId);
   });
 
-  return matchedIndex >= 0 ? matchedIndex : getNearestSectionIndex(direction);
-}
+  state.track.addEventListener('pointermove', (event) => {
+    const drag = state.trackDragState;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const dx = event.clientX - drag.startX;
+    const dy = event.clientY - drag.startY;
+    const adx = Math.abs(dx);
+    const ady = Math.abs(dy);
 
-function currentSnapIndex() {
-  if (snapInFlight && snapTargetIndex >= 0 && snapTargetIndex < sections.length) {
-    return snapTargetIndex;
-  }
-  return getSectionIndexForScroll(lastScrollDirection);
-}
-
-function lastSectionRange() {
-  return sections.length ? sectionScrollRange(sections[sections.length - 1]) : null;
-}
-
-function isPastLastSection(currentTop = currentScrollTop()) {
-  const range = lastSectionRange();
-  return !!range && currentTop > range.end + SECTION_EDGE_TOLERANCE;
-}
-
-function shouldAllowPageScrollOutsideScenes(direction, currentTop = currentScrollTop()) {
-  const range = lastSectionRange();
-  if (!range) return false;
-  if (currentTop > range.end + SECTION_EDGE_TOLERANCE) return true;
-  return direction > 0
-    && currentTop >= range.end - SECTION_EDGE_TOLERANCE
-    && currentTop < maxScrollY() - SECTION_EDGE_TOLERANCE;
-}
-
-function canScrollWithinTarget(target, deltaY) {
-  if (!(target instanceof Element)) return false;
-  let node = target;
-  while (node && node !== document.body && node !== document.documentElement) {
-    const style = window.getComputedStyle(node);
-    const overflowY = style.overflowY;
-    const canOverflow = /(auto|scroll|overlay)/.test(overflowY);
-    if (canOverflow && node.scrollHeight > node.clientHeight + 1) {
-      const maxScroll = node.scrollHeight - node.clientHeight;
-      if (deltaY > 0 && node.scrollTop < maxScroll - 1) return true;
-      if (deltaY < 0 && node.scrollTop > 1) return true;
+    if (!drag.axis) {
+      if (adx < 4 && ady < 4) return;
+      drag.axis = adx >= ady ? 'x' : 'y';
+      if (drag.axis !== 'x') {
+        state.trackDragState = null;
+        return;
+      }
+      drag.track.classList.add('is-dragging');
     }
-    node = node.parentElement;
-  }
-  return false;
-}
 
-function snapToAdjacentSection(direction) {
-  if (!sections.length || direction === 0) return;
-  const currentIndex = currentSnapIndex();
-  if (currentIndex < 0) return;
-  const nextIndex = Math.min(sections.length - 1, Math.max(0, currentIndex + direction));
-  if (nextIndex === currentIndex) {
-    const edge = direction > 0 ? 'end' : 'start';
-    scrollToSection(sections[currentIndex], edge);
-    return;
-  }
-  const edge = direction < 0 ? 'end' : 'start';
-  scrollToSection(sections[nextIndex], edge);
-}
-
-function scrollWithinCurrentSection(direction, deltaY) {
-  const currentIndex = getSectionIndexForScroll(direction);
-  const section = sections[currentIndex];
-  const range = sectionScrollRange(section);
-  if (!range?.isScrollable) return false;
-
-  const currentTop = currentScrollTop();
-  const canScrollDown = direction > 0 && currentTop < range.end - SECTION_EDGE_TOLERANCE;
-  const canScrollUp = direction < 0 && currentTop > range.start + SECTION_EDGE_TOLERANCE;
-  if (!canScrollDown && !canScrollUp) return false;
-
-  clearPendingSnap();
-  lastScrollDirection = direction;
-
-  const nextTop = Math.min(range.end, Math.max(range.start, currentTop + deltaY));
-  window.scrollTo({ top: Math.round(nextTop), behavior: 'auto' });
-  scheduleUpdate();
-  return true;
-}
-
-function handleSectionWheel(event) {
-  if (!sections.length) return;
-  if (prefersReducedMotion()) return;
-  if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return;
-  if (canScrollWithinTarget(event.target, event.deltaY)) return;
-
-  const deltaY = normalizeWheelDelta(event);
-  if (Math.abs(deltaY) < 2) return;
-  const direction = deltaY > 0 ? 1 : -1;
-
-  if (shouldAllowPageScrollOutsideScenes(direction)) {
-    clearPendingSnap();
-    lastScrollDirection = direction;
-    return;
-  }
-
-  if (scrollWithinCurrentSection(direction, deltaY)) {
+    if (drag.axis !== 'x') return;
+    drag.moved = drag.moved || adx > 5;
+    drag.track.scrollLeft = drag.startLeft - dx;
     event.preventDefault();
-    return;
-  }
+  });
 
-  event.preventDefault();
-  const now = Date.now();
-  if (now < snapLockedUntil) return;
+  state.track.addEventListener('pointerup', endTrackDrag);
+  state.track.addEventListener('pointercancel', endTrackDrag);
+  state.track.addEventListener('pointerleave', endTrackDrag);
 
-  snapWheelDelta += deltaY;
-  window.clearTimeout(snapWheelTimer);
-  snapWheelTimer = window.setTimeout(() => {
-    snapWheelDelta = 0;
-  }, 180);
-
-  if (Math.abs(snapWheelDelta) < 44) return;
-
-  const snapDirection = snapWheelDelta > 0 ? 1 : -1;
-  snapWheelDelta = 0;
-  snapLockedUntil = now + 580;
-  snapToAdjacentSection(snapDirection);
+  state.track.addEventListener('wheel', (event) => {
+    if (!isTrackScrollable(state.track)) return;
+    const horizontal = Math.abs(event.deltaX) >= Math.abs(event.deltaY);
+    const delta = horizontal ? event.deltaX : event.deltaY;
+    if (!delta) return;
+    state.track.scrollLeft += delta;
+    event.preventDefault();
+  }, { passive: false });
 }
 
-function renderIndex() {
-  ensureControls();
-  indexEl.innerHTML = sections.map((section, index) => {
-    const number = String(index + 1).padStart(2, '0');
-    const label = section.dataset.ppSectionLabel || deriveLabel(section);
+function ensureTopButton() {
+  if (!state.topButton) {
+    state.topButton = document.createElement('button');
+    state.topButton.className = 'pp-return-top';
+    state.topButton.type = 'button';
+    state.topButton.setAttribute('aria-label', 'Return to top');
+    state.topButton.innerHTML = '<i class="bi bi-arrow-up-short" aria-hidden="true"></i><span>Top</span>';
+    state.topButton.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+    });
+  }
+
+  if (state.topButton.parentNode !== document.body) {
+    document.body.appendChild(state.topButton);
+  }
+}
+
+function renderRail() {
+  ensureRail();
+  ensureTopButton();
+
+  if (!state.track) return;
+  state.track.innerHTML = state.sections.map((section, index) => {
+    const number = sectionNumber(index);
+    const label = section.label;
     return `
-      <button class="pp-section-index-btn" type="button" data-pp-section-target="${escapeHtml(section.id)}" aria-label="Jump to ${escapeHtml(label)}">
+      <button class="pp-section-index-btn" type="button" data-pp-section-target="${escapeHtml(section.node.id)}" aria-label="Go to ${escapeHtml(number)} ${escapeHtml(label)}">
         <span class="pp-section-index-num">${number}</span>
         <span class="pp-section-index-label">${escapeHtml(label)}</span>
       </button>
     `;
   }).join('');
 
-  indexEl.querySelectorAll('[data-pp-section-target]').forEach((button) => {
+  state.track.querySelectorAll('[data-pp-section-target]').forEach((button) => {
     button.addEventListener('click', () => {
+      if (Date.now() < state.suppressTrackClickUntil) return;
       const target = document.getElementById(button.dataset.ppSectionTarget || '');
-      scrollToSection(target);
+      if (!target) return;
+      window.scrollTo({
+        top: sectionTargetTop(target),
+        behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+      });
     });
   });
 }
 
 function applySectionMetadata() {
-  sections = getSceneNodes();
-  sections.forEach((section, index) => {
-    const number = String(index + 1).padStart(2, '0');
-    const label = deriveLabel(section);
-    section.classList.add('pp-scroll-scene');
-    section.dataset.ppSectionIndex = number;
-    section.dataset.ppSectionLabel = label;
-    section.style.setProperty('--pp-section-order', String(index));
+  const previousNodes = new Set(state.sections.map((section) => section.node));
+  const next = discoverSections();
+  const nextNodes = new Set(next.map((section) => section.node));
+
+  previousNodes.forEach((node) => {
+    if (nextNodes.has(node)) return;
+    node.classList.remove('pp-scroll-scene', 'is-active-section');
+    node.removeAttribute('data-pp-section-index');
+    node.removeAttribute('data-pp-section-label');
+    node.style.removeProperty('--pp-section-order');
+    node.style.removeProperty('--pp-section-progress');
   });
-  if (observer) {
-    observer.disconnect();
-    sections.forEach((section) => observer.observe(section));
+
+  next.forEach((section, index) => {
+    const number = sectionNumber(index);
+    section.node.classList.add('pp-scroll-scene');
+    section.node.dataset.ppSectionIndex = number;
+    section.node.dataset.ppSectionLabel = section.label;
+    section.node.style.setProperty('--pp-section-order', String(index));
+    section.node.style.setProperty('--pp-section-progress', '0');
+  });
+
+  state.sections = next;
+  document.documentElement.dataset.ppSectionScenes = next.length ? '1' : '0';
+  document.documentElement.dataset.ppSectionIndexMode = next.length > 1 ? 'rail' : 'hidden';
+
+  if (state.resizeObserver) {
+    state.resizeObserver.disconnect();
+    state.sections.forEach((section) => state.resizeObserver.observe(section.node));
   }
-  document.documentElement.dataset.ppSectionScenes = sections.length ? '1' : '0';
-  renderIndex();
+
+  renderRail();
+  scheduleUpdate();
 }
 
-function setActiveSection(active) {
-  sections.forEach((section) => {
-    section.classList.toggle('is-active-section', section === active);
+function activeSectionForViewport() {
+  if (!state.sections.length) return null;
+
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 1;
+  const focusY = navOffset() + Math.max(80, (viewportHeight - navOffset()) * 0.42);
+  let best = state.sections[0];
+  let bestDistance = Infinity;
+
+  state.sections.forEach((section) => {
+    const rect = section.node.getBoundingClientRect();
+    const containsFocus = rect.top <= focusY && rect.bottom >= focusY;
+    const distance = containsFocus
+      ? Math.abs(((rect.top + rect.bottom) / 2) - focusY) * 0.05
+      : Math.min(Math.abs(rect.top - focusY), Math.abs(rect.bottom - focusY));
+
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = section;
+    }
   });
-  if (!indexEl) return;
-  indexEl.querySelectorAll('[data-pp-section-target]').forEach((button) => {
-    const isActive = active && button.dataset.ppSectionTarget === active.id;
-    button.classList.toggle('is-active', !!isActive);
+
+  return best;
+}
+
+function updateSectionProgress() {
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 1;
+  const readableTop = navOffset();
+  const readableHeight = Math.max(1, viewportHeight - readableTop);
+
+  state.sections.forEach((section) => {
+    const rect = section.node.getBoundingClientRect();
+    const progress = (readableTop - rect.top + readableHeight * 0.38) / Math.max(1, rect.height);
+    section.node.style.setProperty('--pp-section-progress', String(Math.max(0, Math.min(1, progress))));
+  });
+}
+
+function updateActiveState() {
+  state.updateFrame = 0;
+
+  const active = activeSectionForViewport();
+  const activeId = active?.node?.id || '';
+  updateSectionProgress();
+
+  state.sections.forEach((section) => {
+    section.node.classList.toggle('is-active-section', section.node.id === activeId);
+  });
+
+  state.track?.querySelectorAll('[data-pp-section-target]').forEach((button) => {
+    const isActive = button.dataset.ppSectionTarget === activeId;
+    button.classList.toggle('is-active', isActive);
     if (isActive) button.setAttribute('aria-current', 'true');
     else button.removeAttribute('aria-current');
   });
-}
 
-function updateParallax() {
-  scrollRaf = 0;
-  if (!sections.length) return;
+  if (activeId && activeId !== state.activeId) {
+    state.activeId = activeId;
+    const activeButton = state.track?.querySelector(`[data-pp-section-target="${CSS.escape(activeId)}"]`);
+    activeButton?.scrollIntoView?.({ block: 'nearest', inline: 'center', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+  }
 
-  const vh = window.innerHeight || document.documentElement.clientHeight || 1;
-  const active = sections[getSectionIndexForScroll(lastScrollDirection)] || sections[0];
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  sections.forEach((section) => {
-    const rect = section.getBoundingClientRect();
-    if (reduceMotion) {
-      section.style.setProperty('--pp-parallax-y', '0px');
-      section.style.setProperty('--pp-section-progress', '0.5');
-      return;
-    }
-
-    const progress = Math.min(1, Math.max(0, (vh - rect.top) / (vh + Math.max(rect.height, 1))));
-    const travel = Math.round((0.5 - progress) * 58);
-    section.style.setProperty('--pp-parallax-y', `${travel}px`);
-    section.style.setProperty('--pp-section-progress', progress.toFixed(3));
-  });
-
-  setActiveSection(active);
-  if (topButton) topButton.classList.toggle('is-visible', window.scrollY > Math.max(240, vh * 0.45));
+  const threshold = Math.max(260, (window.innerHeight || 1) * 0.5);
+  state.topButton?.classList.toggle('is-visible', currentScrollTop() > threshold);
 }
 
 function scheduleUpdate() {
-  if (scrollRaf) return;
-  scrollRaf = window.requestAnimationFrame(updateParallax);
-}
-
-function handleSectionScroll() {
-  lastScrollAt = Date.now();
-  const currentY = currentScrollTop();
-  const deltaY = currentY - lastScrollY;
-  if (Math.abs(deltaY) > 1) lastScrollDirection = deltaY > 0 ? 1 : -1;
-  lastScrollY = currentY;
-
-  scheduleUpdate();
-  if (!sections.length || snapInFlight || prefersReducedMotion()) return;
-
-  if (isPastLastSection(currentY)) {
-    window.clearTimeout(scrollIdleTimer);
-    return;
-  }
-
-  const currentIndex = getSectionIndexForScroll(lastScrollDirection);
-  const currentRange = sectionScrollRange(sections[currentIndex]);
-  const currentTop = currentScrollTop();
-  if (currentRange?.isScrollable
-    && currentTop >= currentRange.start - SECTION_EDGE_TOLERANCE
-    && currentTop <= currentRange.end + SECTION_EDGE_TOLERANCE) {
-    window.clearTimeout(scrollIdleTimer);
-    return;
-  }
-
-  window.clearTimeout(scrollIdleTimer);
-  if (supportsScrollEnd()) return;
-  scrollIdleTimer = window.setTimeout(() => {
-    if (!sections.length || snapInFlight || prefersReducedMotion()) return;
-    if (Date.now() - lastSnapAt < 420) return;
-
-    const nearestIndex = getNearestSectionIndex(lastScrollDirection);
-    const nearest = sections[nearestIndex];
-    if (!nearest) return;
-
-    const targetTop = sectionTargetTop(nearest);
-    if (Math.abs(currentScrollTop() - targetTop) > 2) {
-      scrollToSection(nearest);
-    }
-  }, 280);
-}
-
-function handleSectionScrollEnd() {
-  if (!sections.length || snapInFlight || prefersReducedMotion()) return;
-  if (Date.now() - lastScrollAt < 70) return;
-  if (isPastLastSection()) return;
-
-  const currentIndex = getSectionIndexForScroll(lastScrollDirection);
-  const currentRange = sectionScrollRange(sections[currentIndex]);
-  const currentTop = currentScrollTop();
-  if (currentRange?.isScrollable
-    && currentTop >= currentRange.start - SECTION_EDGE_TOLERANCE
-    && currentTop <= currentRange.end + SECTION_EDGE_TOLERANCE) {
-    return;
-  }
-
-  const nearestIndex = getNearestSectionIndex(lastScrollDirection);
-  const nearest = sections[nearestIndex];
-  if (!nearest) return;
-
-  const targetTop = sectionTargetTop(nearest);
-  if (Math.abs(currentTop - targetTop) > Math.max(3, sectionViewportHeight() * 0.04)) {
-    scrollToSection(nearest);
-  }
-}
-
-function resetSnapState() {
-  window.clearTimeout(snapReleaseTimer);
-  clearPendingSnap();
-  lastScrollY = currentScrollTop();
-  lastScrollDirection = 0;
-  lastScrollAt = Date.now();
+  if (state.updateFrame) return;
+  state.updateFrame = window.requestAnimationFrame(updateActiveState);
 }
 
 function scheduleRefresh() {
-  window.clearTimeout(refreshTimer);
-  refreshTimer = window.setTimeout(() => {
-    resetSnapState();
-    applySectionMetadata();
-    scheduleUpdate();
-  }, 80);
+  window.clearTimeout(state.refreshTimer);
+  state.refreshTimer = window.setTimeout(applySectionMetadata, 80);
+}
+
+function handleResize() {
+  scheduleRefresh();
+  scheduleUpdate();
+}
+
+function bindObservers() {
+  if ('ResizeObserver' in window && !state.resizeObserver) {
+    state.resizeObserver = new ResizeObserver(scheduleUpdate);
+    state.sections.forEach((section) => state.resizeObserver.observe(section.node));
+  }
+
+  if (!state.mutationObserver) {
+    state.mutationObserver = new MutationObserver((mutations) => {
+      const onlyControlMutations = mutations.every((mutation) => {
+        const target = mutation.target;
+        return target instanceof Node
+          && ((state.rail && state.rail.contains(target))
+            || (state.topButton && state.topButton.contains(target)));
+      });
+      if (!onlyControlMutations) scheduleRefresh();
+    });
+    state.mutationObserver.observe(document.body, { childList: true, subtree: true });
+  }
 }
 
 export function refreshSectionScroll() {
+  if (!isHomePage()) return;
   scheduleRefresh();
 }
 
 export function initSectionScroll() {
   if (!isHomePage()) return;
-  if (document.documentElement.dataset.ppSectionScrollReady === '1') {
-    refreshSectionScroll();
-    return;
+
+  if (!state.ready) {
+    state.ready = true;
+    document.documentElement.dataset.ppSectionScrollReady = '1';
+    window.addEventListener('scroll', scheduleUpdate, { passive: true });
+    window.addEventListener('resize', handleResize, { passive: true });
+    window.addEventListener('pp:navbar:ready', scheduleRefresh);
+    window.addEventListener('pp:sections:refresh', scheduleRefresh);
   }
 
-  document.documentElement.dataset.ppSectionScrollReady = '1';
-  lastScrollY = currentScrollTop();
+  bindObservers();
   applySectionMetadata();
-  scheduleUpdate();
-
-  if ('ResizeObserver' in window) {
-    observer = new ResizeObserver(scheduleUpdate);
-    sections.forEach((section) => observer.observe(section));
-  }
-
-  mutationObserver = new MutationObserver(scheduleRefresh);
-  ['#hero-container', '#mission-container', '#pp-featured', '#news-container']
-    .map((selector) => document.querySelector(selector))
-    .filter(Boolean)
-    .forEach((target) => mutationObserver.observe(target, { childList: true, subtree: true }));
-
-  window.addEventListener('scroll', handleSectionScroll, { passive: true });
-  if (supportsScrollEnd()) {
-    window.addEventListener('scrollend', handleSectionScrollEnd, { passive: true });
-  }
-  window.addEventListener('wheel', handleSectionWheel, { passive: false });
-  window.addEventListener('resize', scheduleRefresh, { passive: true });
-  window.addEventListener('pp:navbar:ready', scheduleRefresh);
-  window.addEventListener('pp:sections:refresh', scheduleRefresh);
 }

@@ -1,0 +1,36 @@
+{
+  "fixture": "document-ingestion-policy.example",
+  "status": "example_only_not_real_finance_data",
+  "states": [
+    "declared",
+    "metadata_validated",
+    "duplicate_checked",
+    "privacy_classified",
+    "retention_assigned",
+    "redaction_checked",
+    "blob_reference_created",
+    "evidence_linked",
+    "manifest_eligible",
+    "rejected",
+    "quarantined"
+  ],
+  "example_ingestion_record": {
+    "ingestion_id": "ingest_doc_order_source_example_0001",
+    "document_id": "doc_order_source_example_0001",
+    "blob_ref_id": "blobref_doc_order_source_example_0001",
+    "document_type": "order_source",
+    "privacy_class": "financial_sensitive",
+    "retention_class": "accounting_support",
+    "ingestion_state": "blob_reference_created",
+    "source_system": "petpawket_website_connector",
+    "source_record_id": "source_event_order_created_example_0001",
+    "file_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "blob_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "storage_provider": "local_metadata_only",
+    "storage_status": "reference_created",
+    "encryption_status": "metadata_only",
+    "raw_document_content_stored": false,
+    "created_at": "2026-05-28T14:05:00Z",
+    "updated_at": "2026-05-28T14:05:00Z"
+  }
+}

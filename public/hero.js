@@ -1,76 +1,101 @@
 // hero.js - module version
 import { createWidgetAppSdk } from './widgetAppSdk.js';
+import {
+  createPawketAppHost,
+  createPawketAppRegistry,
+  createScopedAppDataBridge
+} from './pawketAppRuntime.js';
+import {
+  firstPartyPawketApps,
+  pawketConnectorProviders
+} from './pawketFirstPartyApps.js';
 import { getSession } from './auth.js';
 
 const defaultHeroChips = [
-  { icon: 'bi-heart-pulse', label: 'Care-minded picks', tooltip: 'Useful products selected around everyday pet care.' },
-  { icon: 'bi-box-seam', label: 'Monthly themed packs', tooltip: 'Species-specific picks and seasonal drops.' },
-  { icon: 'bi-bag-heart', label: 'Easy shopping', tooltip: 'Browse products, packs, packets, and picks.' }
+  { icon: 'bi-bag-heart', label: 'Everyday care', tooltip: 'Useful products for real pet routines.' },
+  { icon: 'bi-person-heart', label: 'Pet profiles', tooltip: 'Save the little details that help care feel personal.' },
+  { icon: 'bi-stars', label: 'Pals & passes', tooltip: 'Make keepsakes, send gifts, and share the love.' }
 ];
 
 const defaultFeaturedArticles = [
   { title: 'Browse sale-ready Pet Pawket products', href: '/shop.html', tag: 'Shop' },
-  { title: 'Compare Pawket Packs, Packets, and Picks', href: '/packs.html', tag: 'Boxes' },
-  { title: 'Set up pet profiles for better product suggestions', href: '/account.html', tag: 'Account' }
+  { title: 'Meet Pawket Pals', href: '/pals.html', tag: 'Pals' },
+  { title: 'Open Pawket Passes', href: '/loop.html', tag: 'Passes' }
 ];
 
 const slidesData = [
   {
-    background: "/assets/images/HeroBG1.svg",
+    background: "/assets/images/huey-herobg1-cutout.png",
     layout: { align: 'left', variant: 'story' },
     headline: "Where Every Pet Story Begins Again",
-    subtext: "Shop thoughtful pet care essentials, curated boxes, and seasonal bonuses.",
+    subtext: "Shop for your pet, save the moments that matter, and share the love when you are ready.",
     button: { text: "Shop Pet Pawket", link: "/shop.html", visible: true, tooltip: "Browse sale-ready Pet Pawket products." },
-    secondaryCta: { text: "See Packs", link: "/packs.html", tooltip: "Compare Pawket Pack tiers and box options." },
-    chips: defaultHeroChips,
-    proofLine: "Sales-first launch: products, packs, packets, and picks are the priority.",
+    secondaryCta: { text: "Meet Pals", link: "/pals.html", tooltip: "Open Pawket Pals." },
+    chips: [
+      { icon: 'bi-bag-heart', label: 'Everyday care', tooltip: 'Useful products for real pet routines.' },
+      { icon: 'bi-stars', label: 'Pals & passes', tooltip: 'Make keepsakes, send gifts, and share the love.' }
+    ],
+    proofLine: "Shop, boxes, Pals, Passes, and CHARM.",
     visual: {
       type: "story",
       badge: "NEW STORY",
       watermark: "PAWKET",
       assets: [
-        { src: "/assets/images/charliehero.png", alt: "Pet Pawket mascot", label: "Mascot spotlight", tone: "sun" },
+        { src: "/assets/images/HeroBG1.png", alt: "Pet Pawket mascot", label: "Mascot spotlight", tone: "sun" },
         { src: "/assets/images/pet-dog.png", alt: "Rescue dog story", label: "Rescue pup", tone: "sky" },
         { src: "/assets/images/pet-cat.png", alt: "Rescue cat story", label: "Rescue cat", tone: "mint" }
       ],
-      microcopy: "Featured story lane: private memories and public sharing stay carefully separated."
+      microcopy: "A sweet place for pet memories, gifts, and care."
     },
     panel: {
       layoutStyle: 'story',
+      mode: 'store',
+      headline: 'Start here',
+      subhead: 'Shop, save, share.',
       rescue: {
-        kicker: 'Storefront focus',
-        title: "Sale-ready shopping",
-        body: 'Start with the core store experience: products, curated boxes, product detail pages, cart, and account flows.',
+        kicker: 'Start here',
+        title: "Care that feels personal",
+        body: 'Start with useful products, then add your pet profile, a Pal keepsake, or a Pawket Pass when it fits.',
         image: '/assets/images/banner-1.jpg',
         href: '/shop.html',
         cta: 'Open shop'
       },
+      routes: [
+        { icon: 'bi-bag-heart', label: 'All products', meta: 'Core shelf', href: '/shop.html' },
+        { icon: 'bi-person-heart', label: 'Pet profile', meta: 'Save details', href: '/account.html#account-pets' },
+        { icon: 'bi-stars', label: 'Pawket Pals', meta: 'Keepsakes', href: '/pals.html' }
+      ],
+      tiles: [
+        { src: '/assets/images/DogBowlFilled.png', alt: 'Filled pet bowl', label: 'Products' },
+        { src: '/assets/images/CarePocket.png', alt: 'Pawket Pack box', label: 'Boxes', fit: 'contain' },
+        { src: '/assets/images/journal.png', alt: 'Pet care journal', label: 'Profile', fit: 'contain' }
+      ],
       articles: [
         { title: 'Browse all Pet Pawket products', href: '/shop.html', tag: 'Shop' },
-        { title: 'Compare Pawket Packs', href: '/packs.html', tag: 'Packs' },
-        { title: 'Try Pawket Packets and Picks', href: '/packets.html', tag: 'Boxes' }
+        { title: 'Meet Pawket Pals', href: '/pals.html', tag: 'Pals' },
+        { title: 'Open Pawket Passes', href: '/loop.html', tag: 'Passes' }
       ],
       spotlight: {
-        label: 'Coming soon',
-        text: 'We are building CHARM Foundation, Pawket Pals, and story-sharing features now. Check back soon for those layers.',
-        href: '/shop.html',
-        cta: 'Shop now'
+        label: 'Pet Pawket family',
+        text: 'A pet profile can make shopping easier and help special memories become Pals, Passes, or CHARM kindness later.',
+        href: '/pals.html',
+        cta: 'Meet Pals'
       },
       feed: [
-        { title: 'Shop page is the primary sales surface', href: '/shop.html', tag: 'Store' },
-        { title: 'Pawket Packs, Packets, and Picks stay visible for box education', href: '/packs.html', tag: 'Boxes' },
-        { title: 'Protected memorial stories are never generic placeholders', href: '/about.html', tag: 'Brand' }
+        { title: 'Shop page stays the primary sales surface', href: '/shop.html', tag: 'Store' },
+        { title: 'Pawket Pals turn memories into keepsakes', href: '/pals.html', tag: 'Pals' },
+        { title: 'Pet Pawket keeps private stories private', href: '/about.html', tag: 'Brand' }
       ],
       quickActions: [
         { text: 'Shop products', href: '/shop.html' },
-        { text: 'Explore boxes', href: '/packs.html' }
+        { text: 'Meet Pals', href: '/pals.html' }
       ],
       metrics: [
-        { value: '12', label: 'Featured picks' },
-        { value: '3', label: 'Box lanes' },
-        { value: 'Ready', label: 'Sales focus' }
+        { value: 'Shop', label: 'Core shelf' },
+        { value: 'Pals', label: 'Keepsakes' },
+        { value: 'Passes', label: 'Gift links' }
       ],
-      heroStat: { value: '12', label: 'Featured picks' }
+      heroStat: { value: 'Live', label: 'Ways to start' }
     }
   },
   {
@@ -79,9 +104,9 @@ const slidesData = [
     headline: "Top Picks of the Week",
     subtext: "",
     button: { text: "Shop Now", link: "/shop.html", visible: true, tooltip: "Browse this week's top picks." },
-    secondaryCta: { text: "See Packs", link: "/packs.html", tooltip: "Compare Pawket Pack tiers and drops." },
+    secondaryCta: { text: "See Packs", link: "/packs.html", tooltip: "Compare Pawket Pack tiers and editions." },
     chips: defaultHeroChips,
-    proofLine: "Seasonal drop: curated picks across Standard, Deluxe, and Collector tiers.",
+    proofLine: "",
     visual: {
       type: "packs",
       badge: "SEASONAL",
@@ -91,18 +116,31 @@ const slidesData = [
         { src: "/assets/images/DogBowlFilled.png", alt: "Pet bowl item", label: "Care item", tone: "mint", fit: "contain" },
         { src: "/assets/images/pet-dog.png", alt: "Pet care pick", label: "Pet care", tone: "sky", fit: "contain" }
       ],
-      microcopy: "This week’s picks rotate with themes + species profiles."
+      microcopy: "This week’s picks rotate with pets, seasons, and useful care."
     },
     panel: {
       layoutStyle: 'promo',
+      mode: 'boxes',
+      headline: 'Boxes',
+      subhead: 'Packs, Packets, and Picks.',
       rescue: {
         kicker: 'Pack spotlight',
-        title: 'Seasonal favorites',
-        body: 'Pack themes rotate by season, species, and rescue-focused care needs.',
+        title: 'Packs',
+        body: 'Start with a full box, try a smaller Packet, or browse bonus Picks.',
         image: '/assets/images/CarePocket.png',
         href: '/packs.html',
         cta: 'Compare pack tiers'
       },
+      routes: [
+        { icon: 'bi-box-seam', label: 'Pawket Packs', meta: 'Full boxes', href: '/packs.html' },
+        { icon: 'bi-envelope-heart', label: 'Packets', meta: 'Small trials', href: '/packets.html' },
+        { icon: 'bi-stars', label: 'Picks', meta: 'Bonuses', href: '/picks.html' }
+      ],
+      tiles: [
+        { src: '/assets/images/CarePocket.png', alt: 'Pawket Pack box', label: 'Packs', fit: 'contain' },
+        { src: '/assets/images/DogBowlFilled.png', alt: 'Pet care bowl item', label: 'Packets', fit: 'contain' },
+        { src: '/assets/images/journal.png', alt: 'Pet care journal item', label: 'Picks', fit: 'contain' }
+      ],
       articles: [
         { title: 'What goes into a Standard Pack', href: '/packs.html', tag: 'Packs' },
         { title: 'Choosing Deluxe vs Collector', href: '/packs.html', tag: 'Guide' },
@@ -115,20 +153,20 @@ const slidesData = [
         cta: 'Shop featured'
       },
       feed: [
-        { title: 'Pawket Packs are staged across Standard, Deluxe, and Collector lanes', href: '/packs.html', tag: 'Packs' },
-        { title: 'Pawket Packets are ready as lower-commitment trial boxes', href: '/packets.html', tag: 'Packets' },
-        { title: 'Pawket Picks can unlock as seasonal reward add-ons', href: '/picks.html', tag: 'Picks' }
+        { title: 'Compare Standard, Deluxe, and Collector Packs', href: '/packs.html', tag: 'Packs' },
+        { title: 'Try a smaller Pawket Packet first', href: '/packets.html', tag: 'Packets' },
+        { title: 'Find seasonal bonus Picks', href: '/picks.html', tag: 'Picks' }
       ],
       quickActions: [
-        { text: 'Pack comparison', href: '/packs.html' },
-        { text: 'Shop all bundles', href: '/shop.html' }
+        { text: 'Compare packs', href: '/packs.html' },
+        { text: 'Try packets', href: '/packets.html' }
       ],
       metrics: [
-        { value: '12', label: 'Picks live' },
-        { value: '4', label: 'Theme lanes' },
-        { value: '2', label: 'Box types' }
+        { value: 'Packs', label: 'Full boxes' },
+        { value: 'Packets', label: 'Small boxes' },
+        { value: 'Picks', label: 'Bonus shelf' }
       ],
-      heroStat: { value: '12', label: 'Live featured picks' }
+      heroStat: { value: '3', label: 'Ways to box' }
     }
   }
 ];
@@ -334,6 +372,21 @@ function renderHeroOpposingMedia(slide = {}, align = 'left') {
   `;
 }
 
+function isHeroImageBackground(value = '') {
+  const src = String(value || '').trim();
+  return Boolean(src && !src.startsWith('#'));
+}
+
+function renderHeroSlideArt(slide = {}) {
+  const src = String(slide.background || '').trim();
+  if (!isHeroImageBackground(src)) return '';
+  return `
+    <div class="hero-slide-art" aria-hidden="true">
+      <img src="${heroEsc(src)}" alt="" loading="eager" decoding="async" />
+    </div>
+  `;
+}
+
 function renderHeroSlideContent(slide = {}) {
   const btnTooltip = slide.button?.tooltip || `Open: ${slide.button?.text || 'featured action'}`;
   const visual = slide.visual || {};
@@ -478,10 +531,10 @@ function normalizePanelUtilityActions(slide = {}, payload = {}) {
 }
 
 function getPanelLaneLabel(theme = 'story') {
-  if (theme === 'promo') return 'Pack lane';
-  if (theme === 'impact') return 'Impact lane';
-  if (theme === 'launch') return 'Pals lane';
-  return 'Store lane';
+  if (theme === 'promo') return 'Boxes';
+  if (theme === 'impact') return 'CHARM';
+  if (theme === 'launch') return 'Pals';
+  return 'Shop';
 }
 
 function renderPanelUtility(slide = {}, payload = {}, theme = 'story') {
@@ -642,8 +695,8 @@ function renderImpactContext(payload) {
       <section class="hero-module hero-module--impact-ticket">
         <span class="hero-context-kicker">${heroEsc(rescue.kicker || 'Impact receipt')}</span>
         <h3>${heroEsc(truncateWords(rescue.title || 'Urgent care in motion', 5))}</h3>
-        <p>${toPanelText(rescue.body || 'Impact note from the CHARM lane', 9)}</p>
-        <p class="hero-impact-note">${toPanelText(spotlight.text || 'Spotlight update from the CHARM lane', 7)}</p>
+        <p>${toPanelText(rescue.body || 'CHARM kindness update', 9)}</p>
+        <p class="hero-impact-note">${toPanelText(spotlight.text || 'Spotlight update from CHARM', 7)}</p>
         ${activeStat ? `
           <div class="hero-kpi-line">
             <strong>${heroEsc(activeStat.value || '')}</strong>
@@ -662,8 +715,8 @@ function renderImpactContext(payload) {
 
       <section class="hero-module hero-module--impact-feed">
         <header>
-          <h3>Documentation trail</h3>
-          <span>Live lane</span>
+          <h3>Kindness trail</h3>
+          <span>Live</span>
         </header>
         <div class="hero-article-flow hero-article-flow--timeline">
           ${renderArticleStrip(feedItems, 'timeline', 2)}
@@ -731,30 +784,30 @@ function getPanelThemeMeta(theme = 'story') {
     story: {
       icon: 'bi-shop-window',
       eyebrow: 'Pet Pawket Store',
-      title: 'Sales lane is ready',
-      subtitle: 'Shop curated care goods, box lanes, and storefront updates while story systems are prepared.',
-      status: 'Store lane ready'
+      title: 'Start with the store',
+      subtitle: 'Fast paths to the shelves people can use first.',
+      status: 'Store ready'
     },
     promo: {
       icon: 'bi-box-seam',
-      eyebrow: 'Drop Monitor',
-      title: 'Packs, Packets, and Picks',
-      subtitle: 'Curated box lanes, starter trials, and seasonal reward items ready to explore.',
-      status: 'Drop lane live'
+      eyebrow: 'Box Builder',
+      title: 'Choose a box',
+      subtitle: 'Compare full packs, small packets, and bonus picks without hunting.',
+      status: 'Boxes ready'
     },
     impact: {
       icon: 'bi-heart-pulse',
       eyebrow: 'CHARM Signal',
       title: 'Impact receipts in motion',
       subtitle: 'Care funding, rescue case notes, and medical support updates from CHARM.',
-      status: 'Receipt lane live'
+      status: 'Updates live'
     },
     launch: {
       icon: 'bi-stars',
       eyebrow: 'Pawket World',
       title: 'Pawket Pals are waking up',
-      subtitle: 'Digital companions, story capsules, and Town Square moments moving toward Pawket Park.',
-      status: 'World lane ready'
+      subtitle: 'Little companions, keepsakes, and Town Square moments are starting to connect.',
+      status: 'Pals ready'
     }
   };
   return meta[theme] || meta.story;
@@ -820,6 +873,138 @@ function renderPulseMetrics(metrics = [], heroStat = null, limit = 2) {
   `).join('');
 }
 
+function normalizeLaneRoutes(panel = {}, articles = []) {
+  const sources = [
+    ...(Array.isArray(panel.routes) ? panel.routes : []),
+    ...(Array.isArray(articles) ? articles.map((item) => ({
+      icon: getArticleIcon(item.tag),
+      label: item.tag || item.title,
+      meta: item.title,
+      href: item.href
+    })) : [])
+  ];
+  const seen = new Set();
+  return sources
+    .map((item) => ({
+      icon: item?.icon || 'bi-arrow-up-right',
+      label: String(item?.label || item?.title || '').trim(),
+      meta: String(item?.meta || item?.tag || '').trim(),
+      href: String(item?.href || item?.link || '').trim()
+    }))
+    .filter((item) => item.label && item.href && item.href !== '#')
+    .filter((item) => {
+      const key = `${item.label.toLowerCase()}|${item.href.toLowerCase()}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 3);
+}
+
+function renderLaneRoutes(routes = []) {
+  if (!routes.length) return '';
+  return `
+    <nav class="hero-lane-routes" aria-label="Hero quick paths">
+      ${routes.map((route) => `
+        <a class="hero-lane-route" href="${heroEsc(route.href)}" data-tooltip="${heroEsc(route.label)}">
+          <i class="bi ${heroEsc(route.icon)}" aria-hidden="true"></i>
+          <span>${heroEsc(truncateWords(route.label, 3))}</span>
+          <small>${heroEsc(truncateWords(route.meta, 3))}</small>
+        </a>
+      `).join('')}
+    </nav>
+  `;
+}
+
+function normalizeLaneTiles(panel = {}, assets = {}, routes = []) {
+  const fallbackTiles = [
+    assets.secondary,
+    assets.tertiary,
+    assets.primary
+  ].filter(Boolean);
+  const sourceTiles = Array.isArray(panel.tiles) && panel.tiles.length ? panel.tiles : fallbackTiles;
+  return sourceTiles.slice(0, 3).map((tile, index) => {
+    const route = routes[index] || {};
+    return {
+      src: tile?.src || fallbackTiles[index]?.src || '/assets/images/placeholder.png',
+      alt: tile?.alt || tile?.label || route.label || 'Pet Pawket path',
+      label: tile?.label || route.label || `Path ${index + 1}`,
+      fit: tile?.fit || fallbackTiles[index]?.fit || '',
+      tone: tile?.tone || fallbackTiles[index]?.tone || '',
+      href: tile?.href || route.href || panel.rescue?.href || '/shop.html'
+    };
+  });
+}
+
+function renderLaneTiles(tiles = []) {
+  if (!tiles.length) return '';
+  return `
+    <div class="hero-lane-tiles" aria-label="Hero visual paths">
+      ${tiles.map((tile) => `
+        <a class="hero-lane-tile" href="${heroEsc(tile.href)}" data-tooltip="${heroEsc(tile.label)}">
+          ${renderPanelAsset(tile, 'hero-lane-tile-asset', tile.label || 'Path')}
+          <span>${heroEsc(truncateWords(tile.label, 2))}</span>
+        </a>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderStoreLanePanel({ theme, panel, rescue, spotlight, themeMeta, primaryAsset, tiles, pulseActions }) {
+  return `
+    ${renderContextPattern(theme)}
+    <div class="hero-info-inner hero-info-inner--context hero-scene-panel hero-shop-scene" data-hero-layout="image-scene" data-context-theme="${heroEsc(theme)}" data-panel-mode="store">
+      <a class="hero-shop-scene-photo" href="${heroEsc(rescue.href || pulseActions[0]?.href || '/shop.html')}" data-tooltip="${heroEsc(rescue.cta || pulseActions[0]?.text || 'Open shop')}">
+        ${renderPanelAsset(primaryAsset, 'hero-shop-scene-asset', rescue.kicker || 'Store')}
+        <span class="hero-scene-badge">
+          <i class="bi ${heroEsc(themeMeta.icon)}" aria-hidden="true"></i>
+          ${heroEsc(panel.headline || 'Store')}
+        </span>
+      </a>
+
+      <nav class="hero-scene-actions" aria-label="Hero actions">
+        ${pulseActions.map((action, index) => `
+          <a class="hero-scene-action${index === 0 ? ' is-primary' : ''}" href="${heroEsc(action.href)}" data-tooltip="${heroEsc(action.text)}">
+            <span>${heroEsc(truncateWords(action.text, 3))}</span>
+            <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+          </a>
+        `).join('')}
+      </nav>
+    </div>
+  `;
+}
+
+function renderBoxLanePanel({ theme, panel, rescue, spotlight, themeMeta, primaryAsset, tiles, pulseActions }) {
+  const sideTiles = tiles.slice(1, 3);
+  return `
+    ${renderContextPattern(theme)}
+    <div class="hero-info-inner hero-info-inner--context hero-scene-panel hero-pack-scene" data-hero-layout="pack-scene" data-context-theme="${heroEsc(theme)}" data-panel-mode="boxes">
+      <a class="hero-pack-scene-stage" href="${heroEsc(rescue.href || pulseActions[0]?.href || '/packs.html')}" data-tooltip="${heroEsc(rescue.cta || pulseActions[0]?.text || 'Compare packs')}">
+        <span class="hero-scene-badge">
+          <i class="bi ${heroEsc(themeMeta.icon)}" aria-hidden="true"></i>
+          ${heroEsc(panel.headline || 'Boxes')}
+        </span>
+        <span class="hero-pack-glow" aria-hidden="true"></span>
+        ${renderPanelAsset(primaryAsset, 'hero-pack-scene-main', rescue.kicker || 'Packs')}
+        ${sideTiles.map((tile, index) => `
+          <span class="hero-pack-scene-item hero-pack-scene-item--${index + 1}">
+            ${renderPanelAsset(tile, 'hero-pack-scene-mini', tile.label || 'Box path')}
+          </span>
+        `).join('')}
+      </a>
+
+      <nav class="hero-scene-actions" aria-label="Hero actions">
+        ${pulseActions.map((action, index) => `
+          <a class="hero-scene-action${index === 0 ? ' is-primary' : ''}" href="${heroEsc(action.href)}" data-tooltip="${heroEsc(action.text)}">
+            <span>${heroEsc(truncateWords(action.text, 3))}</span>
+            <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+          </a>
+        `).join('')}
+      </nav>
+    </div>
+  `;
+}
+
 function renderPulseTrail(items = []) {
   if (!items.length) return '';
   return `
@@ -851,14 +1036,10 @@ function renderHeroPanel(slide = {}) {
   const rescue = panel.rescue || {};
   const spotlight = panel.spotlight || {};
   const theme = normalizePanelTheme(slide);
-  const metrics = Array.isArray(panel.metrics) && panel.metrics.length
-    ? panel.metrics
-    : [
-        { value: '3', label: 'Live updates' },
-        { value: '6', label: 'Fresh reads' },
-        { value: 'Now', label: 'Community pulse' }
-      ];
-  const heroStat = panel.heroStat || null;
+  const panelMode = ['store', 'boxes', 'impact', 'launch'].includes(String(panel.mode || '').toLowerCase())
+    ? String(panel.mode).toLowerCase()
+    : theme;
+  const articles = Array.isArray(panel.articles) ? panel.articles : [];
   const assets = {
     primary: slide.visual?.assets?.[0] || { src: '/assets/images/banner-1.jpg', alt: 'Pet Pawket spotlight', label: 'Spotlight' },
     secondary: slide.visual?.assets?.[1] || slide.visual?.assets?.[0] || { src: '/assets/images/pet-dog.png', alt: 'Pet Pawket visual', label: 'Feature' },
@@ -868,58 +1049,54 @@ function renderHeroPanel(slide = {}) {
   const payload = { rescue, spotlight, quickActions: panel.quickActions || [] };
   const themeMeta = getPanelThemeMeta(theme);
   const pulseActions = normalizePulseActions(slide, payload);
+  const routes = normalizeLaneRoutes(panel, articles);
+  const tiles = normalizeLaneTiles(panel, assets, routes);
   const primaryAsset = {
     ...assets.primary,
     src: rescue.image || assets.primary.src,
     alt: rescue.title || assets.primary.alt,
     label: rescue.kicker || assets.primary.label
   };
-  const progressValue = theme === 'impact' ? 78 : theme === 'promo' ? 64 : theme === 'launch' ? 52 : 71;
+  const featureFitClass = panelMode === 'boxes' ? 'is-contained' : 'is-photo';
+
+  if (panelMode === 'boxes') {
+    return renderBoxLanePanel({ theme, panel, rescue, spotlight, themeMeta, primaryAsset, tiles, pulseActions });
+  }
+
+  if (panelMode === 'store') {
+    return renderStoreLanePanel({ theme, panel, rescue, spotlight, themeMeta, primaryAsset, tiles, pulseActions });
+  }
 
   return `
     ${renderContextPattern(theme)}
-    <div class="hero-info-inner hero-info-inner--context hero-pulse-panel" data-hero-layout="context-box" data-context-theme="${heroEsc(theme)}">
-      <header class="hero-pulse-head">
-        <div class="hero-pulse-title">
-          <span class="hero-pulse-eyebrow">
-            <i class="bi ${heroEsc(themeMeta.icon)}" aria-hidden="true"></i>
-            ${heroEsc(themeMeta.eyebrow)}
+    <div class="hero-info-inner hero-info-inner--context hero-lane-panel" data-hero-layout="context-box" data-context-theme="${heroEsc(theme)}" data-panel-mode="${heroEsc(panelMode)}">
+      <div class="hero-lane-visual-stack">
+        <a class="hero-lane-hero-shot ${featureFitClass}" href="${heroEsc(rescue.href || pulseActions[0]?.href || '/shop.html')}" data-tooltip="${heroEsc(rescue.cta || pulseActions[0]?.text || 'Open')}">
+          <span class="hero-lane-glance">
+            <span class="hero-lane-eyebrow">
+              <i class="bi ${heroEsc(themeMeta.icon)}" aria-hidden="true"></i>
+              ${heroEsc(panel.headline || themeMeta.title)}
+            </span>
+            <span class="hero-lane-status">
+              <span aria-hidden="true"></span>
+              ${heroEsc(themeMeta.status)}
+            </span>
           </span>
-          <h2>${heroEsc(panel.headline || themeMeta.title)}</h2>
-        </div>
-        <span class="hero-pulse-live">
-          <span aria-hidden="true"></span>
-          ${heroEsc(themeMeta.status)}
-        </span>
-        <p>${heroEsc(panel.subhead || themeMeta.subtitle)}</p>
-      </header>
+          <span class="hero-lane-media">
+            ${renderPanelAsset(primaryAsset, 'hero-lane-asset', rescue.kicker || 'Spotlight')}
+          </span>
+          <strong>${heroEsc(truncateWords(rescue.title || spotlight.label || 'Open', 2))}</strong>
+        </a>
 
-      <div class="hero-context-body hero-pulse-body">
-        <article class="hero-pulse-primary">
-          ${renderPanelAsset(primaryAsset, 'hero-pulse-asset is-wide', rescue.kicker || 'Spotlight')}
-          <div class="hero-pulse-primary-copy">
-            <span class="hero-context-kicker">${heroEsc(rescue.kicker || spotlight.label || 'Featured signal')}</span>
-            <h3>${heroEsc(truncateWords(rescue.title || spotlight.label || 'Pet Pawket update', 6))}</h3>
-            <p>${toPanelText(rescue.body || spotlight.text || 'A current Pet Pawket highlight is ready to explore.', 12)}</p>
-            <div class="hero-pulse-progress" aria-label="Highlight readiness">
-              <span style="width:${progressValue}%;"></span>
-            </div>
-          </div>
-        </article>
+        ${renderLaneTiles(tiles)}
 
-        <div class="hero-pulse-summary">
-          <div class="hero-pulse-stat-grid">
-            ${renderPulseMetrics(metrics, heroStat, 2)}
-          </div>
-
-          <div class="hero-pulse-actions" aria-label="Highlight actions">
-            ${pulseActions.map((action, index) => `
-              <a class="hero-pulse-action${index === 0 ? ' is-primary' : ''}" href="${heroEsc(action.href)}" data-tooltip="${heroEsc(action.text)}">
-                <span>${heroEsc(truncateWords(action.text, 3))}</span>
-                <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
-              </a>
-            `).join('')}
-          </div>
+        <div class="hero-lane-actions" aria-label="Hero actions">
+          ${pulseActions.map((action, index) => `
+            <a class="hero-lane-action${index === 0 ? ' is-primary' : ''}" href="${heroEsc(action.href)}" data-tooltip="${heroEsc(action.text)}">
+              <span>${heroEsc(truncateWords(action.text, 3))}</span>
+              <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+            </a>
+          `).join('')}
         </div>
       </div>
     </div>
@@ -969,13 +1146,17 @@ export function injectHero() {
   slidesData.forEach((slide, i) => {
     const div = document.createElement("div");
     const visualType = slide.visual?.type || 'story';
+    const hasImageArt = isHeroImageBackground(slide.background);
     div.className = `hero-slide-item hero-slide--${visualType}`;
     if (i === 0) div.classList.add("active");
-    div.style.backgroundImage = slide.background.startsWith("#") ? "none" : `url('${slide.background}')`;
-    div.style.backgroundColor = slide.background.startsWith("#") ? slide.background : "transparent";
+    if (hasImageArt) {
+      div.dataset.slideArt = 'image';
+    } else if (slide.background?.startsWith("#")) {
+      div.style.backgroundColor = slide.background;
+    }
     div.style.borderRadius = "inherit";
 
-    div.innerHTML = renderHeroSlideContent(slide);
+    div.innerHTML = `${renderHeroSlideArt(slide)}${renderHeroSlideContent(slide)}`;
     track.appendChild(div);
 
     const dot = document.createElement("div");
@@ -1285,6 +1466,7 @@ export function initWidgetBand() {
     }
   })();
   const DEBUG_ON = debugQueryOff ? false : (window.__PP_WIDGET_DEBUG === true || debugStored || debugQueryOn);
+  const DOCK_MOBILE_QUERY = '(max-width: 1240px)';
   const debugLines = [];
   let debugEl = null;
 
@@ -1351,191 +1533,136 @@ export function initWidgetBand() {
   }
 
   if (DEBUG_ON) {
-    window.PP_forceCustomizePanel = () => {
-      debugLog('manual:forceCustomize');
-      openCustomizePanel();
+    window.PP_forceAppShelfPanel = () => {
+      debugLog('manual:forceAppShelf');
+      openAppShelfPanel();
     };
   } else {
+    try { delete window.PP_forceAppShelfPanel; } catch {}
     try { delete window.PP_forceCustomizePanel; } catch {}
   }
 
   const widgets = [
     {
-      id: 'loop',
-      label: 'Pawket Passes',
-      shortLabel: 'Passes',
-      hint: 'Share, claim, and track passes.',
-      tag: 'Active',
-      badge: 'PASS',
-      icon: 'bi-infinity',
-      title: 'Pawket Passes',
-      body: 'Pawket Passes connect purchase sharing, account history, and CHARM impact.',
-      link: { text: 'View passes', href: '/account.html#loopTokensSection' },
-      meta: ['Shareable links', 'Account tracking'],
-      cardsLabel: 'Quick actions',
+      id: 'pet-workspace',
+      label: 'Pet Workspace',
+      shortLabel: 'Home',
+      hint: 'Private pets, care, and memories.',
+      tag: 'Private',
+      badge: 'HOME',
+      icon: 'bi-house-heart',
+      title: 'Pet Workspace',
+      body: 'Keep pet profiles, care notes, favorite memories, and Pal starting points together.',
+      primary: { text: 'Open journals', href: '/account.html#account-pets' },
+      secondary: { text: 'Make a Pal', href: '/pals.html' },
+      link: { text: 'Open journals', href: '/account.html#account-pets' },
+      meta: ['Private workspace', 'Care + memories'],
+      cardsLabel: 'Workspace tools',
       cards: [
-        { icon: 'bi-send', title: 'Share a pass', desc: 'Open the Pawket Pass hub or claim page.', cta: 'Open passes', href: '/loop.html' },
-        { icon: 'bi-heart-pulse', title: 'Rescue impact', desc: 'Open the CHARM experience.', cta: 'Open CHARM', href: '/charm.html' }
+        { icon: 'bi-journal-heart', title: 'Care journals', desc: 'Open pet profiles, care notes, and favorite memories.', cta: 'Open journals', href: '/account.html#account-pets' },
+        { icon: 'bi-stars', title: 'Pal ideas', desc: 'Turn a memory or care ritual into a private Pal when it feels right.', cta: 'Open Pals', href: '/pals.html' }
+      ]
+    },
+    {
+      id: 'loop',
+      label: 'Pawket Shop',
+      shortLabel: 'Shop',
+      hint: 'Packs, picks, and passes.',
+      tag: 'Shop',
+      badge: 'SHOP',
+      icon: 'bi-bag-heart',
+      title: 'Pawket Shop',
+      body: 'Build a box, browse useful picks, and send Pawket Passes from one place.',
+      primary: { text: 'Build a Pack', href: '/packs.html' },
+      secondary: { text: 'Pass hub', href: '/loop.html' },
+      link: { text: 'Open shop', href: '/packs.html' },
+      meta: ['Packs + Picks', 'Pawket Passes'],
+      cardsLabel: 'Shop paths',
+      cards: [
+        { icon: 'bi-box-seam', title: 'Pawket Packs', desc: 'Compare boxes, Packets, and Picks.', cta: 'Build a pack', href: '/packs.html' },
+        { icon: 'bi-send', title: 'Pawket Passes', desc: 'Save, gift, share, and return to the right place.', cta: 'Open passes', href: '/loop.html' }
       ]
     },
     {
       id: 'pals',
       label: 'Pawket Pals',
       shortLabel: 'Pals',
-      hint: 'Digital companions are coming soon.',
-      tag: 'Soon',
-      badge: 'SOON',
+      hint: 'Make private keepsakes.',
+      tag: 'Pals',
+      badge: 'PAL',
       icon: 'bi-stars',
       title: 'Pawket Pals',
-      body: 'Cozy digital companion journeys are being crafted.',
+      body: 'Create a private Pal keepsake, then choose later if a story should be shared.',
       primary: { text: 'Open Pals', href: '/pals.html' },
       secondary: { text: 'Community hub', href: '/community.html' },
       link: { text: 'Open Pals', href: '/pals.html' },
-      meta: ['Pals in progress', 'Activity ideas in design'],
-      cardsLabel: 'Story trails',
+      meta: ['Private keepsakes', 'Shared by choice'],
+      cardsLabel: 'Pal tools',
       cards: [
-        { icon: 'bi-journal-text', title: 'Story Trails', desc: 'Story moments are being shaped with care.', cta: 'Open trails', href: '/community.html' },
-        { icon: 'bi-stars', title: 'Pals path', desc: 'See planned pals, activities, and surprises.', cta: 'View Pals', href: '/pals.html' }
-      ]
-    },
-    {
-      id: 'reminders',
-      label: 'Care Rhythm',
-      shortLabel: 'Care',
-      hint: 'Private journals, Core Memories, and daily care.',
-      tag: 'Care',
-      icon: 'bi-journal-heart',
-      title: 'Care Rhythm',
-      body: 'Daily care check-ins stay lightweight while account journals remain the durable pet record.',
-      primary: { text: 'Open journals', href: '/account.html#account-pets' },
-      secondary: { text: 'Story Trail', href: '/account.html#account-story-trail' },
-      link: { text: 'Open journals', href: '/account.html#account-pets' },
-      meta: ['Reads account journals', 'Core Memories stay connected'],
-      cardsLabel: 'Care flows',
-      cards: [
-        { icon: 'bi-journals', title: 'Pet journals', desc: 'Open the durable care and story record.', cta: 'Open journals', href: '/account.html#account-pets' },
-        { icon: 'bi-stars', title: 'Core Memories', desc: 'Mark meaningful entries for later Pawket Pals.', cta: 'Review trail', href: '/account.html#account-story-trail' }
+        { icon: 'bi-patch-check', title: 'Pal keepsakes', desc: 'Create or reopen private Pals.', cta: 'Open Pals', href: '/pals.html' },
+        { icon: 'bi-journal-text', title: 'Saved stories', desc: 'Choose what, if anything, you want to share later.', cta: 'Open saved stories', href: '/account.html#account-story-trail' }
       ]
     },
     {
       id: 'stories',
-      label: 'Story Lane',
+      label: 'Stories',
       shortLabel: 'Stories',
-      hint: 'Story and impact features are coming soon.',
-      tag: 'Soon',
+      hint: 'A small shared scrapbook.',
+      tag: 'Stories',
       badge: 'dot',
       icon: 'bi-chat-heart',
-      title: 'Story Lane',
-      body: 'Spotlights, updates, and adoption success moments are being prepared.',
+      title: 'Stories',
+      body: 'Move between CHARM and Community while private pet notes stay private.',
       primary: { text: 'CHARM updates', href: '/charm.html' },
       secondary: { text: 'Community stories', href: '/community.html' },
       link: { text: 'Open stories', href: '/charm.html' },
-      meta: ['Story tools in progress', 'Impact updates coming soon'],
-      cardsLabel: 'Impact highlights',
+      meta: ['Shared by choice', 'Private notes protected'],
+      cardsLabel: 'Story spots',
       cards: [
         { icon: 'bi-heart-pulse', title: 'CHARM highlights', desc: 'Open the rescue impact experience.', cta: 'Open CHARM', href: '/charm.html' },
-        { icon: 'bi-people', title: 'Community moments', desc: 'Pet parent wins and shared stories are coming soon.', cta: 'Open community', href: '/community.html' }
+        { icon: 'bi-people', title: 'Community moments', desc: 'Pawprints and shared wins belong in Town Square.', cta: 'Open community', href: '/community.html' }
       ]
     },
-    {
-      id: 'subs',
-      label: 'Packs + Picks',
-      shortLabel: 'Packs',
-      hint: 'Curated monthly packs with tiers + themes.',
-      tag: 'Packs',
-      icon: 'bi-box-seam',
-      title: 'Packs + Picks',
-      body: 'Themed subscription boxes with Standard, Deluxe, and Collector tiers.',
-      primary: { text: 'Explore Packs', href: '/packs.html' },
-      secondary: { text: 'Shop Picks', href: '/picks.html' },
-      link: { text: 'Explore packs', href: '/packs.html' },
-      meta: ['Standard • Deluxe • Collector', 'Packets + Picks available'],
-      cardsLabel: 'Box types',
-      cards: [
-        { icon: 'bi-box-seam', title: 'Pawket Packs', desc: 'Monthly themed subscription boxes.', cta: 'See tiers', href: '/packs.html' },
-        { icon: 'bi-boxes', title: 'Pawket Packets', desc: 'Mini trials + threshold rewards.', cta: 'See packets', href: '/packets.html' },
-        { icon: 'bi-stars', title: 'Pawket Picks', desc: 'Bonus drops at purchase thresholds.', cta: 'See picks', href: '/picks.html' }
-      ]
-    },
-    {
-      id: 'traits',
-      label: 'Core Memory',
-      shortLabel: 'Memory',
-      hint: 'Lock meaningful moments to each pet story.',
-      tag: 'Profile',
-      icon: 'bi-gem',
-      title: 'Core Memory',
-      body: 'Review journal entries that have been explicitly marked as Core Memories for pets.',
-      primary: { text: 'Open journals', href: '/account.html#account-pets' },
-      secondary: { text: 'Story Trail', href: '/account.html#account-story-trail' },
-      link: { text: 'Open profiles', href: '/account.html#account-pets' },
-      meta: ['Read from real journal state', 'Connects to Pawket Pal moments'],
-      cardsLabel: 'Memory tools',
-      cards: [
-        { icon: 'bi-lock', title: 'Locked memories', desc: 'Review meaningful journal moments for each pet.', cta: 'Open journals', href: '/account.html#account-pets' },
-        { icon: 'bi-controller', title: 'Pal-ready memories', desc: 'Keep meaningful memories consent-safe for later Pal moments.', cta: 'Story Trail', href: '/account.html#account-story-trail' }
-      ]
-    },
-    {
-      id: 'integrations',
-      label: 'Integrations',
-      shortLabel: 'Lab',
-      hint: 'Connect third-party tools and feeds.',
-      tag: 'Lab',
-      icon: 'bi-puzzle',
-      title: 'Integrations Lab',
-      body: 'Connect external services to power richer widget experiences.',
-      primary: { text: 'Manage links', href: '/account.html' },
-      secondary: { text: 'Open support', href: '/contact.html' },
-      link: { text: 'Integration docs', href: '/contact.html' },
-      meta: ['Provider connections', 'Standalone app adapter'],
-      cardsLabel: 'Provider examples',
-      cards: [
-        { icon: 'bi-calendar3', title: 'Calendar sync', desc: 'Map reminders to Google/Apple calendars.', cta: 'Explore', href: '/account.html' },
-        { icon: 'bi-controller', title: 'Game events', desc: 'Pull arcade/live event schedules into the dock.', cta: 'Open', href: '/community.html' }
-      ]
-    }
   ];
 
   const dockActions = [
     {
       id: 'care',
       label: 'Care',
-      meta: 'Journals + impact',
+      meta: 'Journals + care',
       icon: 'bi-heart-pulse',
       tone: 'care',
-      title: 'Care Journals + Impact',
-      kicker: 'Journals, Core Memories, CHARM',
-      body: 'A single care workspace for private pet journals, daily check-ins, Core Memories, CHARM notes, and later Pawket Pal or Share Studio links.',
+      title: 'Care Journals',
+      kicker: 'Journals, memories, CHARM',
+      body: 'A simple workspace for care notes, daily check-ins, favorite memories, CHARM updates, and Pal ideas.',
       primary: { text: 'Add Journal Here', action: 'care-compose' },
       secondary: { text: 'CHARM Updates', href: '/charm.html' },
-      widgets: ['traits', 'stories', 'loop'],
-      cardsLabel: 'Journal paths',
+      widgets: ['pet-workspace', 'stories', 'loop'],
+      cardsLabel: 'Journal tools',
       cards: [
-        { icon: 'bi-journals', title: 'Care Journals', desc: 'Open the durable pet journal and profile records.', cta: 'Open journals', href: '/account.html#account-pets' },
-        { icon: 'bi-gem', title: 'Core Memories', desc: 'Meaningful journal entries can support later Pal and story moments.', cta: 'Story Trail', href: '/account.html#account-story-trail' },
-        { icon: 'bi-heart-pulse', title: 'CHARM notes', desc: 'Consent-safe care, rescue, and medical notes can connect to CHARM later.', widget: 'stories' },
-        { icon: 'bi-infinity', title: 'Pawket Passes', desc: 'Sharing, care, and impact links.', widget: 'loop' }
+        { icon: 'bi-journals', title: 'Care journals', desc: 'Open your pet notes and profile details.', cta: 'Open journals', href: '/account.html#account-pets' },
+        { icon: 'bi-gem', title: 'Favorite memories', desc: 'Keep meaningful moments close.', cta: 'Saved stories', href: '/account.html#account-story-trail' },
+        { icon: 'bi-heart-pulse', title: 'CHARM notes', desc: 'See mission updates and care stories.', widget: 'stories' },
+        { icon: 'bi-bag-heart', title: 'Pawket Shop', desc: 'Shop paths and Pawket Passes stay together.', widget: 'loop' }
       ]
     },
     {
       id: 'more',
       label: 'Apps',
-      meta: 'Widget shelf',
+      meta: 'App shelf',
       icon: 'bi-ui-checks-grid',
       tone: 'more',
       title: 'App Shelf',
       kicker: 'Dock apps',
-      body: 'Open the deeper Pet Pawket widgets directly. Support and dock settings stay below the app shelf instead of hiding the tools behind a generic more menu.',
+      body: 'Open Pawket apps directly. App access, connected providers, and Dock settings live here instead of inside a separate app.',
       primary: { text: 'Contact Support', href: '/contact.html' },
-      secondary: { text: 'Customize Dock', action: 'customize' },
-      widgets: ['traits', 'subs', 'stories', 'loop', 'pals', 'integrations'],
+      secondary: { text: 'Open Support', action: 'help' },
+      widgets: ['pet-workspace', 'loop', 'stories', 'pals'],
       cardsLabel: 'Shop and utilities',
       cards: [
-        { icon: 'bi-bag-heart', title: 'Shop Lane', desc: 'Products, Packs, Packets, and Picks stay available from the shelf.', cta: 'Open shop', href: '/shop.html' },
-        { icon: 'bi-box-seam', title: 'Pawket Packs', desc: 'Compare subscription, packet, and pick paths.', cta: 'See boxes', href: '/packs.html' },
-        { icon: 'bi-question-circle', title: 'Support Hub', desc: 'Orders, returns, account help, and care guidance.', action: 'help' },
-        { icon: 'bi-sliders2', title: 'Dock Settings', desc: 'Adjust side, labels, and app visibility.', action: 'customize' }
+        { icon: 'bi-bag-heart', title: 'Shop', desc: 'Products, Packs, Packets, and Picks stay close by.', cta: 'Open shop', href: '/shop.html' },
+        { icon: 'bi-box-seam', title: 'Pawket Packs', desc: 'Compare boxes, Packets, and Picks.', cta: 'See boxes', href: '/packs.html' },
+        { icon: 'bi-question-circle', title: 'Support Hub', desc: 'Orders, returns, account help, and care guidance.', action: 'help' }
       ]
     }
   ];
@@ -1575,7 +1702,7 @@ export function initWidgetBand() {
     },
     {
       label: 'Pawket Passes',
-      desc: 'Shareable pass, gift, and referral tools tied to account activity.',
+      desc: 'Save links, send gifts, and share Pet Pawket with someone else.',
       icon: 'bi-infinity',
       href: '/loop.html',
       tag: 'Pass',
@@ -1583,37 +1710,48 @@ export function initWidgetBand() {
     },
     {
       label: 'Pawket Pals',
-      desc: 'Digital companions are in development.',
+      desc: 'Private Pal keepsakes and stories you choose to share.',
       icon: 'bi-stars',
-      href: '/community.html',
-      tag: 'Soon',
+      href: '/pals.html',
+      tag: 'Pals',
       tone: 'plum'
     },
     {
       label: 'Rescue Impact',
-      desc: 'CHARM impact stories are coming soon.',
+      desc: 'CHARM updates are shared when the details are ready.',
       icon: 'bi-heart-pulse',
       href: '/charm.html',
-      tag: 'Soon',
+      tag: 'CHARM',
       tone: 'moss'
     }
   ];
 
   const helpTips = [
     'Tip: A 10‑minute play break boosts calm focus.',
-    'Rescue note: CHARM care stories are being prepared.',
-    'Kindness paths and CHARM updates are being prepared.',
+    'Rescue note: CHARM care stories are shared only when they are ready.',
+    'Kindness grows best when private details stay private.',
     'Pet care win: Short, consistent walks beat long marathons.',
-    'Community tip: Pawket Passes can carry a purchase connection into CHARM impact.',
+    'Community tip: Pawket Passes can help a gift keep moving.',
     'Fun fact: Snuffle mats turn meals into brain games.'
   ];
 
-  const mergedWidgetIds = new Set(['reminders']);
+  const legacyWidgetAliases = {
+    reminders: 'pet-workspace',
+    traits: 'pet-workspace',
+    subs: 'loop'
+  };
+  const mergedWidgetIds = new Set(Object.keys(legacyWidgetAliases));
+  const workspaceLegacyWidgetIds = new Set(['reminders', 'traits']);
+  const shopLegacyWidgetIds = new Set(['subs']);
+  const canonicalWidgetId = (id) => legacyWidgetAliases[String(id || '')] || String(id || '');
   const widgetExists = (id) => widgets.some((widget) => widget.id === id);
   const widgetIsDockApp = (id) => widgetExists(id) && !mergedWidgetIds.has(id);
   const visibleDockWidgets = () => widgets.filter((widget) => widgetIsDockApp(widget.id));
-  const defaultEnabled = ['traits', 'pals', 'loop'];
-  const previousDefaultEnabled = ['reminders', 'traits', 'loop', 'pals'];
+  const normalizeDockAppIds = (ids = []) => [...new Set((Array.isArray(ids) ? ids : [])
+    .map(canonicalWidgetId)
+    .filter(widgetIsDockApp))];
+  const defaultEnabled = ['pet-workspace', 'pals', 'loop'];
+  const previousDefaultEnabled = ['reminders', 'traits', 'loop', 'pals', 'subs'];
   let activeId = null;
   let mobileCarouselOffset = 0;
   let dockRovingIndex = 0;
@@ -1628,9 +1766,9 @@ export function initWidgetBand() {
       if (!raw) return { enabled: defaultEnabled.slice(), order: defaultEnabled.slice() };
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed?.enabled) && parsed.enabled.length) {
-        const enabled = parsed.enabled.filter(widgetIsDockApp);
+        const enabled = normalizeDockAppIds(parsed.enabled);
         const order = Array.isArray(parsed?.order)
-          ? parsed.order.filter(widgetIsDockApp)
+          ? normalizeDockAppIds(parsed.order)
           : enabled.slice();
         enabled.forEach(id => { if (!order.includes(id)) order.push(id); });
         return { enabled, order };
@@ -1646,12 +1784,12 @@ export function initWidgetBand() {
   let state = loadState();
   if (!state.order || !state.order.length) state.order = state.enabled.slice();
   if (!state.enabled || !state.enabled.length) state.enabled = defaultEnabled.slice();
-  state.enabled = state.enabled.filter(widgetIsDockApp);
-  state.order = state.order.filter(widgetIsDockApp);
+  state.enabled = normalizeDockAppIds(state.enabled);
+  state.order = normalizeDockAppIds(state.order);
   state.enabled.forEach((id) => {
     if (!state.order.includes(id)) state.order.push(id);
   });
-  const previousDockDefaults = previousDefaultEnabled.filter(widgetIsDockApp);
+  const previousDockDefaults = normalizeDockAppIds(previousDefaultEnabled);
   if (
     state.enabled.length === previousDockDefaults.length
     && state.order.length === previousDockDefaults.length
@@ -1660,6 +1798,11 @@ export function initWidgetBand() {
     state.enabled = defaultEnabled.slice();
     state.order = defaultEnabled.slice();
     saveState(state);
+  } else {
+    try {
+      const savedState = localStorage.getItem('pp-widget-band');
+      if (savedState && savedState !== JSON.stringify(state)) saveState(state);
+    } catch {}
   }
   const escapeAttr = (value = '') => heroEsc(value);
   const escapeAttrSelector = (value = '') => String(value ?? '').replace(/\\/g, '\\\\').replace(/"/g, '\\"');
@@ -1691,9 +1834,7 @@ export function initWidgetBand() {
   const defaultDockSettings = {
     collapsed: false,
     side: 'left',
-    labels: 'hover',
     size: 'md',
-    badges: true,
     providerWidgets: true
   };
 
@@ -1704,9 +1845,7 @@ export function initWidgetBand() {
       return {
         collapsed: parsed?.collapsed === true,
         side: parsed?.side === 'right' ? 'right' : 'left',
-        labels: ['hover', 'always', 'off'].includes(parsed?.labels) ? parsed.labels : 'hover',
         size: ['sm', 'md', 'lg'].includes(parsed?.size) ? parsed.size : 'md',
-        badges: parsed?.badges !== false,
         providerWidgets: parsed?.providerWidgets !== false
       };
     } catch {
@@ -1720,21 +1859,46 @@ export function initWidgetBand() {
 
   let dockSettings = loadDockSettings();
   let integrationsFocus = null;
+  let dockReorderMode = false;
 
   function applyDockSettings() {
     shell.dataset.widgetCollapsed = dockSettings.collapsed ? '1' : '0';
     shell.dataset.widgetSide = dockSettings.side;
-    shell.dataset.widgetLabels = dockSettings.labels;
     shell.dataset.widgetSize = dockSettings.size;
-    shell.dataset.widgetBadges = dockSettings.badges ? '1' : '0';
     shell.dataset.widgetProviders = dockSettings.providerWidgets ? '1' : '0';
     dock.dataset.widgetCollapsed = shell.dataset.widgetCollapsed;
     dock.dataset.widgetSide = shell.dataset.widgetSide;
-    dock.dataset.widgetLabels = shell.dataset.widgetLabels;
     dock.dataset.widgetSize = shell.dataset.widgetSize;
-    dock.dataset.widgetBadges = shell.dataset.widgetBadges;
     dock.dataset.widgetProviders = shell.dataset.widgetProviders;
+    delete shell.dataset.widgetLabels;
+    delete shell.dataset.widgetBadges;
+    delete dock.dataset.widgetLabels;
+    delete dock.dataset.widgetBadges;
     try { document.dispatchEvent(new CustomEvent('pp:widgetDock:settings')); } catch {}
+  }
+
+  function applyDockInteractionMode() {
+    const value = dockReorderMode ? '1' : '0';
+    shell.dataset.dockReorderMode = value;
+    dock.dataset.dockReorderMode = value;
+  }
+
+  function syncDockReorderItems() {
+    dock.querySelectorAll('.pp-dock-app-bubble[data-widget-draggable="1"]').forEach((node) => {
+      node.classList.toggle('is-reorderable', dockReorderMode);
+    });
+  }
+
+  function setDockReorderMode(enabled, { render = true } = {}) {
+    dockReorderMode = !!enabled;
+    applyDockInteractionMode();
+    if (!dockReorderMode) {
+      dock.classList.remove('pp-dragging');
+      dock.querySelectorAll('.pp-dragging').forEach((node) => node.classList.remove('pp-dragging'));
+    }
+    syncDockReorderItems();
+    if (render) renderDock();
+    debugLog('dock:reorder-mode', { enabled: dockReorderMode });
   }
 
   function updateDockSetting(key, value) {
@@ -1745,6 +1909,7 @@ export function initWidgetBand() {
   }
 
   applyDockSettings();
+  applyDockInteractionMode();
   const appSdk = createWidgetAppSdk({
     layer: appLayer,
     storageKey: 'pp-widget-apps-v2',
@@ -1757,43 +1922,84 @@ export function initWidgetBand() {
     onStateChange: () => renderDock()
   });
 
-  appSdk.registerProviders([
-    {
-      id: 'google-calendar',
-      name: 'Google Calendar',
-      description: 'Sync care reminders and event windows.',
-      category: 'schedule',
-      icon: 'bi-calendar3',
-      statusLabel: 'Calendar'
-    },
-    {
-      id: 'discord',
-      name: 'Discord',
-      description: 'Share Town Square notices and alerts.',
-      category: 'community',
-      icon: 'bi-discord',
-      statusLabel: 'Community'
-    },
-    {
-      id: 'notion',
-      name: 'Notion',
-      description: 'Push story and case templates into your workspace.',
-      category: 'ops',
-      icon: 'bi-journal-text',
-      statusLabel: 'Workspace'
-    },
-    {
-      id: 'zapier',
-      name: 'Zapier',
-      description: 'Automate order, story, and reminder workflows.',
-      category: 'automation',
-      icon: 'bi-lightning-charge',
-      statusLabel: 'Automation'
+  appSdk.registerProviders(pawketConnectorProviders);
+
+  const pawketAppRegistry = createPawketAppRegistry({ apps: firstPartyPawketApps });
+  const pawketAppDataBridge = createScopedAppDataBridge({
+    getSourceData: () => ({
+      pets: dockStatusCache.pets,
+      journalMetrics: dockStatusCache.journalMetrics,
+      featured: dockStatusCache.featured.length ? dockStatusCache.featured : appData.featured,
+      stories: dockStatusCache.impactStories.length ? dockStatusCache.impactStories : appData.stories,
+      activeCase: dockStatusCache.activeCase,
+      loopSummary: dockStatusCache.loopSummary,
+      dockSettings
+    })
+  });
+
+  function executePawketAppIntent(manifest, intent = {}) {
+    const type = String(intent.type || '').trim();
+    if (type === 'navigate') {
+      const href = safeHref(intent.href || '#', '#');
+      if (href !== '#') window.location.href = href;
+      return { ok: href !== '#', type };
     }
-  ]);
+    if (type === 'send_pass') {
+      if (typeof window.PP_openLoopModal === 'function') window.PP_openLoopModal();
+      else window.location.href = '/loop.html';
+      return { ok: true, type };
+    }
+    if (type === 'open_pal_creator') {
+      window.location.href = '/pals.html#private-pal-certificate-form';
+      return { ok: true, type };
+    }
+    if (type === 'open_story_composer') {
+      window.location.href = '/pals.html#pal-story-intake';
+      return { ok: true, type };
+    }
+    return { ok: true, type, appId: manifest?.id || '' };
+  }
+
+  function buildPawketAppContext(appId, extra = {}) {
+    return {
+      root: extra.root || appSdk.getBody(appId) || appLayer,
+      windowEl: appSdk.getWindow(appId),
+      data: appData,
+      runtimeState: { dockStatusCache },
+      providers: appSdk.listProviders(),
+      integrationFocus: integrationsFocus,
+      settings: { dockSettings, integrationsFocus },
+      setBody: (id, html) => appSdk.setBody(id, html),
+      fetchJson,
+      actions: {
+        setProviderState: (id, patch) => appSdk.setProviderState(id, patch),
+        toggleProviderConnection: (id) => appSdk.toggleProviderConnection(id),
+        setIntegrationsFocus: (id) => { integrationsFocus = id; },
+        updateDockProviderWidgets: (value) => updateDockSetting('providerWidgets', value)
+      },
+      helpers: {
+        cachePetsResponse,
+        ensureCareJournalMetrics,
+        renderCareJournalItems,
+        renderCareHandoffChips,
+        updateDockStatusStrip,
+        hydrateCarePanel,
+        careJournalTitle,
+        formatCareJournalDate
+      }
+    };
+  }
+
+  const pawketAppHost = createPawketAppHost({
+    registry: pawketAppRegistry,
+    surface: 'dock',
+    dataBridge: pawketAppDataBridge,
+    makeContext: buildPawketAppContext,
+    executeIntent: executePawketAppIntent
+  });
 
   function appIsOpen(id) {
-    return appSdk.isOpen(id);
+    return appSdk.isOpen(canonicalWidgetId(id));
   }
 
   function setAppBody(id, html) {
@@ -1881,43 +2087,60 @@ export function initWidgetBand() {
     return `
       ${renderWidgetAppHero({
         id: 'loop',
-        icon: 'bi-infinity',
-        eyebrow: 'Pawket Passes',
-        title: 'Your pass sharing hub',
-        body: 'Share available passes, open claim links, and keep CHARM impact visible from the account trail.',
-        chips: ['Share', 'Claim', 'CHARM'],
-        meter: { label: 'Pass path', value: 88, valueLabel: 'Live' }
+        icon: 'bi-bag-heart',
+        eyebrow: 'Pawket Shop',
+        title: 'Shop, save, and share',
+        body: 'Build a box, browse useful picks, and keep Pawket Passes close.',
+        chips: ['Packs', 'Packets', 'Picks', 'Passes'],
+        meter: { label: 'Shop path', value: 72, valueLabel: 'Ready' }
       })}
-      <div class="pp-widget-app-kpis">
-        <div class="pp-widget-app-kpi"><strong data-app-loop-points>--</strong><span>CHARM</span></div>
-        <div class="pp-widget-app-kpi"><strong data-app-loop-chains>--</strong><span>Passes</span></div>
-        <div class="pp-widget-app-kpi"><strong data-app-loop-badges>--</strong><span>Milestones</span></div>
-      </div>
-      ${renderWidgetTrail([
-        { icon: 'bi-cart-check', label: 'Order' },
-        { icon: 'bi-send', label: 'Pass' },
-        { icon: 'bi-heart', label: 'Care' },
-        { icon: 'bi-heart-pulse', label: 'CHARM' }
-      ])}
-      <div class="pp-widget-app-row">
-        <article class="pp-widget-app-card">
-          <h4>CHARM impact</h4>
-          <p data-app-loop-story>CHARM story links are being prepared.</p>
+      <section class="pp-app-experience pp-shop-wallet pp-box-picker pp-pass-wallet" data-widget-app-hero="loop">
+        <div class="pp-shop-wallet-grid">
+          <div class="pp-box-stage">
+            <span class="pp-box-lid" aria-hidden="true"></span>
+            <span class="pp-box-badge">Box picker</span>
+            <strong data-app-subs-spotlight>Loading featured picks...</strong>
+            <em><span data-app-subs-price>--</span> spotlight</em>
+          </div>
+          <article class="pp-pass-card pp-pass-card--main">
+            <span class="pp-pass-card-kicker">Pawket Pass</span>
+            <strong data-app-loop-main-code>Ready to send</strong>
+            <p data-app-loop-next>Send a gift, save a useful link, or keep a Pet Pawket visit moving.</p>
+            <div class="pp-pass-route" aria-label="Pass route">
+              <span>Shop</span>
+              <i class="bi bi-arrow-right-short" aria-hidden="true"></i>
+              <span>Pass</span>
+              <i class="bi bi-arrow-right-short" aria-hidden="true"></i>
+              <span>Return</span>
+            </div>
+          </article>
+        </div>
+        <div class="pp-box-options pp-box-options--shop" aria-label="Pawket shop paths">
+          <a href="/packs.html"><i class="bi bi-box-seam" aria-hidden="true"></i><span>Packs</span></a>
+          <a href="/packets.html"><i class="bi bi-bag-heart" aria-hidden="true"></i><span>Packets</span></a>
+          <a href="/picks.html"><i class="bi bi-stars" aria-hidden="true"></i><span>Picks</span></a>
+          <a href="/loop.html"><i class="bi bi-send" aria-hidden="true"></i><span>Passes</span></a>
+        </div>
+        <div class="pp-shop-wallet-shelves">
+          <div class="pp-box-shelf" data-app-subs-list>
+            <article class="pp-box-product-card">Loading featured products...</article>
+          </div>
+          <div class="pp-pass-wallet-pocket" data-app-loop-list>
+            <article class="pp-pass-mini-card">No passes yet. Shop, gift, or save a pass to start.</article>
+          </div>
+        </div>
+        <article class="pp-pass-note">
+          <span><i class="bi bi-heart-pulse" aria-hidden="true"></i> CHARM note</span>
+          <p data-app-loop-story>CHARM updates will appear when they are ready to share.</p>
         </article>
-        <article class="pp-widget-app-card">
-          <h4>Next Move</h4>
-          <p data-app-loop-next>Share a pass with another pet parent.</p>
-        </article>
-      </div>
+      </section>
       <div class="pp-widget-app-actions">
-        <button type="button" class="is-primary" data-app-loop-share>Open Pass</button>
-        <a href="/loop.html">Pass Hub</a>
-        <a href="/charm.html">CHARM Updates</a>
+        <a class="is-primary" href="/packs.html">Build a Pack</a>
+        <button type="button" data-app-loop-share>Send a Pass</button>
+        <button type="button" data-app-subs-spin>Shuffle pick</button>
+        <a href="/loop.html">Pass hub</a>
       </div>
-      <ul class="pp-widget-app-list" data-app-loop-list>
-        <li>Loading your recent pass activity…</li>
-      </ul>
-      <div class="pp-widget-app-note">Pawket Passes appear after eligible purchases, gifts, or claims.</div>
+      <div class="pp-widget-app-note"><span data-app-subs-count>--</span> featured picks loaded. Passes never expose private pet notes.</div>
     `;
   }
 
@@ -1925,51 +2148,42 @@ export function initWidgetBand() {
     const rawMood = Number(localStorage.getItem('pp-widget-pals-mood') || 60);
     const mood = Number.isFinite(rawMood) ? Math.max(0, Math.min(100, rawMood)) : 60;
     return `
-      ${renderWidgetAppHero({
-        id: 'pals',
-        icon: 'bi-stars',
-        eyebrow: 'Pawket Pals',
-        title: 'Companion hub coming soon',
-        body: 'Pawket Pals are being crafted from pet profiles, story moments, and cozy Park ideas.',
-        chips: ['Profiles', 'Park', 'Soon'],
-        meter: { label: 'Park mood', value: mood, valueLabel: `${mood}%` }
-      })}
-      <div class="pp-widget-app-kpis">
-        <div class="pp-widget-app-kpi"><strong data-app-pals-count>--</strong><span>Pet Profiles</span></div>
-        <div class="pp-widget-app-kpi"><strong data-app-pals-species>--</strong><span>Species Mix</span></div>
-        <div class="pp-widget-app-kpi"><strong>${mood}%</strong><span>Park Mood</span></div>
-      </div>
-      <article class="pp-widget-app-card">
-        <h4>Mood Dial</h4>
-        <p>Try the vibe we are shaping for upcoming Pawket Pal moments.</p>
-        <input type="range" min="0" max="100" step="5" value="${mood}" data-app-pals-mood />
-      </article>
-      ${renderWidgetTrail([
-        { icon: 'bi-person-heart', label: 'Profiles' },
-        { icon: 'bi-gem', label: 'Memory' },
-        { icon: 'bi-tree', label: 'Park' },
-        { icon: 'bi-chat-heart', label: 'Pawprints' }
-      ])}
-      <div class="pp-widget-app-row">
-        <article class="pp-widget-app-card">
-          <h4>Pal connections</h4>
-          <p>Pet profiles, journals, and Core Memories are the safe inputs for later Pal moments.</p>
+      <section class="pp-app-experience pp-pals-studio" data-widget-app-hero="pals">
+        <article class="pp-pal-certificate">
+          <span class="pp-pal-cert-label">Private keepsake</span>
+          <div class="pp-pal-medallion" aria-hidden="true">
+            <i class="bi bi-stars"></i>
+          </div>
+          <h4 data-app-pals-focus>Start with a pet you love.</h4>
+          <p data-app-pals-summary>Choose a profile or favorite memory, then make a private Pal when it feels right.</p>
+          <div class="pp-heartcode-ribbon">
+            <span>HeartCode</span>
+            <strong>Created with your Pal</strong>
+          </div>
         </article>
-        <article class="pp-widget-app-card">
-          <h4>Town Square</h4>
-          <p>Later Pawprints and community moments stay connected here without making private stories public by default.</p>
-        </article>
-      </div>
-      <ul class="pp-widget-app-list" data-app-pals-list>
-        <li>Loading pet profiles…</li>
-      </ul>
+        <div class="pp-pal-studio-side">
+          <div class="pp-pal-studio-meter">
+            <div>
+              <span>Pal warmth</span>
+              <strong data-app-pals-mood-value>${mood}%</strong>
+            </div>
+            <input type="range" min="0" max="100" step="5" value="${mood}" data-app-pals-mood />
+          </div>
+          <div class="pp-pal-shelf" data-app-pals-list>
+            <article class="pp-pal-shelf-card">Loading pet profiles…</article>
+          </div>
+          <div class="pp-pal-studio-count">
+            <span><strong data-app-pals-count>--</strong> profiles</span>
+            <span data-app-pals-species>Private by default</span>
+          </div>
+        </div>
+      </section>
       <div class="pp-widget-app-actions">
-        <a class="is-primary" href="/pals.html">Open Pawket Pals</a>
-        <a href="/account.html#account-pets">Open Profiles</a>
-        <a href="/community.html">Community</a>
-        <button type="button" data-app-pals-random>Meet a Sample Pal</button>
+        <a class="is-primary" href="/pals.html">Make a private Pal</a>
+        <a href="/account.html#account-pets">Pet profiles</a>
+        <button type="button" data-app-pals-random>New Pal idea</button>
       </div>
-      <div class="pp-widget-app-note">Pawket Pals are being shaped around real pet profiles, consent, and private story context.</div>
+      <div class="pp-widget-app-note">You choose if a story should ever be shared.</div>
     `;
   }
 
@@ -2032,7 +2246,7 @@ export function initWidgetBand() {
         <div class="pp-dock-care-quick-head">
           <div>
             <span>Today's care rhythm</span>
-            <strong>Quick checks before the durable journal</strong>
+            <strong>Quick checks before the full journal</strong>
           </div>
           <span class="pp-dock-care-quick-count"><span data-care-panel-quick-done>${stats.doneCount}</span>/<span data-care-panel-quick-total>${stats.total}</span></span>
         </div>
@@ -2045,122 +2259,43 @@ export function initWidgetBand() {
             </label>
           `).join('')}
         </div>
-        <p class="pp-dock-care-footnote">These quick checks stay in this browser. Journals and Core Memories remain the private account record and only connect outward with consent.</p>
+        <p class="pp-dock-care-footnote">These quick checks stay in this browser. Journals and favorite memories stay private unless you choose to share something later.</p>
       </article>
-    `;
-  }
-
-  function renderRemindersAppBody() {
-    const stats = careQuickCheckStats();
-    return `
-      ${renderWidgetAppHero({
-        id: 'reminders',
-        icon: 'bi-journal-heart',
-        eyebrow: 'Care Rhythm',
-        title: 'Journal-linked care pulse',
-        body: 'This legacy view now mirrors the Care Journals + Impact dock surface.',
-        chips: ['Journals', 'Core Memory', 'CHARM', 'Pals'],
-        meter: { label: 'Routine complete', value: (stats.doneCount / stats.total) * 100, valueLabel: `${stats.doneCount}/${stats.total}` }
-      })}
-      <div class="pp-widget-app-kpis">
-        <div class="pp-widget-app-kpi"><strong data-app-reminders-done>${stats.doneCount}</strong><span>Done Today</span></div>
-        <div class="pp-widget-app-kpi"><strong data-app-care-journals>--</strong><span>Journal Entries</span></div>
-        <div class="pp-widget-app-kpi"><strong data-app-care-core>--</strong><span>Core Memories</span></div>
-      </div>
-      <article class="pp-widget-app-card pp-widget-care-summary">
-        <h4>Durable Care Record</h4>
-        <p data-app-care-latest>Loading private journal summary…</p>
-        <div class="pp-widget-care-chip-row" data-app-care-handoffs></div>
-      </article>
-      <ul class="pp-widget-app-list pp-widget-care-journal-list" data-app-care-journal-list>
-        <li>Loading recent pet journal entries…</li>
-      </ul>
-      <div class="pp-widget-app-kpis pp-widget-app-kpis--compact">
-        <div class="pp-widget-app-kpi"><strong data-app-reminder-pets>--</strong><span>Pets</span></div>
-        <div class="pp-widget-app-kpi"><strong data-app-reminders-togo>${Math.max(0, stats.total - stats.doneCount)}</strong><span>Quick To Go</span></div>
-        <div class="pp-widget-app-kpi"><strong>${stats.total}</strong><span>Daily Checks</span></div>
-      </div>
-      <ul class="pp-widget-app-list" data-app-reminders-list>
-        ${CARE_QUICK_CHECKS.map((task) => `
-          <li>
-            <label>
-              <input type="checkbox" data-app-reminder-task="${escapeAttr(task.id)}" ${stats.doneSet.has(task.id) ? 'checked' : ''} />
-              ${heroEsc(task.label)}
-            </label>
-          </li>
-        `).join('')}
-      </ul>
-      <div class="pp-widget-app-actions">
-        <a class="is-primary" href="/account.html#account-pets">Open pet journals</a>
-        <button type="button" data-app-reminders-celebrate>Save quick check-in</button>
-        <a href="/account.html#account-story-trail">Story Trail</a>
-      </div>
-      <div class="pp-widget-app-note">Quick checks stay local in this dock app. Durable care notes and Core Memories come from account journal entries.</div>
     `;
   }
 
   function renderStoriesAppBody() {
     return `
-      ${renderWidgetAppHero({
-        id: 'stories',
-        icon: 'bi-chat-heart',
-        eyebrow: 'Story Lane',
-        title: 'Story lane coming soon',
-        body: 'CHARM updates, community moments, and shareable Pawprints are being shaped into one focused surface.',
-        chips: ['Pawprints', 'Updates', 'Soon'],
-        meter: { label: 'Story setup', value: 58, valueLabel: 'Soon' }
-      })}
-      <div class="pp-widget-app-kpis">
-        <div class="pp-widget-app-kpi"><strong data-app-stories-count>--</strong><span>Stories</span></div>
-        <div class="pp-widget-app-kpi"><strong data-app-stories-active>--</strong><span>Active Case</span></div>
-        <div class="pp-widget-app-kpi"><strong data-app-stories-funded>--</strong><span>Recently Funded</span></div>
-      </div>
-      <article class="pp-widget-app-card">
-        <h4>Story Spark</h4>
-        <p data-app-story-spark>Story sparks are being prepared.</p>
-      </article>
-      <ul class="pp-widget-app-list" data-app-stories-list>
-        <li>CHARM updates are coming soon…</li>
-      </ul>
+      <section class="pp-app-experience pp-storybook" data-widget-app-hero="stories">
+        <article class="pp-storybook-page pp-storybook-page--spark">
+          <span class="pp-storybook-kicker">Story spark</span>
+          <h4>Something worth sharing starts gently.</h4>
+          <p data-app-story-spark>Reviewed story sparks will appear after approved public updates.</p>
+        </article>
+        <div class="pp-storybook-tabs" aria-label="Story spaces">
+          <a href="/community.html"><i class="bi bi-chat-heart" aria-hidden="true"></i> Pawprints</a>
+          <a href="/charm.html"><i class="bi bi-heart-pulse" aria-hidden="true"></i> CHARM</a>
+          <a href="/pals.html"><i class="bi bi-stars" aria-hidden="true"></i> Pals</a>
+        </div>
+        <div class="pp-storybook-feed" data-app-stories-list>
+          <article class="pp-storybook-note">No public updates yet.</article>
+        </div>
+        <aside class="pp-storybook-privacy">
+          <i class="bi bi-lock" aria-hidden="true"></i>
+          <span>Private notes stay private. Public moments are shared by choice.</span>
+        </aside>
+      </section>
       <div class="pp-widget-app-actions">
         <button type="button" data-app-story-refresh>New spark</button>
         <a class="is-primary" href="/charm.html">Open CHARM</a>
-        <a href="/community.html">Community stories</a>
+        <a href="/community.html">Town Square</a>
       </div>
-      <div class="pp-widget-app-note">Story and impact features are being prepared with consent, privacy, and review controls.</div>
+      <div class="pp-widget-app-note"><span data-app-stories-count>0</span> public updates loaded. <span data-app-stories-active>Shared when ready</span></div>
     `;
   }
 
   function renderSubsAppBody() {
-    return `
-      ${renderWidgetAppHero({
-        id: 'subs',
-        icon: 'bi-box-seam',
-        eyebrow: 'Packs + Picks',
-        title: 'Box path picker',
-        body: 'Compare Pawket Packs, Packets, and Picks without losing the rescue-funded story thread.',
-        chips: ['Packs', 'Packets', 'Picks'],
-        meter: { label: 'Curated drop', value: 66, valueLabel: 'Seasonal' }
-      })}
-      <div class="pp-widget-app-kpis">
-        <div class="pp-widget-app-kpi"><strong data-app-subs-count>--</strong><span>Featured</span></div>
-        <div class="pp-widget-app-kpi"><strong>3</strong><span>Pack Tiers</span></div>
-        <div class="pp-widget-app-kpi"><strong data-app-subs-price>--</strong><span>Spotlight</span></div>
-      </div>
-      <article class="pp-widget-app-card">
-        <h4>Pack Picker</h4>
-        <p data-app-subs-spotlight>Loading featured picks…</p>
-      </article>
-      <ul class="pp-widget-app-list" data-app-subs-list>
-        <li>Loading featured products…</li>
-      </ul>
-      <div class="pp-widget-app-actions">
-        <button type="button" data-app-subs-spin>Spin for another pick</button>
-        <a class="is-primary" href="/packs.html">Explore Packs</a>
-        <a href="/picks.html">Picks</a>
-      </div>
-      <div class="pp-widget-app-note">This uses the same featured product feed while Packs, Packets, and Picks stay clearly separated.</div>
-    `;
+    return renderLoopAppBody();
   }
 
   const CORE_MEMORY_KEY = 'pp-widget-core-memories';
@@ -2180,100 +2315,8 @@ export function initWidgetBand() {
     } catch {}
   }
 
-  function renderTraitsAppBody() {
-    const memories = loadCoreMemories();
-    return `
-      ${renderWidgetAppHero({
-        id: 'traits',
-        icon: 'bi-gem',
-        eyebrow: 'Core Memory',
-        title: 'Journal memory lockbox',
-        body: 'Core Memories are read from real pet journal entries, with local drafts only as a lightweight fallback.',
-        chips: ['Journals', 'Locked', 'Pals'],
-        meter: { label: 'Memory depth', value: Math.min(100, memories.length * 18), valueLabel: `${memories.length} locked` }
-      })}
-      <div class="pp-widget-app-kpis">
-        <div class="pp-widget-app-kpi"><strong data-app-traits-count>--</strong><span>Profiles</span></div>
-        <div class="pp-widget-app-kpi"><strong data-app-memory-locked>${memories.length}</strong><span>Locked</span></div>
-        <div class="pp-widget-app-kpi"><strong data-app-memory-ready>--</strong><span>Ready</span></div>
-      </div>
-      <article class="pp-widget-app-card">
-        <h4>Memory Focus</h4>
-        <p data-app-traits-focus>Loading a memory prompt…</p>
-      </article>
-      <ul class="pp-widget-app-list" data-app-traits-list>
-        <li>Loading pet memories…</li>
-      </ul>
-      <div class="pp-widget-app-actions">
-        <a class="is-primary" href="/account.html#account-pets">Open journals</a>
-        <button type="button" data-app-memory-lock>Draft prompt</button>
-        <button type="button" data-app-traits-random>New prompt</button>
-        <a href="/account.html#account-story-trail">Story Trail</a>
-      </div>
-      <div class="pp-widget-app-note">Core Memories are explicit journal state. Private memories stay private unless a later story, Share Studio, or CHARM connection is chosen with consent.</div>
-    `;
-  }
-
-  function renderIntegrationsAppBody() {
-    const providers = appSdk.listProviders();
-    const connected = providers.filter((p) => p.connected).length;
-    return `
-      ${renderWidgetAppHero({
-        id: 'integrations',
-        icon: 'bi-puzzle',
-        eyebrow: 'Integrations Lab',
-        title: 'Provider bridge console',
-        body: 'Connect safe provider adapters now, then graduate the same surface into signed OAuth and webhooks later.',
-        chips: ['Calendar', 'Community', 'Ops'],
-        meter: { label: 'Bridge coverage', value: (connected / Math.max(1, providers.length)) * 100, valueLabel: `${connected}/${providers.length}` }
-      })}
-      <div class="pp-widget-app-kpis">
-        <div class="pp-widget-app-kpi"><strong>${providers.length}</strong><span>Providers</span></div>
-        <div class="pp-widget-app-kpi"><strong>${connected}</strong><span>Connected</span></div>
-        <div class="pp-widget-app-kpi"><strong>${providers.filter((p) => p.enabled).length}</strong><span>Enabled</span></div>
-      </div>
-      <article class="pp-widget-app-card">
-        <h4>Third-Party Widget Bridge</h4>
-        <p>Adapters let external services plug into Pet Pawket widgets without rewriting app UI.</p>
-      </article>
-      <div class="pp-widget-provider-grid">
-        ${providers.map((provider) => {
-          const providerId = String(provider.id || '');
-          const connected = provider.connected === true;
-          return `
-          <article class="pp-widget-provider-card${integrationsFocus === providerId ? ' is-focus' : ''}" data-provider-id="${escapeAttr(providerId)}">
-            <div class="pp-widget-provider-head">
-              <span class="pp-widget-provider-icon"><i class="bi ${safeIconClass(provider.icon, 'bi-box-arrow-up-right')}" aria-hidden="true"></i></span>
-              <strong>${heroEsc(provider.name)}</strong>
-              <span class="pp-widget-provider-status ${connected ? 'is-on' : 'is-off'}">${connected ? 'Connected' : 'Disconnected'}</span>
-            </div>
-            <p>${heroEsc(provider.description)}</p>
-            <div class="pp-widget-app-actions">
-              <button type="button" data-app-int-toggle="${escapeAttr(providerId)}" class="${connected ? '' : 'is-primary'}">${connected ? 'Disconnect' : 'Connect'}</button>
-              <button type="button" data-app-int-focus="${escapeAttr(providerId)}">Focus</button>
-            </div>
-          </article>
-        `;
-        }).join('')}
-      </div>
-      <div class="pp-widget-app-actions">
-        <button type="button" data-app-int-toggle-dock-providers>${dockSettings.providerWidgets ? 'Hide provider bubbles' : 'Show provider bubbles'}</button>
-        <button type="button" data-app-int-reload>Refresh providers</button>
-        <a href="/contact.html">Request integration</a>
-        <a href="/community.html">Use cases</a>
-      </div>
-      <div class="pp-widget-app-note">Experimental mode: local adapter toggles now, signed OAuth and webhooks later.</div>
-    `;
-  }
-
   function widgetAppBody(id) {
-    if (id === 'loop') return renderLoopAppBody();
-    if (id === 'pals') return renderPalsAppBody();
-    if (id === 'reminders') return renderRemindersAppBody();
-    if (id === 'stories') return renderStoriesAppBody();
-    if (id === 'subs') return renderSubsAppBody();
-    if (id === 'traits') return renderTraitsAppBody();
-    if (id === 'integrations') return renderIntegrationsAppBody();
+    if (pawketAppRegistry.has(id)) return pawketAppHost.render(id);
     return `<div class="pp-widget-app-note">App content coming soon.</div>`;
   }
 
@@ -2293,7 +2336,9 @@ export function initWidgetBand() {
   }
 
   function closeWidgetApp(id) {
-    appSdk.closeApp(id);
+    const canonicalId = canonicalWidgetId(id);
+    appSdk.closeApp(canonicalId);
+    if (canonicalId !== id) appSdk.closeApp(id);
     renderDock();
   }
 
@@ -2324,6 +2369,7 @@ export function initWidgetBand() {
   }
 
   function openWidgetApp(id) {
+    id = canonicalWidgetId(id);
     if (mergedWidgetIds.has(id)) {
       setActiveDockAction('care');
       return;
@@ -2346,6 +2392,7 @@ export function initWidgetBand() {
   }
 
   function toggleWidgetApp(id) {
+    id = canonicalWidgetId(id);
     if (mergedWidgetIds.has(id)) {
       setActiveDockAction('care');
       return;
@@ -2546,7 +2593,7 @@ export function initWidgetBand() {
     const handoffTargets = Array.isArray(metrics.handoffTargets) ? metrics.handoffTargets : [];
     const labels = handoffTargets.length
       ? handoffTargets.slice(0, 4).map((target) => CARE_HANDOFF_LABELS[target] || target)
-      : ['Journals', 'Core Memories', 'CHARM', 'Pawket Pals'];
+      : ['Journals', 'Favorite memories', 'CHARM', 'Pawket Pals'];
     const icons = ['bi-journal-heart', 'bi-gem', 'bi-heart-pulse', 'bi-stars'];
     return `
       <div class="pp-dock-care-purpose" aria-label="Care and impact path">
@@ -2655,7 +2702,7 @@ export function initWidgetBand() {
           <div class="pp-dock-care-compose-footer">
             <label class="pp-dock-care-core-check">
               <input type="checkbox" name="highlighted">
-              <span><i class="bi bi-stars" aria-hidden="true"></i> Mark as Core Memory</span>
+              <span><i class="bi bi-stars" aria-hidden="true"></i> Mark as favorite memory</span>
             </label>
             <button type="submit" data-care-journal-submit>
               <i class="bi bi-journal-check" aria-hidden="true"></i>
@@ -2932,21 +2979,21 @@ export function initWidgetBand() {
     if (actionId === 'care') {
       return [
         { key: 'journals', value: careNeedsSignIn ? 'Sign in' : (journalReady ? journalMetrics.journalCount : '--'), label: 'Journal entries' },
-        { key: 'memories', value: careNeedsSignIn ? 'Sign in' : (journalReady ? journalMetrics.coreMemoryCount : '--'), label: 'Core Memories' },
+        { key: 'memories', value: careNeedsSignIn ? 'Sign in' : (journalReady ? journalMetrics.coreMemoryCount : '--'), label: 'Favorite memories' },
         { key: 'handoffs', value: careNeedsSignIn ? '--' : (journalReady ? journalMetrics.handoffTargets.length : '--'), label: 'Links' }
       ];
     }
     if (actionId === 'shop') {
       return [
         { key: 'featured', value: featured == null ? '--' : featured, label: 'Featured picks' },
-        { key: 'packs', value: '3', label: 'Pack lanes' },
-        { key: 'packets', value: '2+', label: 'Entry paths' }
+        { key: 'packs', value: '3', label: 'Pack types' },
+        { key: 'packets', value: '2+', label: 'Ways in' }
       ];
     }
     if (actionId === 'impact') {
       return [
         { key: 'stories', value: storyCount == null ? '--' : storyCount, label: 'Impact updates' },
-        { key: 'active', value: activeCase == null ? '--' : (activeCase ? 'Live' : 'Soon'), label: 'CHARM case' },
+        { key: 'active', value: activeCase == null ? '--' : (activeCase ? 'Live' : 'Review'), label: 'CHARM case' },
         { key: 'passes', value: sentTokens == null ? (dockStatusCache.loopLoaded ? '0' : '--') : sentTokens, label: 'Passes' }
       ];
     }
@@ -3032,7 +3079,7 @@ export function initWidgetBand() {
     const story = randomFrom(appData.stories);
     if (!sparkEl) return;
     if (!story) {
-      sparkEl.textContent = 'Rescue story coming into view.';
+      sparkEl.textContent = 'No public story is ready yet. Start with your private story or open CHARM.';
       return;
     }
     const title = story.title || story.name || 'Rescue story';
@@ -3046,7 +3093,7 @@ export function initWidgetBand() {
     const item = randomFrom(appData.featured);
     if (!spotEl || !priceEl) return;
     if (!item) {
-      spotEl.textContent = 'Pack spotlight coming soon.';
+      spotEl.textContent = 'No pack spotlight loaded yet.';
       priceEl.textContent = '--';
       return;
     }
@@ -3058,6 +3105,18 @@ export function initWidgetBand() {
     priceEl.textContent = amount;
   }
 
+  function productPriceLabel(item = {}) {
+    const min = item.priceRange?.minVariantPrice;
+    const rawAmount = Number(min?.amount);
+    return Number.isFinite(rawAmount) ? `$${rawAmount.toFixed(2)}` : 'Open';
+  }
+
+  function productHref(item = {}) {
+    const handle = String(item.handle || '').trim();
+    if (handle) return `/product.html?handle=${encodeURIComponent(handle)}`;
+    return '/shop.html';
+  }
+
   function renderRandomTraitFocus() {
     const focusEl = appLayer.querySelector('[data-app-traits-focus]');
     const pet = randomFrom(appData.pets);
@@ -3067,19 +3126,19 @@ export function initWidgetBand() {
     if (metrics.latestCore) {
       const title = careJournalTitle(metrics.latestCore);
       const petName = metrics.latestCore.petName || 'your pet';
-      focusEl.textContent = `Latest Core Memory: ${petName} — ${title}.`;
+      focusEl.textContent = `Latest favorite memory: ${petName} - ${title}.`;
       return;
     }
     if (metrics.latest) {
       const title = careJournalTitle(metrics.latest);
       const petName = metrics.latest.petName || 'your pet';
-      focusEl.textContent = `Latest journal moment: ${petName} — ${title}. Mark it as a Core Memory if it feels meaningful.`;
+      focusEl.textContent = `Latest journal moment: ${petName} - ${title}. Mark it as a favorite memory if it feels meaningful.`;
       return;
     }
     if (!pet) {
       focusEl.textContent = memories.length
         ? `Latest locked memory: ${memories[0].petName || 'Your pet'} — ${memories[0].label || 'Story moment'}`
-        : 'Add pet profiles to unlock Core Memory prompts.';
+        : 'Add pet profiles to unlock memory prompts.';
       return;
     }
     const species = String(pet.species || '').toLowerCase();
@@ -3093,14 +3152,19 @@ export function initWidgetBand() {
     const listEl = appLayer.querySelector('[data-app-pals-list]');
     if (!listEl) return;
     if (!appData.pets.length) {
-      listEl.innerHTML = '<li>Create a pet profile to activate Pawket Pal mapping.</li>';
+      listEl.innerHTML = '<article class="pp-pal-shelf-card">Create a pet profile to start your first Pal idea.</article>';
       return;
     }
     const pet = randomFrom(appData.pets);
-    const item = document.createElement('li');
-    item.textContent = `Story spark: ${pet.name || 'Pet'} is featured in today’s Park moment.`;
+    const item = document.createElement('article');
+    item.className = 'pp-pal-shelf-card is-new';
+    item.innerHTML = `
+      <span>${heroEsc(pet.species || 'Pet profile')}</span>
+      <strong>${heroEsc(pet.name || 'Pet')} Pal idea</strong>
+      <em>Choose one gentle trait, memory, or care ritual.</em>
+    `;
     listEl.prepend(item);
-    const items = listEl.querySelectorAll('li');
+    const items = listEl.querySelectorAll('.pp-pal-shelf-card');
     if (items.length > 5) items[items.length - 1].remove();
   }
 
@@ -3116,6 +3180,7 @@ export function initWidgetBand() {
     const storyEl = appLayer.querySelector('[data-app-loop-story]');
     const nextEl = appLayer.querySelector('[data-app-loop-next]');
     const listEl = appLayer.querySelector('[data-app-loop-list]');
+    const mainCodeEl = appLayer.querySelector('[data-app-loop-main-code]');
 
     if (summary?.ok) {
       const sent = Array.isArray(summary.sentTokens) ? summary.sentTokens : [];
@@ -3127,22 +3192,29 @@ export function initWidgetBand() {
         const recent = sent[0];
         nextEl.textContent = recent?.code
           ? `Latest pass ${recent.code} is active. Share it with someone next.`
-          : 'Shop, gift, or claim a pass to start.';
+          : 'Shop, gift, or save a pass to start.';
       }
+      if (mainCodeEl) mainCodeEl.textContent = sent[0]?.code || 'Ready to send';
       if (listEl) {
         listEl.innerHTML = sent.length
           ? sent.slice(0, 4).map((token) => {
               const chainLength = Math.max(1, Math.floor(Number(token.chainLength) || 1));
-              return `<li>${heroEsc(token.code || 'PASS')} • ${chainLength} connected</li>`;
+              return `
+                <article class="pp-pass-mini-card">
+                  <span>${heroEsc(token.code || 'PASS')}</span>
+                  <strong>${chainLength} connected</strong>
+                </article>
+              `;
             }).join('')
-          : '<li>No passes yet. Shop, gift, or claim a pass to start.</li>';
+          : '<article class="pp-pass-mini-card">No passes yet. Shop, gift, or save a pass to start.</article>';
       }
     } else {
       if (pointsEl) pointsEl.textContent = '--';
       if (chainsEl) chainsEl.textContent = '--';
       if (badgesEl) badgesEl.textContent = '--';
       if (nextEl) nextEl.textContent = 'Sign in to load your live pass summary.';
-      if (listEl) listEl.innerHTML = '<li>Pass summary is available after sign-in.</li>';
+      if (mainCodeEl) mainCodeEl.textContent = 'Sign in for wallet';
+      if (listEl) listEl.innerHTML = '<article class="pp-pass-mini-card">Pass wallet is available after sign-in.</article>';
     }
 
     if (storyEl) {
@@ -3160,55 +3232,30 @@ export function initWidgetBand() {
     const countEl = appLayer.querySelector('[data-app-pals-count]');
     const speciesEl = appLayer.querySelector('[data-app-pals-species]');
     const listEl = appLayer.querySelector('[data-app-pals-list]');
+    const focusEl = appLayer.querySelector('[data-app-pals-focus]');
+    const summaryEl = appLayer.querySelector('[data-app-pals-summary]');
     if (countEl) countEl.textContent = String(pets.length);
     const dogs = pets.filter((p) => String(p.species || '').toLowerCase().includes('dog')).length;
     const cats = pets.filter((p) => String(p.species || '').toLowerCase().includes('cat')).length;
-    if (speciesEl) speciesEl.textContent = `${dogs}D/${cats}C`;
+    if (speciesEl) speciesEl.textContent = pets.length ? `${dogs} dog / ${cats} cat` : 'Private by default';
+    const first = pets[0];
+    if (focusEl) focusEl.textContent = first ? `${first.name || 'Your pet'} could become a Pal.` : 'Start with a pet you love.';
+    if (summaryEl) {
+      summaryEl.textContent = first
+        ? 'Pick one favorite trait, memory, or care ritual. The Pal stays private unless you choose otherwise.'
+        : 'Add a pet profile or favorite memory, then make a private Pal when it feels right.';
+    }
     if (listEl) {
       listEl.innerHTML = pets.length
-        ? pets.slice(0, 4).map((pet) => `<li>${heroEsc(pet.name || 'Pet')} • ${heroEsc(pet.species || 'profile')}</li>`).join('')
-        : '<li>No pet profiles yet. Add one in Account to map your first Pal.</li>';
+        ? pets.slice(0, 4).map((pet) => `
+          <article class="pp-pal-shelf-card">
+            <span>${heroEsc(pet.species || 'Pet profile')}</span>
+            <strong>${heroEsc(pet.name || 'Pet')}</strong>
+            <em>Ready for a keepsake idea</em>
+          </article>
+        `).join('')
+        : '<article class="pp-pal-shelf-card">No pet profiles yet. Add one in Account to start your first Pal idea.</article>';
     }
-  }
-
-  async function hydrateRemindersApp() {
-    const petsRes = await fetchJson('/api/pets');
-    const pets = cachePetsResponse(petsRes);
-    const metrics = await ensureCareJournalMetrics(true);
-    const petCountEl = appLayer.querySelector('[data-app-reminder-pets]');
-    const journalsEl = appLayer.querySelector('[data-app-care-journals]');
-    const coreEl = appLayer.querySelector('[data-app-care-core]');
-    const latestEl = appLayer.querySelector('[data-app-care-latest]');
-    const handoffsEl = appLayer.querySelector('[data-app-care-handoffs]');
-    const listEl = appLayer.querySelector('[data-app-care-journal-list]');
-    if (petCountEl) petCountEl.textContent = String(pets.length);
-    if (journalsEl) journalsEl.textContent = metrics.signedIn ? String(metrics.journalCount) : '--';
-    if (coreEl) coreEl.textContent = metrics.signedIn ? String(metrics.coreMemoryCount) : '--';
-    if (latestEl) {
-      if (!dockStatusCache.petsSignedIn) {
-        latestEl.textContent = 'Sign in to load private pet journals and Core Memories.';
-      } else if (!pets.length) {
-        latestEl.textContent = 'Add a pet profile to start a durable care journal.';
-      } else if (!metrics.journalCount) {
-        latestEl.textContent = 'No journal entries yet. Account journals will become the durable care record.';
-      } else {
-        const latest = metrics.latest;
-        const title = careJournalTitle(latest);
-        const date = formatCareJournalDate(latest.occurredAt || latest.createdAt);
-        latestEl.textContent = `Latest: ${title}${latest.petName ? ` for ${latest.petName}` : ''}${date ? ` (${date})` : ''}.`;
-      }
-    }
-    if (handoffsEl) {
-      handoffsEl.innerHTML = renderCareHandoffChips(metrics.handoffTargets, dockStatusCache.petsSignedIn ? 'Private by default' : 'Sign in');
-    }
-    if (listEl) {
-      let emptyText = 'No journal entries yet.';
-      if (!dockStatusCache.petsSignedIn) emptyText = 'Journal summary is available after sign-in.';
-      else if (!pets.length) emptyText = 'Add a pet profile before saving journal entries.';
-      listEl.innerHTML = renderCareJournalItems(metrics.entries, emptyText);
-    }
-    updateDockStatusStrip('care');
-    hydrateCarePanel();
   }
 
   async function hydrateStoriesApp() {
@@ -3223,12 +3270,17 @@ export function initWidgetBand() {
     const fundedEl = appLayer.querySelector('[data-app-stories-funded]');
     const listEl = appLayer.querySelector('[data-app-stories-list]');
     if (countEl) countEl.textContent = String(appData.stories.length || 0);
-    if (activeEl) activeEl.textContent = activeRes?.activeCase ? 'Live' : 'Idle';
+    if (activeEl) activeEl.textContent = activeRes?.activeCase ? 'CHARM has an active update.' : 'Shared when ready';
     if (fundedEl) fundedEl.textContent = activeRes?.recentlyFunded ? 'Yes' : 'No';
     if (listEl) {
       listEl.innerHTML = appData.stories.length
-        ? appData.stories.slice(0, 4).map((story) => `<li>${heroEsc(story.title || 'Impact update')}</li>`).join('')
-        : '<li>Rescue stories will appear here.</li>';
+        ? appData.stories.slice(0, 4).map((story) => `
+          <article class="pp-storybook-note">
+            <span>Shared update</span>
+            <strong>${heroEsc(story.title || 'Impact update')}</strong>
+          </article>
+        `).join('')
+        : '<article class="pp-storybook-note">No public updates yet.</article>';
     }
     renderSparkFromStories();
   }
@@ -3242,66 +3294,24 @@ export function initWidgetBand() {
     if (listEl) {
       listEl.innerHTML = appData.featured.length
         ? appData.featured.slice(0, 4).map((item) => {
-            const min = item.priceRange?.minVariantPrice;
-            const rawAmount = Number(min?.amount);
-            const amount = Number.isFinite(rawAmount) ? `$${rawAmount.toFixed(2)}` : '--';
-            return `<li>${heroEsc(item.title || 'Featured pick')} • ${amount}</li>`;
+            const amount = productPriceLabel(item);
+            const href = safeHref(productHref(item), '/shop.html');
+            return `
+              <a class="pp-box-product-card" href="${escapeAttr(href)}">
+                <span>${heroEsc(amount)}</span>
+                <strong>${heroEsc(item.title || 'Featured pick')}</strong>
+              </a>
+            `;
           }).join('')
-        : '<li>No featured products loaded yet.</li>';
+        : '<article class="pp-box-product-card">No featured products loaded yet.</article>';
     }
     renderRandomSubSpotlight();
-  }
-
-  async function hydrateTraitsApp() {
-    const petsRes = await fetchJson('/api/pets');
-    appData.pets = cachePetsResponse(petsRes);
-    const metrics = await ensureCareJournalMetrics(true);
-    const memories = loadCoreMemories();
-    const countEl = appLayer.querySelector('[data-app-traits-count]');
-    const lockedEl = appLayer.querySelector('[data-app-memory-locked]');
-    const readyEl = appLayer.querySelector('[data-app-memory-ready]');
-    const listEl = appLayer.querySelector('[data-app-traits-list]');
-    if (countEl) countEl.textContent = String(appData.pets.length);
-    if (lockedEl) lockedEl.textContent = metrics.signedIn ? String(metrics.coreMemoryCount) : String(memories.length);
-    if (readyEl) readyEl.textContent = metrics.handoffTargets.length ? String(metrics.handoffTargets.length) : (appData.pets.length ? 'Ready' : '--');
-    if (listEl) {
-      if (!dockStatusCache.petsSignedIn) {
-        listEl.innerHTML = memories.length
-          ? memories.slice(0, 4).map((memory) => (
-            `<li>${heroEsc(memory.petName || 'Your pet')} • ${heroEsc(memory.label || 'Local memory draft')}</li>`
-          )).join('')
-          : '<li>Sign in to load journal Core Memories.</li>';
-      } else if (metrics.coreEntries.length) {
-        listEl.innerHTML = renderCareJournalItems(metrics.coreEntries, 'No Core Memories marked yet.');
-      } else if (memories.length) {
-        listEl.innerHTML = memories.slice(0, 4).map((memory) => (
-          `<li>${heroEsc(memory.petName || 'Your pet')} • ${heroEsc(memory.label || 'Local memory draft')}</li>`
-        )).join('');
-      } else if (appData.pets.length) {
-        listEl.innerHTML = appData.pets.slice(0, 4).map((pet) => `<li>${heroEsc(pet.name || 'Pet')} • mark a journal entry as a Core Memory when ready</li>`).join('');
-      } else {
-        listEl.innerHTML = '<li>No pet profiles yet. Add a profile to start Core Memories.</li>';
-      }
-    }
-    renderRandomTraitFocus();
-    updateDockStatusStrip('care');
-    hydrateCarePanel();
-  }
-
-  function hydrateIntegrationsApp() {
-    setAppBody('integrations', renderIntegrationsAppBody());
   }
 
   let lastCoreMemoryLockAt = 0;
 
   function hydrateAppWindow(id) {
-    if (id === 'loop') return hydrateLoopApp();
-    if (id === 'pals') return hydratePalsApp();
-    if (id === 'reminders') return hydrateRemindersApp();
-    if (id === 'stories') return hydrateStoriesApp();
-    if (id === 'subs') return hydrateSubsApp();
-    if (id === 'traits') return hydrateTraitsApp();
-    if (id === 'integrations') return hydrateIntegrationsApp();
+    if (pawketAppRegistry.has(id)) return pawketAppHost.hydrate(id);
     return null;
   }
 
@@ -3311,8 +3321,7 @@ export function initWidgetBand() {
     await ensureCareJournalMetrics(true);
     updateDockStatusStrip('care');
     hydrateCarePanel();
-    if (appIsOpen('reminders')) hydrateRemindersApp();
-    if (appIsOpen('traits')) hydrateTraitsApp();
+    if (appIsOpen('pet-workspace')) hydrateAppWindow('pet-workspace');
   }
 
   function orderedWidgetIds() {
@@ -3359,6 +3368,7 @@ export function initWidgetBand() {
   }
 
   function pinWidgetToDock(id, { save = true } = {}) {
+    id = canonicalWidgetId(id);
     if (!widgetIsDockApp(id)) return false;
     let changed = false;
     if (!state.enabled.includes(id)) {
@@ -3379,6 +3389,7 @@ export function initWidgetBand() {
   }
 
   function removeWidgetFromDock(id, { close = true } = {}) {
+    id = canonicalWidgetId(id);
     if (!widgetIsDockApp(id)) return false;
     if (!state.enabled.includes(id)) return false;
     if (state.enabled.length <= 1) return false;
@@ -3476,16 +3487,17 @@ export function initWidgetBand() {
 
   function renderWidgetBubble(widget, draggableFlag = '1') {
     const activeClass = (activeId === widget.id || appIsOpen(widget.id)) ? ' is-active' : '';
+    const canReorder = draggableFlag === '1';
+    const reorderClass = dockReorderMode && canReorder ? ' is-reorderable' : '';
     const displayLabel = widget.shortLabel || widget.label;
     const meta = widget.hint ? `<span class="pp-widget-label-meta">${heroEsc(widget.hint)}</span>` : '';
     const tag = widget.tag ? `<span class="pp-widget-label-tag">${heroEsc(widget.tag)}</span>` : '';
-    const badge = widget.badge
-      ? `<span class="pp-widget-badge${widget.badge === 'dot' ? ' is-dot' : ''}">${widget.badge === 'dot' ? '' : heroEsc(widget.badge)}</span>`
-      : '';
+    const ariaLabel = dockReorderMode && canReorder
+      ? `${widget.label}. Rearrange mode active. Drag to move. Press Shift and arrow keys to move.`
+      : widget.label;
     return `
-      <button class="pp-widget-bubble pp-dock-app-bubble${activeClass}" data-widget="${escapeAttr(widget.id)}" data-widget-draggable="${escapeAttr(draggableFlag)}" data-dock-roving="1" aria-label="${escapeAttr(widget.label)}" aria-expanded="${appIsOpen(widget.id)}" type="button">
+      <button class="pp-widget-bubble pp-dock-app-bubble${activeClass}${reorderClass}" data-widget="${escapeAttr(widget.id)}" data-widget-draggable="${escapeAttr(draggableFlag)}" data-dock-roving="1" aria-label="${escapeAttr(ariaLabel)}" aria-expanded="${appIsOpen(widget.id)}" type="button">
         <span class="pp-widget-icon-wrap"><i class="bi ${safeIconClass(widget.icon)}" aria-hidden="true"></i></span>
-        ${badge}
         <span class="pp-widget-button-title" aria-hidden="true">${heroEsc(displayLabel)}</span>
         <span class="pp-widget-label">
           <span class="pp-widget-label-title">${heroEsc(widget.label)}</span>
@@ -3561,7 +3573,8 @@ export function initWidgetBand() {
 
   function renderDock() {
     syncHelpPillAccessibility();
-    const mobileCarouselMode = window.matchMedia('(max-width: 980px)').matches;
+    applyDockInteractionMode();
+    const mobileCarouselMode = window.matchMedia(DOCK_MOBILE_QUERY).matches;
     const collapseIcon = dockSettings.side === 'right'
       ? (dockSettings.collapsed ? 'bi-chevron-double-left' : 'bi-chevron-double-right')
       : (dockSettings.collapsed ? 'bi-chevron-double-left' : 'bi-chevron-double-left');
@@ -3623,7 +3636,6 @@ export function initWidgetBand() {
       restoreDockScrollMemory();
       syncDockRovingTabindex();
       debugLog('dock:render', {
-        labels: dockSettings.labels,
         side: dockSettings.side,
         collapsed: dockSettings.collapsed,
         size: dockSettings.size,
@@ -3643,7 +3655,6 @@ export function initWidgetBand() {
     restoreDockScrollMemory();
     syncDockRovingTabindex();
     debugLog('dock:render', {
-      labels: dockSettings.labels,
       side: dockSettings.side,
       collapsed: dockSettings.collapsed,
       size: dockSettings.size,
@@ -3718,7 +3729,7 @@ export function initWidgetBand() {
           </div>
         </div>
         <div class="pp-dock-care-panel-body" data-care-panel-body>
-          <p>Checking private pet journals, Core Memories, and connected care signals.</p>
+          <p>Checking private pet journals, favorite memories, and care notes.</p>
         </div>
       </section>
     `;
@@ -3732,14 +3743,14 @@ export function initWidgetBand() {
     const journalComposer = renderCareJournalComposer(metrics);
     if (!dockStatusCache.petsLoaded || !dockStatusCache.journalsLoaded) {
       return `
-        <p>Checking private pet journals, Core Memories, and connected care signals.</p>
+        <p>Checking private pet journals, favorite memories, and care notes.</p>
         ${quickChecks}
         ${purposeTrail}
       `;
     }
     if (!signedIn) {
       return `
-        <p>Sign in to load private pet journals, Core Memories, and care links. You can still use the quick checks here as a local rhythm before saving anything durable.</p>
+        <p>Sign in to load private pet journals and favorite memories. You can still use the quick checks here before saving anything to your account.</p>
         ${quickChecks}
         ${purposeTrail}
         <div class="pp-dock-care-actions">
@@ -3750,7 +3761,7 @@ export function initWidgetBand() {
     }
     if (!petCount) {
       return `
-        <p>Add a pet profile first, then the dock can summarize journals, Core Memories, and later Pal or CHARM links.</p>
+        <p>Add a pet profile first, then the dock can summarize journals, favorite memories, Pals, and CHARM updates.</p>
         ${quickChecks}
         ${purposeTrail}
         <div class="pp-dock-care-actions">
@@ -3761,12 +3772,12 @@ export function initWidgetBand() {
     }
     if (!metrics.journalCount) {
       return `
-        <p>${petCount === 1 ? 'Your pet profile is' : 'Your pet profiles are'} ready. Add the first care note, story moment, or Core Memory right here.</p>
+        <p>${petCount === 1 ? 'Your pet profile is' : 'Your pet profiles are'} ready. Add the first care note, story moment, or favorite memory right here.</p>
         ${quickChecks}
         ${journalComposer}
         ${purposeTrail}
         <div class="pp-dock-care-actions">
-          <a href="/account.html#account-story-trail">View Story Trail</a>
+          <a href="/account.html#account-story-trail">View saved stories</a>
           <a href="/charm.html">CHARM updates</a>
         </div>
       `;
@@ -3779,7 +3790,7 @@ export function initWidgetBand() {
     const latestCore = metrics.latestCore;
     const coreText = latestCore
       ? `${careJournalTitle(latestCore)}${latestCore.petName ? ` for ${latestCore.petName}` : ''}`
-      : 'Mark a meaningful journal entry as a Core Memory when one is ready.';
+      : 'Mark a meaningful journal entry as a favorite memory when one is ready.';
 
     return `
       <div class="pp-dock-care-live-grid">
@@ -3789,7 +3800,7 @@ export function initWidgetBand() {
           <span>${heroEsc(latestLine || 'Private account journal')}</span>
         </article>
         <article class="pp-dock-care-live-card">
-          <h4>Core Memory</h4>
+          <h4>Favorite memory</h4>
           <strong>${heroEsc(metrics.coreMemoryCount ? `${metrics.coreMemoryCount} saved` : 'Not marked yet')}</strong>
           <span>${heroEsc(coreText)}</span>
         </article>
@@ -3805,7 +3816,7 @@ export function initWidgetBand() {
       ${purposeTrail}
       <div class="pp-dock-care-actions">
         <a href="/account.html#account-pets">Open journals</a>
-        <a href="/account.html#account-story-trail">Story Trail</a>
+        <a href="/account.html#account-story-trail">Saved stories</a>
         <a href="/charm.html">CHARM</a>
       </div>
     `;
@@ -3833,6 +3844,114 @@ export function initWidgetBand() {
     if (bodyEl) bodyEl.innerHTML = renderCarePanelBody(metrics);
   }
 
+  function renderAppShelfSettings() {
+    const providers = appSdk.listProviders();
+    const connected = providers.filter((provider) => provider.connected).length;
+    const currentApps = pawketAppRegistry.manifests({ surface: 'dock' });
+    const partnerApps = [
+      {
+        name: 'Care calendar partner',
+        status: 'Manifest review',
+        scopes: 'pets:summary, dock:preferences'
+      },
+      {
+        name: 'Story studio partner',
+        status: 'Not installed',
+        scopes: 'stories:public, open_story_composer'
+      }
+    ];
+
+    return `
+      <div class="pp-panel-divider"></div>
+      <section class="pp-app-manager pp-app-shelf-settings" data-app-shelf-settings>
+        <div class="pp-app-manager-group">
+          <div class="pp-app-manager-head">
+            <strong>Dock settings</strong>
+            <span>${currentApps.length} apps available</span>
+          </div>
+          <div class="pp-panel-settings-grid pp-panel-settings-grid--shelf">
+            <label class="pp-panel-setting">
+              <span>Dock side</span>
+              <select data-dock-setting="side">
+                <option value="left" ${dockSettings.side === 'left' ? 'selected' : ''}>Left</option>
+                <option value="right" ${dockSettings.side === 'right' ? 'selected' : ''}>Right</option>
+              </select>
+            </label>
+            <label class="pp-panel-setting">
+              <span>Desktop app size</span>
+              <select data-dock-setting="size">
+                <option value="sm" ${dockSettings.size === 'sm' ? 'selected' : ''}>Small</option>
+                <option value="md" ${dockSettings.size === 'md' ? 'selected' : ''}>Medium</option>
+                <option value="lg" ${dockSettings.size === 'lg' ? 'selected' : ''}>Large</option>
+              </select>
+            </label>
+          </div>
+          <div class="pp-panel-inline-toggles pp-panel-inline-toggles--shelf">
+            <label class="pp-panel-check">
+              <input type="checkbox" data-dock-setting-check="providerWidgets" ${dockSettings.providerWidgets ? 'checked' : ''}>
+              <span>Show connected-provider shortcuts</span>
+            </label>
+            <label class="pp-panel-check">
+              <input type="checkbox" data-dock-setting-check="collapsed" ${dockSettings.collapsed ? 'checked' : ''}>
+              <span>Keep desktop dock collapsed</span>
+            </label>
+          </div>
+          <div class="pp-panel-actions pp-panel-actions--compact">
+            <button class="pp-panel-reset" type="button" data-reset-widgets data-tooltip="Restore the default pinned apps.">Reset pinned apps</button>
+            <button class="pp-panel-reset" type="button" data-reset-dock-settings>Reset dock layout</button>
+          </div>
+        </div>
+
+        <div class="pp-app-manager-group">
+          <div class="pp-app-manager-head">
+            <strong>Connected providers</strong>
+            <span>${connected}/${providers.length} connected</span>
+          </div>
+          <div class="pp-widget-provider-grid">
+            ${providers.map((provider) => {
+              const providerId = String(provider.id || '');
+              const isConnected = provider.connected === true;
+              return `
+                <article class="pp-widget-provider-card${integrationsFocus === providerId ? ' is-focus' : ''}" data-provider-id="${escapeAttr(providerId)}">
+                  <div class="pp-widget-provider-head">
+                    <span class="pp-widget-provider-icon"><i class="bi ${safeIconClass(provider.icon || 'bi-box-arrow-up-right')}" aria-hidden="true"></i></span>
+                    <strong>${heroEsc(provider.name)}</strong>
+                    <span class="pp-widget-provider-status ${isConnected ? 'is-on' : 'is-off'}">${isConnected ? 'Connected' : 'Disconnected'}</span>
+                  </div>
+                  <p>${heroEsc(provider.description || 'Connected provider shortcut.')}</p>
+                  <label class="pp-app-provider-enable">
+                    <input type="checkbox" data-provider-enabled="${escapeAttr(providerId)}" ${provider.enabled ? 'checked' : ''}>
+                    <span>Show shortcut</span>
+                  </label>
+                  <div class="pp-widget-app-actions pp-app-provider-actions">
+                    <button type="button" data-app-shelf-provider-toggle="${escapeAttr(providerId)}" class="${isConnected ? '' : 'is-primary'}">${isConnected ? 'Disconnect' : 'Connect'}</button>
+                    <button type="button" data-app-shelf-provider-focus="${escapeAttr(providerId)}">Focus</button>
+                  </div>
+                </article>
+              `;
+            }).join('')}
+          </div>
+        </div>
+
+        <div class="pp-app-manager-group">
+          <div class="pp-app-manager-head">
+            <strong>Partner access</strong>
+            <span>Scoped access only</span>
+          </div>
+          <div class="pp-app-manager-list">
+            ${partnerApps.map((app) => `
+              <article class="pp-app-manager-partner">
+                <strong>${heroEsc(app.name)}</strong>
+                <span>${heroEsc(app.status)}</span>
+                <em>${heroEsc(app.scopes)}</em>
+              </article>
+            `).join('')}
+          </div>
+        </div>
+      </section>
+    `;
+  }
+
   function renderDockActionPanel(action) {
     const renderAppShelf = (items = [], note = '') => {
       if (!items.length) return '';
@@ -3840,8 +3959,8 @@ export function initWidgetBand() {
         <div class="pp-panel-divider"></div>
         <div class="pp-panel-subhead">App shelf</div>
         ${note ? `<p class="pp-dock-action-note">${heroEsc(note)}</p>` : ''}
-        <div class="pp-dock-app-list">
-          ${items.map((widget, index) => {
+        <div class="pp-dock-app-list pp-dock-app-list--tiles">
+          ${items.map((widget) => {
             const pinned = state.enabled.includes(widget.id);
             const orderedPinnedIds = orderedWidgetIds();
             const pinnedIndex = orderedPinnedIds.indexOf(widget.id);
@@ -3855,6 +3974,7 @@ export function initWidgetBand() {
                     <em>${pinned ? 'Pinned on dock' : 'Not on dock'}</em>
                   </span>
                 </button>
+                <span class="pp-dock-app-state">${pinned ? 'Pinned' : 'Available'}</span>
                 <div class="pp-dock-app-row-actions">
                   <button type="button" data-dock-pin-widget="${escapeAttr(widget.id)}" aria-pressed="${pinned}" data-tooltip="${pinned ? 'Remove from dock.' : 'Pin to dock.'}">
                     <i class="bi ${pinned ? 'bi-dash-lg' : 'bi-plus-lg'}" aria-hidden="true"></i>
@@ -3887,10 +4007,11 @@ export function initWidgetBand() {
     const cardsHtml = renderDockActionCards(action.cards, action.cardsLabel);
     const appShelfHtml = renderAppShelf(
       widgetList,
-      'Open an app to pin it to the dock. Remove or rearrange pinned apps here, or drag them directly on the dock.'
+      'Open an app, pin it to the Dock, or move pinned apps into the order you use most.'
     );
+    const shelfSettingsHtml = action.id === 'more' ? renderAppShelfSettings() : '';
     const actionToolsHtml = action.id === 'more'
-      ? `${appShelfHtml}${cardsHtml}`
+      ? `${appShelfHtml}${shelfSettingsHtml}${cardsHtml}`
       : cardsHtml;
     panel.classList.add('is-open', 'is-dock-action');
     panel.dataset.panelKind = 'dock-action';
@@ -3916,7 +4037,6 @@ export function initWidgetBand() {
         <div class="pp-panel-divider"></div>
         <div class="pp-dock-support-row">
           <button class="pp-panel-btn ghost" type="button" data-dock-panel-action="help">Open support</button>
-          <button class="pp-panel-btn ghost" type="button" data-dock-panel-action="customize">Dock settings</button>
         </div>
       ` : ''}
     `;
@@ -3935,7 +4055,7 @@ export function initWidgetBand() {
   }
 
   function positionPanelNearDock() {
-    const isMobile = shell?.dataset?.mobileDock === '1' || window.matchMedia('(max-width: 980px)').matches;
+    const isMobile = shell?.dataset?.mobileDock === '1' || window.matchMedia(DOCK_MOBILE_QUERY).matches;
     if (isMobile) {
       panel.style.removeProperty('top');
       panel.style.removeProperty('max-height');
@@ -3995,114 +4115,14 @@ export function initWidgetBand() {
     }
 
     if (activeId === 'customize') {
-      const orderedIds = orderedWidgetIds();
-      panel.classList.add('is-open');
-      panel.hidden = false;
-      panelOpenedAt = Date.now();
-      try {
-        panel.innerHTML = `
-        <div class="pp-panel-head">
-          <div>
-            <span class="pp-panel-kicker">Pawket Dock</span>
-            <h3>Dock Controls</h3>
-          </div>
-          <button class="pp-panel-close" type="button" data-close-panel data-tooltip="Close this panel.">×</button>
-        </div>
-        <p>Tune layout, manage widget order, and control how the Pawket Dock behaves across screen sizes.</p>
-        <div class="pp-panel-settings-grid">
-          <label class="pp-panel-setting">
-            <span>Dock side</span>
-            <select data-dock-setting="side">
-              <option value="left" ${dockSettings.side === 'left' ? 'selected' : ''}>Left</option>
-              <option value="right" ${dockSettings.side === 'right' ? 'selected' : ''}>Right</option>
-            </select>
-          </label>
-          <label class="pp-panel-setting">
-            <span>Icon size</span>
-            <select data-dock-setting="size">
-              <option value="sm" ${dockSettings.size === 'sm' ? 'selected' : ''}>Small</option>
-              <option value="md" ${dockSettings.size === 'md' ? 'selected' : ''}>Medium</option>
-              <option value="lg" ${dockSettings.size === 'lg' ? 'selected' : ''}>Large</option>
-            </select>
-          </label>
-          <label class="pp-panel-setting">
-            <span>Label mode</span>
-            <select data-dock-setting="labels">
-              <option value="hover" ${dockSettings.labels === 'hover' ? 'selected' : ''}>Hover/focus</option>
-              <option value="always" ${dockSettings.labels === 'always' ? 'selected' : ''}>Always visible</option>
-              <option value="off" ${dockSettings.labels === 'off' ? 'selected' : ''}>Hidden</option>
-            </select>
-          </label>
-        </div>
-        <div class="pp-panel-inline-toggles">
-          <label class="pp-panel-check">
-            <input type="checkbox" data-dock-setting-check="collapsed" ${dockSettings.collapsed ? 'checked' : ''}>
-            <span>Start collapsed</span>
-          </label>
-          <label class="pp-panel-check">
-            <input type="checkbox" data-dock-setting-check="badges" ${dockSettings.badges ? 'checked' : ''}>
-            <span>Show badges</span>
-          </label>
-          <label class="pp-panel-check">
-            <input type="checkbox" data-dock-setting-check="providerWidgets" ${dockSettings.providerWidgets ? 'checked' : ''}>
-            <span>Show connected providers</span>
-          </label>
-        </div>
-        <div class="pp-panel-divider"></div>
-        <div class="pp-panel-subhead">Widget Order</div>
-        <div class="pp-panel-order-list">
-          ${orderedIds.map((id, index) => {
-            const widget = widgets.find((w) => w.id === id);
-            if (!widget) return '';
-            const isEnabled = state.enabled.includes(id);
-            return `
-              <div class="pp-panel-order-item${isEnabled ? '' : ' is-disabled'}">
-                <label class="pp-panel-toggle">
-                  <input type="checkbox" data-toggle-widget="${escapeAttr(widget.id)}" ${isEnabled ? 'checked' : ''}>
-                  <span>${heroEsc(widget.label)}</span>
-                </label>
-                <div class="pp-panel-order-buttons">
-                  <button type="button" data-move-widget="${escapeAttr(widget.id)}" data-move-dir="-1" ${index === 0 ? 'disabled' : ''} aria-label="Move ${escapeAttr(widget.label)} up"><i class="bi bi-chevron-up"></i></button>
-                  <button type="button" data-move-widget="${escapeAttr(widget.id)}" data-move-dir="1" ${index === orderedIds.length - 1 ? 'disabled' : ''} aria-label="Move ${escapeAttr(widget.label)} down"><i class="bi bi-chevron-down"></i></button>
-                </div>
-              </div>
-            `;
-          }).join('')}
-        </div>
-        <div class="pp-panel-actions">
-          <button class="pp-panel-btn ghost" type="button" data-open-enabled-apps>Open enabled apps</button>
-          <button class="pp-panel-btn ghost" type="button" data-close-all-apps>Close all apps</button>
-          <button class="pp-panel-reset" type="button" data-reset-widgets data-tooltip="Restore default widget setup.">Reset widgets</button>
-          <button class="pp-panel-reset" type="button" data-reset-dock-settings>Reset dock settings</button>
-        </div>
-        <div class="pp-panel-note">State is saved in your browser so the Pawket Dock persists across refresh.</div>
-        <div class="pp-panel-divider"></div>
-        <div class="pp-panel-subhead">Provider Shortcuts</div>
-        <div class="pp-panel-list">
-          ${appSdk.listProviders().map((provider) => `
-            <label class="pp-panel-toggle">
-              <input type="checkbox" data-provider-enabled="${escapeAttr(provider.id)}" ${provider.enabled ? 'checked' : ''}>
-              <span>${heroEsc(provider.name)}</span>
-            </label>
-          `).join('')}
-        </div>
-      `;
-      } catch (err) {
-        console.error('[widgetDock] customize panel render failed:', err);
-        debugLog('panel:customize-render-error', { message: err?.message || String(err) });
-        panel.innerHTML = `
-          <div class="pp-panel-head">
-            <div>
-              <span class="pp-panel-kicker">Pawket Dock</span>
-              <h3>Customize</h3>
-            </div>
-            <button class="pp-panel-close" type="button" data-close-panel>×</button>
-          </div>
-          <p>Could not render full customize controls. Reload once and try again.</p>
-        `;
+      const appsAction = dockActionById('more');
+      if (!appsAction) {
+        closePanel();
+        return;
       }
-      positionPanelNearDock();
-      debugLog('panel:customize-open', { html: panel.innerHTML.length, open: panel.classList.contains('is-open') });
+      activeId = dockActionPanelId(appsAction.id);
+      renderDockActionPanel(appsAction);
+      debugLog('panel:customize-redirect', { target: appsAction.id });
       return;
     }
 
@@ -4116,7 +4136,7 @@ export function initWidgetBand() {
       panel.innerHTML = `
         <div class="pp-panel-head">
           <div>
-            <span class="pp-panel-kicker">Pawket Passes</span>
+            <span class="pp-panel-kicker">Pawket Shop</span>
             <h3>${heroEsc(w.title)}</h3>
           </div>
           <button class="pp-panel-close" type="button" data-close-panel data-tooltip="Close this panel.">×</button>
@@ -4237,46 +4257,27 @@ export function initWidgetBand() {
     renderPanel();
   }
 
-  function openCustomizePanel() {
-    activeId = 'customize';
-    panelOpenedAt = Date.now();
-    ignoreOutsideCloseUntil = Math.max(ignoreOutsideCloseUntil, panelOpenedAt + 320);
-    debugLog('customize:open-request');
-    closeHelpPill();
-    renderDock();
-    renderPanel();
+  function openAppShelfPanel() {
+    setActiveDockAction('more');
+  }
 
-    const opened = panel.classList.contains('is-open') && panel.innerHTML.trim().length > 0;
-    debugLog('customize:open-result', { opened, classOpen: panel.classList.contains('is-open'), html: panel.innerHTML.trim().length });
-    if (!opened) {
-      panel.classList.add('is-open');
-      panel.hidden = false;
-      panelOpenedAt = Date.now();
-      panel.innerHTML = `
-        <div class="pp-panel-head">
-          <div>
-            <span class="pp-panel-kicker">Pawket Dock</span>
-            <h3>Customize</h3>
-          </div>
-          <button class="pp-panel-close" type="button" data-close-panel>×</button>
-        </div>
-        <p>Customize panel loaded in fallback mode. Reload once to restore full dock controls.</p>
-      `;
-      positionPanelNearDock();
-      debugLog('customize:open-fallback');
-    }
+  function openCustomizePanel() {
+    debugLog('customize:redirect-app-shelf');
+    openAppShelfPanel();
   }
 
   function normalizeOrder() {
     const seen = new Set();
     const next = [];
     state.order.forEach((id) => {
+      id = canonicalWidgetId(id);
       if (seen.has(id)) return;
       if (!widgetIsDockApp(id)) return;
       seen.add(id);
       next.push(id);
     });
     state.enabled.forEach((id) => {
+      id = canonicalWidgetId(id);
       if (seen.has(id)) return;
       if (!widgetIsDockApp(id)) return;
       seen.add(id);
@@ -4286,6 +4287,7 @@ export function initWidgetBand() {
   }
 
   function moveWidgetOrder(id, direction) {
+    id = canonicalWidgetId(id);
     if (!widgetIsDockApp(id)) return false;
     normalizeOrder();
     const current = state.order.indexOf(id);
@@ -4449,13 +4451,17 @@ export function initWidgetBand() {
   let pressLabelPointerId = null;
   let pressLabelHideTimer = 0;
   let mobileSwipeState = null;
+  let dockTrackDragState = null;
+  let dockLongPressState = null;
 
   const MOBILE_SWIPE_ACTIVATE_PX = 8;
   const MOBILE_SWIPE_STEP_PX = 28;
   const MOBILE_SWIPE_CLICK_SUPPRESS_MS = 360;
+  const DOCK_REORDER_LONG_PRESS_MS = 760;
+  const DOCK_REORDER_MOVE_CANCEL_PX = 10;
 
   function mobileCarouselPoolSize() {
-    return orderedWidgets().length + connectedProviderDockWidgets().length + 1; // + customize
+    return orderedWidgets().length + connectedProviderDockWidgets().length + 1; // + Apps shelf
   }
 
   function canUseMobileCarouselTrack() {
@@ -4508,7 +4514,6 @@ export function initWidgetBand() {
       id: bubbleDebugId(bubble),
       hasLabel: true,
       isPressing: bubble.classList.contains('is-pressing'),
-      shellLabels: shell?.dataset?.widgetLabels || '',
       shellMobileDock: shell?.dataset?.mobileDock || '',
       shellDockMode: shell?.dataset?.dockMode || '',
       display: style.display,
@@ -4543,7 +4548,6 @@ export function initWidgetBand() {
     debugLog('label:show-request', {
       id: bubbleDebugId(bubble),
       pointerId,
-      shellLabels: shell?.dataset?.widgetLabels || '',
       mobileDock: shell?.dataset?.mobileDock || '',
       dockMode: shell?.dataset?.dockMode || ''
     });
@@ -4605,6 +4609,77 @@ export function initWidgetBand() {
     }
   }, true);
 
+  dock.addEventListener('wheel', (e) => {
+    const track = e.target.closest('[data-dock-mobile-scroll], [data-dock-app-strip]');
+    if (!(track instanceof HTMLElement)) return;
+    if (track.scrollWidth <= track.clientWidth + 2) return;
+    const horizontal = Math.abs(e.deltaX) >= Math.abs(e.deltaY);
+    const delta = horizontal ? e.deltaX : e.deltaY;
+    if (!delta) return;
+    track.scrollLeft += delta;
+    e.preventDefault();
+  }, { passive: false });
+
+  function dockTrackIsScrollable(track) {
+    return track instanceof HTMLElement && track.scrollWidth > track.clientWidth + 2;
+  }
+
+  function endDockTrackDrag() {
+    const drag = dockTrackDragState;
+    if (!drag) return;
+    drag.track.classList.remove('is-dragging');
+    try { drag.track.releasePointerCapture?.(drag.pointerId); } catch {}
+    if (drag.moved) {
+      suppressAnyDockClickUntil = Date.now() + 260;
+    }
+    dockTrackDragState = null;
+  }
+
+  dock.addEventListener('pointerdown', (e) => {
+    if (e.button != null && e.button !== 0) return;
+    if (dockReorderMode && e.target.closest('.pp-widget-bubble[data-widget-draggable="1"]')) return;
+    const track = e.target.closest('[data-dock-mobile-scroll], [data-dock-app-strip]');
+    if (!dockTrackIsScrollable(track)) return;
+    dockTrackDragState = {
+      track,
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY,
+      startLeft: track.scrollLeft,
+      axis: '',
+      moved: false,
+    };
+    track.setPointerCapture?.(e.pointerId);
+  });
+
+  dock.addEventListener('pointermove', (e) => {
+    const drag = dockTrackDragState;
+    if (!drag || drag.pointerId !== e.pointerId) return;
+    const dx = e.clientX - drag.startX;
+    const dy = e.clientY - drag.startY;
+    const adx = Math.abs(dx);
+    const ady = Math.abs(dy);
+
+    if (!drag.axis) {
+      if (adx < 4 && ady < 4) return;
+      drag.axis = adx >= ady ? 'x' : 'y';
+      if (drag.axis !== 'x') {
+        dockTrackDragState = null;
+        return;
+      }
+      drag.track.classList.add('is-dragging');
+    }
+
+    if (drag.axis !== 'x') return;
+    drag.moved = drag.moved || adx > 5;
+    drag.track.scrollLeft = drag.startLeft - dx;
+    e.preventDefault();
+  });
+
+  dock.addEventListener('pointerup', endDockTrackDrag);
+  dock.addEventListener('pointercancel', endDockTrackDrag);
+  dock.addEventListener('pointerleave', endDockTrackDrag);
+
   dock.addEventListener('click', (e) => {
     // Prevent the same click from bubbling to the document-level outside-close
     // after dock re-render swaps out the clicked node.
@@ -4614,6 +4689,15 @@ export function initWidgetBand() {
     if (shouldSuppressDockClick(e)) {
       debugLog('dock:click-suppressed');
       return;
+    }
+
+    if (dockReorderMode) {
+      const reorderBtn = e.target.closest('.pp-widget-bubble[data-widget-draggable="1"]');
+      if (reorderBtn) {
+        e.preventDefault();
+        return;
+      }
+      setDockReorderMode(false);
     }
 
     const dockActionBtn = e.target.closest('[data-dock-action]');
@@ -4665,9 +4749,7 @@ export function initWidgetBand() {
       if (!appSdk.listProviders().some((provider) => provider.id === providerId && provider.connected)) {
         appSdk.setProviderState(providerId, { connected: true, lastConnectedAt: new Date().toISOString() });
       }
-      openWidgetApp('integrations');
-      hydrateIntegrationsApp();
-      renderDock();
+      setActiveDockAction('more');
       return;
     }
 
@@ -4690,6 +4772,21 @@ export function initWidgetBand() {
   });
 
   dock.addEventListener('keydown', (e) => {
+    if (dockReorderMode) {
+      const reorderItem = document.activeElement?.closest?.('.pp-widget-bubble[data-widget-draggable="1"]');
+      const keyDir = e.key === 'ArrowRight' || e.key === 'ArrowDown'
+        ? 1
+        : (e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0);
+      if (reorderItem && keyDir && (e.shiftKey || e.altKey)) {
+        const id = reorderItem.getAttribute('data-widget');
+        e.preventDefault();
+        if (moveWidgetOrder(id, keyDir)) {
+          requestAnimationFrame(() => dock.querySelector(`[data-widget="${escapeAttrSelector(id)}"]`)?.focus?.());
+        }
+        return;
+      }
+    }
+
     const keys = ['ArrowDown', 'ArrowUp', 'ArrowRight', 'ArrowLeft', 'Home', 'End'];
     if (!keys.includes(e.key)) return;
     const items = dockFocusableItems();
@@ -4706,12 +4803,27 @@ export function initWidgetBand() {
     focusDockItem(next);
   });
 
-  dock.addEventListener('contextmenu', (e) => {
-    if (e.target.closest('.pp-widget-bubble, [data-widget], [data-widget-control], [data-widget-provider]')) {
-      debugLog('dock:contextmenu-blocked', { id: bubbleDebugId(e.target.closest('.pp-widget-bubble')) });
-      e.preventDefault();
+  function handleDockContextMenu(e) {
+    if (!(e.target instanceof Element)) return;
+    if (!dock.contains(e.target)) return;
+    const dockTarget = e.target.closest('.pp-widget-bubble, [data-widget], [data-widget-control], [data-widget-provider], [data-dock-action]');
+    if (!dockTarget) return;
+    const reorderBtn = e.target.closest('.pp-widget-bubble[data-widget-draggable="1"]');
+    debugLog('dock:contextmenu-blocked', { id: bubbleDebugId(e.target.closest('.pp-widget-bubble')) });
+    e.preventDefault();
+    e.stopPropagation();
+    if (reorderBtn && !dockReorderMode) {
+      if (dockLongPressState?.btn === reorderBtn) {
+        activateDockLongPressReorder();
+      } else {
+        clearDockLongPressState();
+        setDockReorderMode(true, { render: false });
+      }
+      suppressAnyDockClickUntil = Date.now() + 420;
     }
-  });
+  }
+
+  document.addEventListener('contextmenu', handleDockContextMenu, true);
 
   if (helpPill) {
     helpPill.addEventListener('contextmenu', (e) => {
@@ -4788,7 +4900,7 @@ export function initWidgetBand() {
     if (e.pointerType !== 'touch') return;
     e.preventDefault();
     e.stopPropagation();
-    debugLog('dock:customize-touch-pointerup');
+    debugLog('dock:app-shelf-touch-pointerup');
     ignoreCustomizeClickUntil = Date.now() + 320;
     ignoreOutsideCloseUntil = Date.now() + 360;
     if (activeId === 'customize') closePanel();
@@ -4814,6 +4926,9 @@ export function initWidgetBand() {
     const inDock = path ? path.includes(dock) : dock.contains(e.target);
     const inPanel = path ? path.includes(panel) : panel.contains(e.target);
     const inHelp = path ? path.includes(helpPill) : helpPill.contains(e.target);
+    if (dockReorderMode && !inDock && !inPanel && !inHelp) {
+      setDockReorderMode(false);
+    }
     if (inDock || inPanel || inHelp) {
       ignoreOutsideCloseUntil = Math.max(ignoreOutsideCloseUntil, Date.now() + 260);
       debugLog('outside:pointer-inside', { inDock, inPanel, inHelp });
@@ -4856,6 +4971,16 @@ export function initWidgetBand() {
         openCustomizePanel();
         return;
       }
+      if (action === 'toggle-reorder') {
+        const nextMode = !dockReorderMode;
+        setDockReorderMode(nextMode);
+        if (nextMode) {
+          closePanel();
+        } else {
+          renderPanel();
+        }
+        return;
+      }
       if (action === 'care-compose') {
         focusCareComposer();
         return;
@@ -4864,10 +4989,8 @@ export function initWidgetBand() {
 
     const dockOpenWidget = e.target.closest('[data-dock-open-widget]');
     if (dockOpenWidget) {
-      const id = dockOpenWidget.getAttribute('data-dock-open-widget');
-      if (mergedWidgetIds.has(id)) {
-        setActiveDockAction('care');
-      } else if (widgetIsDockApp(id)) {
+      const id = canonicalWidgetId(dockOpenWidget.getAttribute('data-dock-open-widget'));
+      if (widgetIsDockApp(id)) {
         pinWidgetToDock(id);
         closePanel();
         closeHelpPill();
@@ -4878,13 +5001,37 @@ export function initWidgetBand() {
 
     const dockPinWidget = e.target.closest('[data-dock-pin-widget]');
     if (dockPinWidget) {
-      const id = dockPinWidget.getAttribute('data-dock-pin-widget');
+      const id = canonicalWidgetId(dockPinWidget.getAttribute('data-dock-pin-widget'));
       if (!widgetIsDockApp(id)) return;
       if (state.enabled.includes(id)) {
         removeWidgetFromDock(id, { close: true });
       } else {
         pinWidgetToDock(id);
       }
+      renderPanel();
+      return;
+    }
+
+    const shelfProviderToggle = e.target.closest('[data-app-shelf-provider-toggle]');
+    if (shelfProviderToggle) {
+      const providerId = shelfProviderToggle.getAttribute('data-app-shelf-provider-toggle');
+      if (!providerId) return;
+      const connected = appSdk.toggleProviderConnection(providerId);
+      if (!connected && integrationsFocus === providerId) integrationsFocus = null;
+      renderDock();
+      renderPanel();
+      return;
+    }
+
+    const shelfProviderFocus = e.target.closest('[data-app-shelf-provider-focus]');
+    if (shelfProviderFocus) {
+      const providerId = shelfProviderFocus.getAttribute('data-app-shelf-provider-focus');
+      if (!providerId) return;
+      integrationsFocus = providerId;
+      if (!appSdk.listProviders().some((provider) => provider.id === providerId && provider.connected)) {
+        appSdk.setProviderState(providerId, { connected: true, lastConnectedAt: new Date().toISOString() });
+      }
+      renderDock();
       renderPanel();
       return;
     }
@@ -4962,8 +5109,6 @@ export function initWidgetBand() {
       const value = dockSelect.value;
       if (key === 'side' && (value === 'left' || value === 'right')) {
         updateDockSetting('side', value);
-      } else if (key === 'labels' && ['hover', 'always', 'off'].includes(value)) {
-        updateDockSetting('labels', value);
       } else if (key === 'size' && ['sm', 'md', 'lg'].includes(value)) {
         updateDockSetting('size', value);
       }
@@ -4973,7 +5118,7 @@ export function initWidgetBand() {
     const dockCheck = e.target.closest('[data-dock-setting-check]');
     if (dockCheck) {
       const key = dockCheck.getAttribute('data-dock-setting-check');
-      if (['collapsed', 'badges', 'providerWidgets'].includes(key)) {
+      if (['collapsed', 'providerWidgets'].includes(key)) {
         updateDockSetting(key, !!dockCheck.checked);
       }
       return;
@@ -4985,8 +5130,8 @@ export function initWidgetBand() {
       if (!providerId) return;
       appSdk.setProviderState(providerId, { enabled: !!providerCheck.checked });
       if (!providerCheck.checked && integrationsFocus === providerId) integrationsFocus = null;
-      hydrateIntegrationsApp();
       renderDock();
+      renderPanel();
       return;
     }
 
@@ -5004,13 +5149,13 @@ export function initWidgetBand() {
         .map((el) => el.getAttribute('data-care-panel-task'));
       const saved = saveCareQuickCheckIds(checked);
       syncCareQuickCheckCounts(document, saved);
-      if (appIsOpen('reminders')) hydrateRemindersApp();
+      if (appIsOpen('pet-workspace')) hydrateAppWindow('pet-workspace');
       return;
     }
 
     const input = e.target.closest('[data-toggle-widget]');
     if (!input) return;
-    const id = input.getAttribute('data-toggle-widget');
+    const id = canonicalWidgetId(input.getAttribute('data-toggle-widget'));
     if (!widgetIsDockApp(id)) {
       input.checked = false;
       return;
@@ -5042,12 +5187,13 @@ export function initWidgetBand() {
     }
 
     if (e.target.closest('[data-app-story-refresh]')) {
-      renderSparkFromStories();
+      pawketAppHost.runAction('stories', 'refreshSpark');
       return;
     }
 
     if (e.target.closest('[data-app-subs-spin]')) {
-      renderRandomSubSpotlight();
+      const result = pawketAppHost.runAction(canonicalWidgetId('loop'), 'shufflePick');
+      if (result === null) pawketAppHost.runAction('subs', 'shufflePick');
       return;
     }
 
@@ -5059,7 +5205,7 @@ export function initWidgetBand() {
         const listEl = appLayer.querySelector('[data-app-traits-list]');
         if (listEl) {
           const row = document.createElement('li');
-          row.textContent = 'Draft prompt: open a pet journal and mark a meaningful saved entry as a Core Memory.';
+          row.textContent = 'Draft prompt: open a pet journal and mark a meaningful memory.';
           listEl.prepend(row);
           const rows = listEl.querySelectorAll('li');
           if (rows.length > 6) rows[rows.length - 1].remove();
@@ -5076,26 +5222,29 @@ export function initWidgetBand() {
         lockedAt: new Date().toISOString()
       });
       saveCoreMemories(memories);
-      hydrateTraitsApp();
+      hydrateAppWindow('pet-workspace');
       return;
     }
 
     if (e.target.closest('[data-app-traits-random]')) {
-      renderRandomTraitFocus();
+      const appId = e.target.closest('[data-widget-app-id]')?.getAttribute('data-widget-app-id') || 'pet-workspace';
+      const result = pawketAppHost.runAction(appId, 'randomFocus');
+      if (result === null) pawketAppHost.runAction('pet-workspace', 'randomFocus');
       return;
     }
 
     if (e.target.closest('[data-app-pals-random]')) {
-      renderRandomPalProfile();
+      pawketAppHost.runAction('pals', 'randomProfile');
       return;
     }
 
     if (e.target.closest('[data-app-reminders-celebrate]')) {
       const done = document.querySelectorAll('[data-app-reminder-task]:checked').length;
-      const note = appLayer.querySelector('[data-app-reminders-list]');
+      const appRoot = e.target.closest('[data-widget-app-id]');
+      const note = appRoot?.querySelector('[data-app-reminders-list]') || appLayer.querySelector('[data-app-reminders-list]');
       if (note) {
         const row = document.createElement('li');
-        row.textContent = `Quick check-in staged locally: ${done} care checks complete. Open journals to save the durable record.`;
+        row.textContent = `Quick check-in saved here: ${done} care checks complete. Open journals to save a fuller note.`;
         note.prepend(row);
         const rows = note.querySelectorAll('li');
         if (rows.length > 6) rows[rows.length - 1].remove();
@@ -5109,8 +5258,8 @@ export function initWidgetBand() {
       if (!providerId) return;
       const connected = appSdk.toggleProviderConnection(providerId);
       if (!connected && integrationsFocus === providerId) integrationsFocus = null;
-      hydrateIntegrationsApp();
       renderDock();
+      renderPanel();
       return;
     }
 
@@ -5119,20 +5268,20 @@ export function initWidgetBand() {
       const providerId = intFocus.getAttribute('data-app-int-focus');
       if (!providerId) return;
       integrationsFocus = providerId;
-      hydrateIntegrationsApp();
       renderDock();
+      renderPanel();
       return;
     }
 
     if (e.target.closest('[data-app-int-toggle-dock-providers]')) {
       updateDockSetting('providerWidgets', !dockSettings.providerWidgets);
-      hydrateIntegrationsApp();
+      renderPanel();
       return;
     }
 
     if (e.target.closest('[data-app-int-reload]')) {
-      hydrateIntegrationsApp();
       renderDock();
+      renderPanel();
       return;
     }
   });
@@ -5142,6 +5291,8 @@ export function initWidgetBand() {
     if (slider) {
       const value = Number(slider.value || 0);
       localStorage.setItem('pp-widget-pals-mood', String(value));
+      const moodValue = appLayer.querySelector('[data-app-pals-mood-value]');
+      if (moodValue) moodValue.textContent = `${value}%`;
       const kpi = appLayer.querySelector('[data-app-pals-count]')?.closest('.pp-widget-app-kpis')?.querySelector('.pp-widget-app-kpi:last-child strong');
       if (kpi) kpi.textContent = `${value}%`;
       return;
@@ -5149,9 +5300,9 @@ export function initWidgetBand() {
 
     const reminder = e.target.closest('[data-app-reminder-task]');
     if (reminder) {
-      const checked = Array.from(appLayer.querySelectorAll('[data-app-reminder-task]:checked')).map((el) => el.getAttribute('data-app-reminder-task'));
+      const root = reminder.closest('.pp-widget-app') || appLayer;
+      const checked = Array.from(root.querySelectorAll('[data-app-reminder-task]:checked')).map((el) => el.getAttribute('data-app-reminder-task'));
       const saved = saveCareQuickCheckIds(checked);
-      const root = reminder.closest('.pp-widget-app');
       const doneEl = root?.querySelector('[data-app-reminders-done]');
       const todoEl = root?.querySelector('[data-app-reminders-togo]');
       if (doneEl) doneEl.textContent = String(saved.length);
@@ -5166,11 +5317,9 @@ export function initWidgetBand() {
     refreshCareSurfaces({ forcePets: source.startsWith('pet-') }).catch(() => {});
   });
 
-  // Drag reorder (long-press on touch)
+  // Phone-style dock reorder: drag-scroll normally, long-press an app to rearrange.
   let dragState = null;
   const DRAG_THRESHOLD = 6;
-  const LONG_PRESS_MS = 380;
-  const MOVE_CANCEL = 10;
 
   function getAxis() {
     const dir = window.getComputedStyle(dock).flexDirection || 'column';
@@ -5193,61 +5342,116 @@ export function initWidgetBand() {
     saveState(state);
   }
 
-  dock.addEventListener('pointerdown', (e) => {
-    const btn = e.target.closest('.pp-widget-bubble');
-    if (!btn) return;
-    if (btn.getAttribute('data-widget-draggable') !== '1') return;
+  function clearDockLongPressState() {
+    if (!dockLongPressState) return;
+    if (dockLongPressState.timer) clearTimeout(dockLongPressState.timer);
+    dockLongPressState = null;
+  }
+
+  function startDockBubbleDrag(btn, e, { fromLongPress = false } = {}) {
     const id = btn.getAttribute('data-widget');
-    if (!id || id === 'customize') return;
-    debugLog('drag:start', { id, pointerType: e.pointerType, pointerId: e.pointerId });
+    if (!id || id === 'customize') return false;
+    debugLog('drag:start', { id, pointerType: e.pointerType, pointerId: e.pointerId, fromLongPress });
     dragState = {
       id,
       btn,
       axis: getAxis(),
+      pointerId: e.pointerId,
       startX: e.clientX,
       startY: e.clientY,
       moved: false,
-      activated: e.pointerType !== 'touch',
+      activated: true,
       pointerType: e.pointerType,
+      fromLongPress,
       timer: null
     };
-    btn.setPointerCapture?.(e.pointerId);
-    if (e.pointerType === 'touch') {
-      dragState.timer = setTimeout(() => {
-        if (!dragState) return;
-        dragState.activated = true;
-        debugLog('drag:long-press-activated', { id: dragState.id });
-        clearPressLabel();
-        dock.classList.add('pp-dragging');
-        dragState.btn.classList.add('pp-dragging');
-      }, LONG_PRESS_MS);
+    try { btn.setPointerCapture?.(e.pointerId); } catch {}
+    clearPressLabel();
+    return true;
+  }
+
+  function activateDockLongPressReorder() {
+    const press = dockLongPressState;
+    if (!press || press.activated) return;
+    press.activated = true;
+    endDockTrackDrag();
+    setDockReorderMode(true, { render: false });
+    suppressAnyDockClickUntil = Date.now() + 340;
+    startDockBubbleDrag(press.btn, press.event, { fromLongPress: true });
+    debugLog('dock:long-press-reorder', { id: press.id });
+    dockLongPressState = null;
+  }
+
+  dock.addEventListener('pointerdown', (e) => {
+    if (e.button != null && e.button !== 0) return;
+    if (dockReorderMode) return;
+    const btn = e.target.closest('.pp-widget-bubble[data-widget-draggable="1"]');
+    if (!btn) return;
+    if (!btn.closest('[data-dock-mobile-scroll], [data-dock-app-strip]')) return;
+    const id = btn.getAttribute('data-widget');
+    if (!id || id === 'customize') return;
+    clearDockLongPressState();
+    dockLongPressState = {
+      id,
+      btn,
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY,
+      activated: false,
+      event: {
+        pointerId: e.pointerId,
+        pointerType: e.pointerType,
+        clientX: e.clientX,
+        clientY: e.clientY
+      },
+      timer: setTimeout(activateDockLongPressReorder, DOCK_REORDER_LONG_PRESS_MS)
+    };
+  });
+
+  dock.addEventListener('pointermove', (e) => {
+    const press = dockLongPressState;
+    if (!press || press.pointerId !== e.pointerId || press.activated) return;
+    const dx = e.clientX - press.startX;
+    const dy = e.clientY - press.startY;
+    if (Math.hypot(dx, dy) > DOCK_REORDER_MOVE_CANCEL_PX) {
+      clearDockLongPressState();
     }
+  });
+
+  dock.addEventListener('pointerup', (e) => {
+    if (dockLongPressState?.pointerId === e.pointerId) clearDockLongPressState();
+  });
+
+  dock.addEventListener('pointercancel', (e) => {
+    if (dockLongPressState?.pointerId === e.pointerId) clearDockLongPressState();
+  });
+
+  dock.addEventListener('pointerdown', (e) => {
+    const btn = e.target.closest('.pp-widget-bubble');
+    if (!btn) return;
+    if (!dockReorderMode) return;
+    if (btn.getAttribute('data-widget-draggable') !== '1') return;
+    e.preventDefault();
+    e.stopPropagation();
+    startDockBubbleDrag(btn, e);
   });
 
   dock.addEventListener('pointermove', (e) => {
     if (!dragState) return;
+    if (dragState.pointerId !== e.pointerId) return;
     const { btn, axis, startX, startY } = dragState;
     const container = btn.parentElement;
     if (!container) return;
     const dx = e.clientX - startX;
     const dy = e.clientY - startY;
     const dist = Math.hypot(dx, dy);
-    if (dragState.pointerType === 'touch' && !dragState.activated) {
-      if (dist > MOVE_CANCEL) {
-        if (dragState.timer) clearTimeout(dragState.timer);
-        debugLog('drag:cancel-before-activate', { id: dragState.id, dist: Math.round(dist) });
-        schedulePressLabelClear(0);
-        dragState = null;
-      }
-      return;
-    }
-
     if (!dragState.moved && dist > DRAG_THRESHOLD) {
       dragState.moved = true;
       dock.classList.add('pp-dragging');
       btn.classList.add('pp-dragging');
     }
     if (!dragState.moved) return;
+    e.preventDefault();
 
     const pos = getPos(e, axis);
     const items = bubbles().filter((b) => b !== btn && b.parentElement === container);
@@ -5266,27 +5470,30 @@ export function initWidgetBand() {
     }
   });
 
-  function endDrag() {
+  function endDrag(e = null) {
     if (!dragState) return;
+    if (e?.pointerId != null && dragState.pointerId !== e.pointerId) return;
     if (dragState.timer) clearTimeout(dragState.timer);
     dragState.btn.classList.remove('pp-dragging');
     dock.classList.remove('pp-dragging');
     if (dragState.moved) {
       updateOrderFromDom();
-      suppressClick = {
-        id: dragState.id,
-        until: Date.now() + 360
-      };
       debugLog('drag:end-reordered', { id: dragState.id });
     } else {
       debugLog('drag:end-no-move', { id: dragState.id });
     }
+    suppressClick = {
+      id: dragState.id,
+      until: Date.now() + 420
+    };
     schedulePressLabelClear(0);
     dragState = null;
   }
 
   dock.addEventListener('pointerup', endDrag);
   dock.addEventListener('pointercancel', endDrag);
+  document.addEventListener('pointerup', endDrag);
+  document.addEventListener('pointercancel', endDrag);
   dock.addEventListener('pointerleave', () => schedulePressLabelClear(0));
   document.addEventListener('pointercancel', () => schedulePressLabelClear(0));
 
@@ -5311,7 +5518,6 @@ export function initWidgetBand() {
         height: window.innerHeight
       },
       shell: {
-        widgetLabels: shell?.dataset?.widgetLabels || '',
         widgetSide: shell?.dataset?.widgetSide || '',
         mobileDock: shell?.dataset?.mobileDock || '',
         dockMode: shell?.dataset?.dockMode || ''
@@ -5377,7 +5583,6 @@ export function initWidgetBand() {
         return {
           pointerId: pressLabelPointerId,
           bubble: bubbleLabelSnapshot(pressLabelBubble),
-          shellLabels: shell?.dataset?.widgetLabels || '',
           mobileDock: shell?.dataset?.mobileDock || '',
           dockMode: shell?.dataset?.dockMode || ''
         };
@@ -5386,7 +5591,7 @@ export function initWidgetBand() {
         return {
           width: getWidgetViewportWidth(),
           lastWidth: lastWidgetViewportWidth,
-          mobile: window.matchMedia('(max-width: 980px)').matches,
+          mobile: window.matchMedia(DOCK_MOBILE_QUERY).matches,
           lastMobile: lastWidgetViewportMobile,
           refreshAt: shell?.dataset?.viewportRefreshAt || null
         };
@@ -5397,8 +5602,8 @@ export function initWidgetBand() {
           width: getWidgetViewportWidth(),
           previousWidth: lastWidgetViewportWidth,
           widthDelta: Math.abs(getWidgetViewportWidth() - lastWidgetViewportWidth),
-          mobileDock: window.matchMedia('(max-width: 980px)').matches,
-          mobileChanged: window.matchMedia('(max-width: 980px)').matches !== lastWidgetViewportMobile
+          mobileDock: window.matchMedia(DOCK_MOBILE_QUERY).matches,
+          mobileChanged: window.matchMedia(DOCK_MOBILE_QUERY).matches !== lastWidgetViewportMobile
         });
         return this.viewportState();
       },
@@ -5459,7 +5664,7 @@ export function initWidgetBand() {
   const WIDGET_VIEWPORT_REFRESH_MIN_DELTA = 12;
   const WIDGET_VIEWPORT_REFRESH_DEBOUNCE_MS = 140;
   let lastWidgetViewportWidth = getWidgetViewportWidth();
-  let lastWidgetViewportMobile = window.matchMedia('(max-width: 980px)').matches;
+  let lastWidgetViewportMobile = window.matchMedia(DOCK_MOBILE_QUERY).matches;
   let widgetViewportRefreshTimer = 0;
 
   function resetWidgetBarForViewport(detail = {}) {
@@ -5485,7 +5690,7 @@ export function initWidgetBand() {
 
   function scheduleWidgetBarViewportReset(reason = 'resize') {
     const width = getWidgetViewportWidth();
-    const mobile = window.matchMedia('(max-width: 980px)').matches;
+    const mobile = window.matchMedia(DOCK_MOBILE_QUERY).matches;
     const widthDelta = Math.abs(width - lastWidgetViewportWidth);
     const mobileChanged = mobile !== lastWidgetViewportMobile;
     if (widthDelta < WIDGET_VIEWPORT_REFRESH_MIN_DELTA && !mobileChanged) return;
@@ -5494,7 +5699,7 @@ export function initWidgetBand() {
     widgetViewportRefreshTimer = setTimeout(() => {
       widgetViewportRefreshTimer = 0;
       const finalWidth = getWidgetViewportWidth();
-      const finalMobile = window.matchMedia('(max-width: 980px)').matches;
+      const finalMobile = window.matchMedia(DOCK_MOBILE_QUERY).matches;
       const finalDelta = Math.abs(finalWidth - lastWidgetViewportWidth);
       const finalMobileChanged = finalMobile !== lastWidgetViewportMobile;
       if (finalDelta < WIDGET_VIEWPORT_REFRESH_MIN_DELTA && !finalMobileChanged) return;
@@ -5531,7 +5736,7 @@ export function initWidgetBand() {
   document.addEventListener('pp:widgetDock:viewport-refresh', (event) => {
     const detail = event?.detail || {};
     lastWidgetViewportWidth = getWidgetViewportWidth();
-    lastWidgetViewportMobile = window.matchMedia('(max-width: 980px)').matches;
+    lastWidgetViewportMobile = window.matchMedia(DOCK_MOBILE_QUERY).matches;
     resetWidgetBarForViewport(detail);
     debugLog('dock:viewport-refresh', detail);
   });
@@ -5542,7 +5747,15 @@ export function initWidgetBand() {
   renderHelpItems();
   debugLog('init:widget-band-ready');
 
+  const hadOpenWorkspaceLegacyWidgetApp = Array.from(workspaceLegacyWidgetIds).some((id) => appSdk.isOpen(id));
+  const hadOpenShopLegacyWidgetApp = Array.from(shopLegacyWidgetIds).some((id) => appSdk.isOpen(id));
   appSdk.syncAllowed(state.enabled);
+  if (hadOpenWorkspaceLegacyWidgetApp && state.enabled.includes('pet-workspace')) {
+    openWidgetApp('pet-workspace');
+  }
+  if (hadOpenShopLegacyWidgetApp && state.enabled.includes('loop')) {
+    openWidgetApp('loop');
+  }
   appSdk.hydrateOpen((id) => {
     if (!state.enabled.includes(id) || !widgetIsDockApp(id)) return null;
     const widget = widgets.find((w) => w.id === id);

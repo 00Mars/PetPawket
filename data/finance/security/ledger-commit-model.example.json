@@ -1,0 +1,66 @@
+{
+  "status": "future_model_only_not_implemented",
+  "last_updated": "2026-05-28",
+  "journal_entry_example": {
+    "journal_entry_id": "je_future_2026_05_0001",
+    "source_proposed_journal_entry_id": "pje_order_1001_sales",
+    "source_proposed_ledger_record_ids": [
+      "proposed_review_order_sales_0001_draft_order_sales_0001_debit_01",
+      "proposed_review_order_sales_0001_draft_order_sales_0001_credit_02"
+    ],
+    "source_event_ids": ["source_event_order_created_0001"],
+    "source_bundle_ids": ["bundle_import_test_0001"],
+    "entity_id": "ent_petpawket",
+    "fund_id": "fund_operating",
+    "class_id": "class_commerce",
+    "currency": "USD",
+    "transaction_date": "2026-05-28",
+    "effective_period": "2026-05",
+    "description": "Future committed sale journal entry",
+    "document_links": ["doc_order_1001"],
+    "calculation_rule_id": "net_product_sales",
+    "committed_by": {
+      "actor_id": "finance_admin_example",
+      "role": "finance_admin"
+    },
+    "committed_at": "future_not_implemented",
+    "audit_event_id": "future_audit_event_id",
+    "correction_of": null,
+    "adjustment_for": null,
+    "immutable_status": "append_only_future"
+  },
+  "journal_line_examples": [
+    {
+      "journal_line_id": "jl_future_2026_05_0001_01",
+      "journal_entry_id": "je_future_2026_05_0001",
+      "account_id": "asset_payment_processor_receivable",
+      "debit_amount": 60,
+      "credit_amount": 0,
+      "currency": "USD",
+      "description": "Future sale receivable line",
+      "source_proposed_ledger_record_id": "proposed_review_order_sales_0001_draft_order_sales_0001_debit_01",
+      "document_links": ["doc_order_1001"],
+      "calculation_rule_id": "net_product_sales"
+    },
+    {
+      "journal_line_id": "jl_future_2026_05_0001_02",
+      "journal_entry_id": "je_future_2026_05_0001",
+      "account_id": "income_product_sales",
+      "debit_amount": 0,
+      "credit_amount": 60,
+      "currency": "USD",
+      "description": "Future product sales line",
+      "source_proposed_ledger_record_id": "proposed_review_order_sales_0001_draft_order_sales_0001_credit_02",
+      "document_links": ["doc_order_1001"],
+      "calculation_rule_id": "net_product_sales"
+    }
+  ],
+  "production_blockers": [
+    "accounting_review",
+    "tax_review",
+    "security_review",
+    "privacy_review",
+    "period_close_policy",
+    "production_encryption_and_key_management"
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "fixture": "ledger-period-enforcement",
+  "status": "validation_helper_only",
+  "period_states": [
+    {
+      "status": "open",
+      "normal_commit_validation": "allowed"
+    },
+    {
+      "status": "soft_closed",
+      "normal_commit_validation": "requires_authorized_override"
+    },
+    {
+      "status": "closed",
+      "normal_commit_validation": "blocked"
+    },
+    {
+      "status": "locked",
+      "normal_commit_validation": "blocked"
+    },
+    {
+      "status": "correction_period",
+      "normal_commit_validation": "requires_correction_adjustment_or_reversal_type"
+    }
+  ],
+  "period_reopen_future_fields": {
+    "period_id": "2026-05",
+    "requested_by": "finance_admin_example",
+    "approved_by": "owner_root_example",
+    "reason": "Future reviewed reopen request.",
+    "audit_event_id": "audit_future_required"
+  }
+}
