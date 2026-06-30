@@ -18,6 +18,7 @@ const STOREFRONT_TOKEN = process.env.SHOPIFY_STOREFRONT_TOKEN || '';
 const API_VERSION      = process.env.SHOPIFY_API_VERSION || '2024-07';
 const TIMEOUT_MS       = parseInt(process.env.SHOPIFY_TIMEOUT_MS || '5000', 10);
 const CACHE_TTL_MS     = parseInt(process.env.SHOPIFY_AUTH_CACHE_TTL_MS || '600000', 10);
+const SAFE_METHODS     = new Set(['GET', 'HEAD', 'OPTIONS']);
 
 const SF_ENDPOINT = `https://${SHOPIFY_DOMAIN}/api/${API_VERSION}/graphql.json`;
 const tokenCache = new Map();
@@ -54,6 +55,19 @@ export async function softSession(req, res) {
           req.customer = customer;
           req.shopifyToken = shopToken;
           req.customerToken = shopToken;
+          if (customer?.email) {
+            try {
+              const dbUser = await ensureUser(
+                customer.email.toLowerCase(),
+                customer.firstName || '',
+                customer.lastName || ''
+              );
+              req.user = { id: dbUser.id, email: dbUser.email };
+              req.dbUser = dbUser;
+            } catch {
+              // softSession stays non-blocking; requireAuth enforces DB identity.
+            }
+          }
           return res.json({
             signedIn: true,
             email: customer.email || null,
@@ -110,7 +124,8 @@ export function requireAuth(...args) {
         if (!shopToken) return res.status(401).json({ error: 'Unauthorized' });
 
         try {
-          const customer = await getCustomerStrict(shopToken);
+          const allowCache = isSafeMethod(req.method);
+          const customer = await getCustomerStrict(shopToken, { allowCache });
           req.customer = customer;
           req.shopifyToken = shopToken;
           req.customerToken = shopToken;
@@ -128,7 +143,7 @@ export function requireAuth(...args) {
           return next();
         } catch (err) {
           if (isTimeout(err)) {
-            const cached = getCached(shopToken);
+            const cached = isSafeMethod(req.method) ? getCached(shopToken) : null;
             if (cached) {
               console.warn('[requireAuth] Shopify timeout; using cached customer.');
               req.customer = cached;
@@ -230,7 +245,7 @@ export function requireShopifyCustomer(...args) {
       if (!token) return res.status(401).json({ error: 'Shopify customer token missing' });
 
       try {
-        const customer = await getCustomerStrict(token);
+        const customer = await getCustomerStrict(token, { allowCache: isSafeMethod(req.method) });
         req.customer = customer;
         req.shopifyToken = token;
         req.customerToken = token;
@@ -249,8 +264,8 @@ export function requireShopifyCustomer(...args) {
 }
 
 /* -------------------- Shopify Customer Fetch Logic -------------------- */
-async function getCustomerStrict(token) {
-  const cached = getCached(token);
+async function getCustomerStrict(token, { allowCache = true } = {}) {
+  const cached = allowCache ? getCached(token) : null;
   if (cached) return cached;
   const c = await fetchCustomerWithRetry(token);
   if (!c) throw unauthorized('Missing customer');
@@ -258,8 +273,8 @@ async function getCustomerStrict(token) {
   return c;
 }
 
-async function getCustomerSafe(token) {
-  const cached = getCached(token);
+async function getCustomerSafe(token, { allowCache = true } = {}) {
+  const cached = allowCache ? getCached(token) : null;
   if (cached) return cached;
   try {
     const c = await fetchCustomerWithRetry(token);
@@ -393,6 +408,7 @@ function sanitizeDomain(domain) {
 function isTimeout(err) { return err?.code === 'ETIMEDOUT' || err?.name === 'AbortError'; }
 function isUnauthorized(err) { return err?.status === 401; }
 function isTransient(err) { return ['ECONNRESET', 'EAI_AGAIN', 'ENETUNREACH', 'EHOSTUNREACH'].includes(err?.code); }
+function isSafeMethod(method) { return SAFE_METHODS.has(String(method || '').toUpperCase()); }
 function unauthorized(msg = 'Unauthorized') { const e = new Error(msg); e.status = 401; return e; }
 function briefError(err) { const base = err?.message || String(err); const code = err?.code ? ` code=${err.code}` : ''; const status = err?.status ? ` status=${err.status}` : ''; return `${base}${code}${status}`; }
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }

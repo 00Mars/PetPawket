@@ -1,21 +1,32 @@
 // apps/charmfoundation/routes/partnersRoutes.js
 import express from 'express';
 import { query } from '../db/pg.js';
+import { sendPrototypeOrUnavailable } from '../utils/prototypeMode.js';
+import {
+  cleanEmail,
+  cleanPhone,
+  cleanString,
+  sendValidationError,
+} from '../utils/inputValidation.js';
 
 const router = express.Router();
 
 router.post('/intake', async (req, res) => {
-  const {
-    orgName,
-    contactName,
-    contactEmail,
-    contactPhone,
-    orgType,
-    message
-  } = req.body || {};
-
-  if (!orgName || !contactEmail) {
-    return res.status(400).json({ ok: false, error: 'Organization name and email are required' });
+  let orgName;
+  let contactName;
+  let contactEmail;
+  let contactPhone;
+  let orgType;
+  let message;
+  try {
+    orgName = cleanString(req.body?.orgName, { max: 180, required: true, label: 'Organization name' });
+    contactName = cleanString(req.body?.contactName, { max: 140, label: 'Contact name' });
+    contactEmail = cleanEmail(req.body?.contactEmail);
+    contactPhone = cleanPhone(req.body?.contactPhone, { required: false });
+    orgType = cleanString(req.body?.orgType, { max: 80, label: 'Organization type' });
+    message = cleanString(req.body?.message, { max: 1500, label: 'Message' });
+  } catch (err) {
+    return sendValidationError(res, err);
   }
 
   try {
@@ -27,7 +38,7 @@ router.post('/intake', async (req, res) => {
     );
     res.json({ ok: true, status: 'received' });
   } catch {
-    res.json({ ok: true, status: 'queued', placeholder: true });
+    return sendPrototypeOrUnavailable(res, 'Prototype only: partner intake was queued locally and no live partner queue was updated.');
   }
 });
 

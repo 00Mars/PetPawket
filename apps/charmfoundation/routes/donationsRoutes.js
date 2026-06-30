@@ -1,6 +1,16 @@
 // apps/charmfoundation/routes/donationsRoutes.js
 import express from 'express';
 import { query } from '../db/pg.js';
+import { sendPrototypeOrUnavailable } from '../utils/prototypeMode.js';
+import {
+  cleanAmount,
+  cleanCurrency,
+  cleanEmail,
+  cleanPhone,
+  cleanPositiveInt,
+  cleanString,
+  sendValidationError,
+} from '../utils/inputValidation.js';
 
 const router = express.Router();
 
@@ -20,29 +30,35 @@ router.get('/funds', async (_req, res) => {
         ORDER BY id ASC;`
     );
     if (!rows.length) {
-      return res.json({ ok: true, funds: DEFAULT_FUNDS, placeholder: true });
+      return res.json({ ok: true, funds: DEFAULT_FUNDS, placeholder: true, prototype: true });
     }
     res.json({ ok: true, funds: rows });
   } catch {
-    res.json({ ok: true, funds: DEFAULT_FUNDS, placeholder: true });
+    res.json({ ok: true, funds: DEFAULT_FUNDS, placeholder: true, prototype: true });
   }
 });
 
 router.post('/', async (req, res) => {
-  const {
-    amount,
-    currency,
-    fundCode,
-    fundId,
-    donorName,
-    donorEmail,
-    donorPhone,
-    note
-  } = req.body || {};
+  let amount;
+  let currency;
+  let fundCode;
+  let fundId;
+  let donorName;
+  let donorEmail;
+  let donorPhone;
+  let note;
 
-  const amt = Number(amount || 0);
-  if (!amt || amt <= 0 || !donorEmail) {
-    return res.status(400).json({ ok: false, error: 'Valid amount and donor email are required' });
+  try {
+    amount = cleanAmount(req.body?.amount);
+    currency = cleanCurrency(req.body?.currency);
+    fundCode = cleanString(req.body?.fundCode, { max: 80, label: 'Fund code' });
+    fundId = cleanPositiveInt(req.body?.fundId, { max: 1_000_000, label: 'Fund id' });
+    donorName = cleanString(req.body?.donorName, { max: 140, label: 'Donor name' });
+    donorEmail = cleanEmail(req.body?.donorEmail);
+    donorPhone = cleanPhone(req.body?.donorPhone, { required: false });
+    note = cleanString(req.body?.note, { max: 1000, label: 'Note' });
+  } catch (err) {
+    return sendValidationError(res, err);
   }
 
   try {
@@ -60,8 +76,8 @@ router.post('/', async (req, res) => {
         (amount, currency, fund_id, donor_name, donor_email, donor_phone, note, status)
        VALUES ($1, $2, $3, $4, $5, $6, $7, 'pledged');`,
       [
-        amt,
-        (currency || 'USD').toUpperCase(),
+        amount,
+        currency,
         resolvedFundId,
         donorName || null,
         donorEmail,
@@ -76,12 +92,10 @@ router.post('/', async (req, res) => {
       message: 'Donation received. Payment processing will be added soon.'
     });
   } catch {
-    res.json({
-      ok: true,
-      status: 'queued',
-      placeholder: true,
-      message: 'Donation captured. Payment processing will be added soon.'
-    });
+    return sendPrototypeOrUnavailable(
+      res,
+      'Prototype only: donation pledge was queued locally. No payment was processed.'
+    );
   }
 });
 
@@ -106,7 +120,8 @@ router.get('/impact/receipts', async (_req, res) => {
             }
           }
         ],
-        placeholder: true
+        placeholder: true,
+        prototype: true
       });
     }
     res.json({ ok: true, receipts: rows });
@@ -123,7 +138,8 @@ router.get('/impact/receipts', async (_req, res) => {
           }
         }
       ],
-      placeholder: true
+      placeholder: true,
+      prototype: true
     });
   }
 });

@@ -61,10 +61,17 @@ function isAdmin(req) {
   const email = String(req.dbUser?.email || '').toLowerCase();
   const raw = String(process.env.ADMIN_EMAILS || '').toLowerCase();
   const list = raw.split(',').map(s => s.trim()).filter(Boolean);
-  if (!list.length) {
-    return process.env.NODE_ENV !== 'production';
-  }
-  return list.includes(email);
+  return !!(email && list.includes(email));
+}
+
+function loopDebugEnabled() {
+  return process.env.NODE_ENV !== 'production'
+    && String(process.env.LOOP_DEBUG_ENDPOINTS_ENABLED || '').toLowerCase() === 'true';
+}
+
+function requireLoopDebugAccess(req, res, next) {
+  if (!loopDebugEnabled()) return res.status(404).json({ ok: false, error: 'Not found' });
+  return requireAuth()(req, res, next);
 }
 
 function isMissingRelation(err) {
@@ -327,12 +334,12 @@ async function handleDebugClear(req, res) {
 }
 
 // Debug seed (non-prod) — accept GET/POST
-router.post('/debug/seed', handleDebugSeed);
-router.get('/debug/seed', handleDebugSeed);
+router.post('/debug/seed', requireLoopDebugAccess, handleDebugSeed);
+router.get('/debug/seed', requireLoopDebugAccess, handleDebugSeed);
 
 // Debug: clear tokens (non-prod) — accept GET/POST
-router.post('/debug/clear', handleDebugClear);
-router.get('/debug/clear', handleDebugClear);
+router.post('/debug/clear', requireLoopDebugAccess, handleDebugClear);
+router.get('/debug/clear', requireLoopDebugAccess, handleDebugClear);
 
 // Admin: list tokens
 router.get('/admin/tokens', requireAuth(), async (req, res) => {

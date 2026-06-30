@@ -38,11 +38,11 @@ router.get('/', async (_req, res) => {
         LIMIT 12;`
     );
     if (!rows.length) {
-      return res.json({ ok: true, cases: PLACEHOLDER_CASES, placeholder: true });
+      return res.json({ ok: true, cases: PLACEHOLDER_CASES, placeholder: true, prototype: true });
     }
     res.json({ ok: true, cases: rows });
   } catch {
-    res.json({ ok: true, cases: PLACEHOLDER_CASES, placeholder: true });
+    res.json({ ok: true, cases: PLACEHOLDER_CASES, placeholder: true, prototype: true });
   }
 });
 
@@ -92,7 +92,8 @@ router.get('/:id', async (req, res) => {
       },
       updates: [],
       documents: [],
-      placeholder: true
+      placeholder: true,
+      prototype: true
     });
   }
 });

@@ -381,6 +381,45 @@ export async function updateUser(id, patch = {}) {
   return rows[0] || null;
 }
 
+/* -------------------- Password reset tokens -------------------- */
+export async function storePasswordResetToken(userId, tokenHash, expiresAt) {
+  if (!userId || !tokenHash || !expiresAt) throw new Error('storePasswordResetToken: missing input');
+  const { rows } = await pool.query(
+    `INSERT INTO password_reset_tokens (user_id, token_hash, expires_at)
+     VALUES ($1, $2, $3)
+     RETURNING id, user_id AS "userId", expires_at AS "expiresAt", created_at AS "createdAt";`,
+    [userId, tokenHash, expiresAt]
+  );
+  return rows[0] || null;
+}
+
+export async function consumePasswordResetToken(userId, tokenHash) {
+  if (!userId || !tokenHash) return null;
+  const { rows } = await pool.query(
+    `UPDATE password_reset_tokens
+       SET used_at = NOW()
+     WHERE user_id = $1
+       AND token_hash = $2
+       AND used_at IS NULL
+       AND expires_at > NOW()
+     RETURNING id, user_id AS "userId", used_at AS "usedAt";`,
+    [userId, tokenHash]
+  );
+  return rows[0] || null;
+}
+
+export async function revokePasswordResetTokensForUser(userId) {
+  if (!userId) return { revoked: 0 };
+  const { rowCount } = await pool.query(
+    `UPDATE password_reset_tokens
+       SET used_at = COALESCE(used_at, NOW())
+     WHERE user_id = $1
+       AND used_at IS NULL;`,
+    [userId]
+  );
+  return { revoked: rowCount || 0 };
+}
+
 /* -------------------- Pets -------------------- */
 
 export async function getPetsByUserId(userId) {
@@ -454,7 +493,7 @@ export async function addPet(email, newPet = {}) {
       id, user_id AS "userId", name, species, breed, birthday, birthdate,
       sex, spayed_neutered AS "spayedNeutered", weight_kg, size, chew_strength,
       allergies, dislikes, toy_prefs, food_prefs, notes, avatar, customer_email AS "customerEmail",
-      traits, created_at AS "createdAt", updated_at AS "UpdatedAt";
+      traits, created_at AS "createdAt", updated_at AS "updatedAt";
   `;
   const params = [user.id, name, speciesNorm, breed, birthday, JSON.stringify(traits ?? {})];
   const { rows } = await pool.query(sql, params);
@@ -1794,6 +1833,9 @@ export default {
   getOrCreateUser,
   syncUserIfMissing,
   updateUser,
+  storePasswordResetToken,
+  consumePasswordResetToken,
+  revokePasswordResetTokensForUser,
 
   // pets
   getPetsByUserId,

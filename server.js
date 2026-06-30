@@ -29,6 +29,7 @@ import {
 
 import { createToken, verifyPassword, hashPassword } from './utils/auth.js';
 import { requireAuth, softSession, requireShopifyCustomer } from './middleware/requireAuth.js';
+import { createRateLimiter, ipAndFieldKey } from './middleware/rateLimit.js';
 
 import addressesRouter from './routes/addressesRoutes.js';
 import productsRouter from './routes/productsRoutes.js';
@@ -39,6 +40,7 @@ import petsRoutes from './routes/petsRoutes.js';
 import wishlistRoutes from './routes/wishlistRoutes.js';
 import loopRoutes from './routes/loopRoutes.js';
 import networkRoutes from './routes/networkRoutes.js';
+import palRoutes from './routes/palRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -55,8 +57,91 @@ function logError(tag, err, extra = {}) {
   console.error(tag, payload);
 }
 
+const UNSAFE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+
+function configuredOrigins(req) {
+  const values = [
+    process.env.PUBLIC_SITE_URL,
+    process.env.PETPAWKET_PUBLIC_URL,
+    process.env.APP_BASE_URL,
+    process.env.SITE_URL,
+    ...(process.env.ALLOWED_ORIGINS || '').split(','),
+  ].map(value => String(value || '').trim()).filter(Boolean);
+
+  const origins = new Set();
+  for (const value of values) {
+    try {
+      origins.add(new URL(value).origin);
+    } catch {}
+  }
+
+  if (!origins.size) {
+    try {
+      origins.add(`${req.protocol}://${req.get('host')}`);
+    } catch {}
+  }
+  return origins;
+}
+
+function sameOriginRequest(req) {
+  const expected = configuredOrigins(req);
+  const source = req.get('origin') || req.get('referer') || '';
+  if (!source) return null;
+  try {
+    return expected.has(new URL(source).origin);
+  } catch {
+    return false;
+  }
+}
+
+function hasSessionCookie(req) {
+  return Boolean(readCookie(req, 'auth_token') || readCookie(req, 'shopify_token'));
+}
+
+function securityHeaders(_req, res, next) {
+  res.set('X-Content-Type-Options', 'nosniff');
+  res.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.set('X-Frame-Options', 'DENY');
+  res.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  if (!res.get('Content-Security-Policy')) {
+    res.set('Content-Security-Policy', "frame-ancestors 'none'; base-uri 'self'; object-src 'none'");
+  }
+  next();
+}
+
+function unsafeOriginGuard(req, res, next) {
+  if (!UNSAFE_METHODS.has(String(req.method || '').toUpperCase())) return next();
+
+  const originOk = sameOriginRequest(req);
+  if (originOk === false) {
+    return res.status(403).json({ ok: false, error: 'Cross-origin request rejected', code: 'BAD_ORIGIN' });
+  }
+
+  if (originOk === null && process.env.NODE_ENV === 'production' && hasSessionCookie(req)) {
+    return res.status(403).json({ ok: false, error: 'Origin header required', code: 'ORIGIN_REQUIRED' });
+  }
+
+  return next();
+}
+
+const authLoginLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 12,
+  key: ipAndFieldKey('auth:login', 'email'),
+  message: 'Too many login attempts. Please try again soon.',
+});
+
+const authSignupLimiter = createRateLimiter({
+  windowMs: 60 * 60 * 1000,
+  max: 8,
+  key: ipAndFieldKey('auth:signup', 'email'),
+  message: 'Too many signup attempts. Please try again soon.',
+});
+
 // If behind a proxy/CDN, enable trust proxy so Secure cookies behave correctly
 app.set('trust proxy', 1);
+
+app.use(securityHeaders);
 
 app.use('/api/debug', debugRoutes);
 
@@ -67,6 +152,7 @@ app.use(express.json({
   verify: (req, _res, buf) => { req.rawBody = buf; }
 }));
 app.use(express.urlencoded({ extended: false }));
+app.use(unsafeOriginGuard);
 
 function apiNoStore(_req, res, next) {
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
@@ -76,12 +162,52 @@ function apiNoStore(_req, res, next) {
 }
 app.use('/api', apiNoStore);
 
+function notFoundUpload(_req, res) {
+  res.status(404).send('Not found');
+}
+
+function safePublicUploadPathPart(value = '') {
+  const part = String(value || '').trim();
+  if (!part || part.startsWith('.')) return '';
+  if (part !== path.basename(part)) return '';
+  if (!/^[A-Za-z0-9._-]+$/.test(part)) return '';
+  return part;
+}
+
+const PET_AVATAR_CONTENT_TYPES = new Map([
+  ['.gif', 'image/gif'],
+  ['.jpg', 'image/jpeg'],
+  ['.jpeg', 'image/jpeg'],
+  ['.png', 'image/png'],
+  ['.webp', 'image/webp'],
+]);
+
+function sendPublicPetAvatar(req, res) {
+  const ownerDir = req.params.ownerDir ? safePublicUploadPathPart(req.params.ownerDir) : '';
+  const fileName = safePublicUploadPathPart(req.params.fileName);
+  if (!fileName) return notFoundUpload(req, res);
+  if (req.params.ownerDir && !ownerDir) return notFoundUpload(req, res);
+  const contentType = PET_AVATAR_CONTENT_TYPES.get(path.extname(fileName).toLowerCase());
+  if (!contentType) return notFoundUpload(req, res);
+  const filePath = ownerDir
+    ? path.join(__dirname, 'uploads', 'pets', ownerDir, fileName)
+    : path.join(__dirname, 'uploads', 'pets', fileName);
+  res.set('Content-Type', contentType);
+  res.set('X-Content-Type-Options', 'nosniff');
+  return res.sendFile(filePath, (err) => {
+    if (err && !res.headersSent) res.status(err.statusCode || 404).send('Not found');
+  });
+}
+
 // Static
 app.get('/favicon.ico', (_req, res) => {
   res.redirect(302, '/favicon.svg');
 });
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads/network/claims', notFoundUpload);
+app.get(['/uploads/pets/:fileName', '/uploads/pets/:ownerDir/:fileName'], sendPublicPetAvatar);
+app.use('/uploads/pets', notFoundUpload);
+app.use('/uploads', notFoundUpload);
 
 /* -------------------- Mount routers -------------------- */
 app.use('/api/addresses', addressesRouter);
@@ -93,6 +219,7 @@ app.use('/api/pets', petsRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/loop', loopRoutes);
 app.use('/api/network', networkRoutes);
+app.use('/api/pals', palRoutes);
 console.log('[mount] /api/pets');
 
 /* -------------------- Health -------------------- */
@@ -321,7 +448,7 @@ function isDbConnError(err) {
 }
 
 /* -------------------- LOGIN (Hybrid) --------------------
-   Returns: local JWT + (optional) Shopify customerAccessToken
+   Sets HttpOnly session cookies and returns only non-secret account state.
 ---------------------------------------------------------- */
 async function handleLogin(req, res) {
   let normalizedEmail = '';
@@ -434,8 +561,6 @@ async function handleLogin(req, res) {
 
     return res.json({
       ok: true,
-      token: jwt,
-      shopifyAccessToken: shopifyToken || null,
       shopifyLinked: !!shopifyToken,
       shopifyError: shopifyToken ? null : shopifyError,
       user: {
@@ -457,8 +582,8 @@ async function handleLogin(req, res) {
     return res.status(500).json({ ok: false, error: 'Login failed' });
   }
 }
-app.post('/api/auth/login', handleLogin);
-app.post('/api/login', handleLogin);
+app.post('/api/auth/login', authLoginLimiter, handleLogin);
+app.post('/api/login', authLoginLimiter, handleLogin);
 
 /* -------------------- SIGNUP (Hybrid) --------------------
    Creates local user + attempts Shopify customer create + auto-login.
@@ -479,23 +604,23 @@ async function handleSignup(req, res) {
       return res.status(400).json({ ok: false, error: 'Name fields too long' });
     }
 
-    let existing = await getUserByEmail(normalizedEmail);
-    if (existing?.passwordHash) {
+    let existing = await getUserByEmailWithPassword(normalizedEmail);
+    if (existing) {
       return res.status(409).json({ ok: false, error: 'Email already registered' });
     }
 
-    // Create or update local user with hashed password
+    // Create a brand-new local user. Existing no-password rows are created by
+    // trusted account-linking paths and must not be claimable through signup.
     const passwordHash = await hashPassword(password);
-    if (!existing) {
-      existing = await createUser({
-        email: normalizedEmail,
-        firstName,
-        lastName,
-        passwordHash
-      });
-    } else {
-      await updateUser(existing.id, { passwordHash, firstName, lastName });
-      existing = await getUserById(existing.id);
+    await createUser({
+      email: normalizedEmail,
+      firstName,
+      lastName,
+      passwordHash
+    });
+    existing = await getUserByEmailWithPassword(normalizedEmail);
+    if (!existing?.passwordHash || !(await verifyPassword(password, existing.passwordHash))) {
+      return res.status(409).json({ ok: false, error: 'Email already registered' });
     }
 
     // Shopify customerCreate + customerAccessTokenCreate
@@ -566,8 +691,6 @@ async function handleSignup(req, res) {
 
     return res.status(201).json({
       ok: true,
-      token: jwt,
-      shopifyAccessToken: shopifyToken || null,
       shopifyLinked: !!shopifyToken,
       shopifyError: shopifyToken ? null : shopifyError,
       user: {
@@ -589,8 +712,8 @@ async function handleSignup(req, res) {
     return res.status(500).json({ ok: false, error: 'Signup failed' });
   }
 }
-app.post('/api/auth/signup', handleSignup);
-app.post('/signup', handleSignup);
+app.post('/api/auth/signup', authSignupLimiter, handleSignup);
+app.post('/signup', authSignupLimiter, handleSignup);
 
 /* -------------------- LOGOUT -------------------- */
 function handleLogout(_req, res) {

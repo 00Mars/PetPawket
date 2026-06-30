@@ -22,6 +22,7 @@ import express from 'express';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import sharp from 'sharp';
 
 import { requireAuth } from '../middleware/requireAuth.js';
 import {
@@ -46,6 +47,17 @@ const __dirname  = path.dirname(__filename);
 const UPLOAD_DIR = path.join(__dirname, '..', 'uploads', 'pets');
 const PETS_DEBUG = String(process.env.PETS_DEBUG || '').toLowerCase() === 'true';
 const RECO_CACHE_MS = parseInt(process.env.PETS_RECO_CACHE_MS || '300000', 10); // 5m default
+const AVATAR_DATA_URL_RE = /^data:image\/(png|jpe?g|gif|webp);base64,([A-Za-z0-9+/=\s]+)$/i;
+const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
+const MAX_AVATAR_PIXELS = 16_000_000;
+const JOURNAL_PHOTO_DATA_URL_RE = /^data:image\/(png|jpe?g|gif|webp);base64,([A-Za-z0-9+/=\s]+)$/i;
+const MAX_JOURNAL_PHOTO_BYTES = 5 * 1024 * 1024;
+const MAX_JOURNAL_TEXT_CHARS = 5000;
+const MAX_JOURNAL_TITLE_CHARS = 120;
+const MAX_JOURNAL_FIELD_CHARS = 80;
+const MAX_JOURNAL_TAGS = 20;
+const MAX_JOURNAL_TAG_CHARS = 50;
+const MAX_JOURNAL_METADATA_CHARS = 20_000;
 
 function log(...a){ if (PETS_DEBUG) console.log('[pets]', ...a); }
 function warn(...a){ console.warn('[pets]', ...a); }
@@ -62,6 +74,194 @@ router.use(requireAuth);
 // --------------------------------------------------
 function sendError(res, status, message, code='ERR') {
   return res.status(status).json({ ok:false, error:message, code });
+}
+
+function validationError(message, code = 'BAD_REQUEST') {
+  const err = new Error(message);
+  err.status = 400;
+  err.code = code;
+  return err;
+}
+
+function cleanJournalString(value, max, field, { required = false } = {}) {
+  if (value === undefined) {
+    if (required) throw validationError(`${field} required`, `${field.toUpperCase()}_MISSING`);
+    return undefined;
+  }
+  if (value === null) {
+    if (required) throw validationError(`${field} required`, `${field.toUpperCase()}_MISSING`);
+    return null;
+  }
+  const cleaned = String(value).trim();
+  if (required && !cleaned) throw validationError(`${field} required`, `${field.toUpperCase()}_MISSING`);
+  if (cleaned.length > max) throw validationError(`${field} is too long`, `${field.toUpperCase()}_TOO_LONG`);
+  return cleaned || null;
+}
+
+function decodedBase64Bytes(b64) {
+  const clean = String(b64 || '').replace(/\s/g, '');
+  const padding = clean.endsWith('==') ? 2 : clean.endsWith('=') ? 1 : 0;
+  return Math.max(0, Math.floor((clean.length * 3) / 4) - padding);
+}
+
+function normalizeJournalPhoto(value) {
+  if (value === undefined) return undefined;
+  if (value === null || value === '') return null;
+  const raw = String(value).trim();
+  if (!raw) return null;
+
+  if (raw.startsWith('/uploads/pets/')) {
+    if (raw.includes('..') || !/^\/uploads\/pets\/[A-Za-z0-9._/-]+$/.test(raw)) {
+      throw validationError('Invalid journal photo path', 'PHOTO_INVALID');
+    }
+    return raw;
+  }
+
+  if (/^https?:\/\//i.test(raw) || raw.startsWith('//')) {
+    throw validationError('External journal photos are not allowed', 'PHOTO_EXTERNAL_BLOCKED');
+  }
+
+  const match = JOURNAL_PHOTO_DATA_URL_RE.exec(raw);
+  if (!match) throw validationError('Invalid journal photo data', 'PHOTO_INVALID');
+  const subtype = match[1].toLowerCase() === 'jpg' ? 'jpeg' : match[1].toLowerCase();
+  const b64 = match[2].replace(/\s/g, '');
+  if (!b64 || !/^[A-Za-z0-9+/]+={0,2}$/.test(b64) || b64.length % 4 === 1) {
+    throw validationError('Invalid journal photo data', 'PHOTO_INVALID');
+  }
+  if (decodedBase64Bytes(b64) > MAX_JOURNAL_PHOTO_BYTES) {
+    throw validationError('Journal photo is too large', 'PHOTO_TOO_LARGE');
+  }
+  return `data:image/${subtype};base64,${b64}`;
+}
+
+function normalizeJournalTagsInput(value) {
+  if (value === undefined) return undefined;
+  const raw = Array.isArray(value) ? value : String(value || '').split(',');
+  const seen = new Set();
+  const tags = [];
+  for (const item of raw) {
+    const tag = String(item || '').replace(/^#/, '').trim();
+    if (!tag) continue;
+    if (tag.length > MAX_JOURNAL_TAG_CHARS) throw validationError('Journal tag is too long', 'TAG_TOO_LONG');
+    const key = tag.toLowerCase();
+    if (!seen.has(key)) {
+      seen.add(key);
+      tags.push(tag);
+    }
+    if (tags.length > MAX_JOURNAL_TAGS) throw validationError('Too many journal tags', 'TOO_MANY_TAGS');
+  }
+  return tags;
+}
+
+function normalizeJournalMetadataInput(value) {
+  if (value === undefined) return undefined;
+  if (value === null) return {};
+  if (typeof value !== 'object' || Array.isArray(value)) {
+    throw validationError('Journal metadata must be an object', 'METADATA_INVALID');
+  }
+  const encoded = JSON.stringify(value);
+  if (encoded.length > MAX_JOURNAL_METADATA_CHARS) {
+    throw validationError('Journal metadata is too large', 'METADATA_TOO_LARGE');
+  }
+  return value;
+}
+
+function normalizeJournalCreatePayload(body = {}) {
+  const photo = normalizeJournalPhoto(body.photo ?? body.photoDataUrl ?? null);
+  return {
+    text: cleanJournalString(body.text, MAX_JOURNAL_TEXT_CHARS, 'text', { required: true }),
+    title: cleanJournalString(body.title, MAX_JOURNAL_TITLE_CHARS, 'title'),
+    entryType: cleanJournalString(body.entryType ?? body.entry_type ?? 'note', MAX_JOURNAL_FIELD_CHARS, 'entryType') || 'note',
+    occurredAt: body.occurredAt ?? body.occurred_at ?? null,
+    mood: cleanJournalString(body.mood, MAX_JOURNAL_FIELD_CHARS, 'mood'),
+    tags: normalizeJournalTagsInput(body.tags) || [],
+    photo,
+    highlighted: body.highlighted === true || body.coreMemory === true,
+    visibility: cleanJournalString(body.visibility ?? 'private', MAX_JOURNAL_FIELD_CHARS, 'visibility') || 'private',
+    metadata: normalizeJournalMetadataInput(body.metadata) || {},
+  };
+}
+
+function normalizeJournalPatchPayload(body = {}) {
+  const patch = {};
+  if (body.text !== undefined) patch.text = cleanJournalString(body.text, MAX_JOURNAL_TEXT_CHARS, 'text', { required: true });
+  if (body.title !== undefined) patch.title = cleanJournalString(body.title, MAX_JOURNAL_TITLE_CHARS, 'title');
+  if (body.entryType !== undefined) patch.entryType = cleanJournalString(body.entryType, MAX_JOURNAL_FIELD_CHARS, 'entryType') || 'note';
+  if (body.entry_type !== undefined && patch.entryType === undefined) patch.entryType = cleanJournalString(body.entry_type, MAX_JOURNAL_FIELD_CHARS, 'entryType') || 'note';
+  if (body.occurredAt !== undefined) patch.occurredAt = body.occurredAt;
+  if (body.occurred_at !== undefined && patch.occurredAt === undefined) patch.occurredAt = body.occurred_at;
+  if (body.mood !== undefined) patch.mood = cleanJournalString(body.mood, MAX_JOURNAL_FIELD_CHARS, 'mood');
+  if (body.tags !== undefined) patch.tags = normalizeJournalTagsInput(body.tags);
+  if (body.photo !== undefined) patch.photo = normalizeJournalPhoto(body.photo);
+  if (body.photoDataUrl !== undefined && patch.photo === undefined) patch.photo = normalizeJournalPhoto(body.photoDataUrl);
+  if (body.removePhoto === true) patch.photo = null;
+  if (body.highlighted !== undefined) patch.highlighted = body.highlighted === true;
+  if (body.coreMemory !== undefined && patch.highlighted === undefined) patch.highlighted = body.coreMemory === true;
+  if (body.visibility !== undefined) patch.visibility = cleanJournalString(body.visibility, MAX_JOURNAL_FIELD_CHARS, 'visibility') || 'private';
+  if (body.metadata !== undefined) patch.metadata = normalizeJournalMetadataInput(body.metadata);
+  return patch;
+}
+
+export function cleanupUploadedFile(filePath) {
+  if (!filePath) return;
+  try {
+    fs.unlinkSync(filePath);
+  } catch {}
+}
+
+function avatarError(message = 'Invalid image data', code = 'BAD_IMAGE') {
+  const err = new Error(message);
+  err.code = code;
+  return err;
+}
+
+function detectAvatarFormat(buffer) {
+  if (!Buffer.isBuffer(buffer) || buffer.length < 12) return null;
+  if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) return 'jpeg';
+  if (buffer.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return 'png';
+  if (buffer.subarray(0, 6).toString('ascii') === 'GIF87a' || buffer.subarray(0, 6).toString('ascii') === 'GIF89a') return 'gif';
+  if (buffer.subarray(0, 4).toString('ascii') === 'RIFF' && buffer.subarray(8, 12).toString('ascii') === 'WEBP') return 'webp';
+  return null;
+}
+
+export async function preparePetAvatarUpload(imageBase64) {
+  const match = AVATAR_DATA_URL_RE.exec(String(imageBase64 || ''));
+  if (!match) throw avatarError();
+
+  const declared = match[1].toLowerCase() === 'jpg' ? 'jpeg' : match[1].toLowerCase();
+  const b64 = match[2].replace(/\s/g, '');
+  if (!b64 || !/^[A-Za-z0-9+/]+={0,2}$/.test(b64) || b64.length % 4 === 1) {
+    throw avatarError();
+  }
+  if (Math.ceil((b64.length * 3) / 4) > MAX_AVATAR_BYTES) {
+    throw avatarError('Avatar image is too large', 'IMAGE_TOO_LARGE');
+  }
+
+  const input = Buffer.from(b64, 'base64');
+  if (!input.length || input.length > MAX_AVATAR_BYTES) {
+    throw avatarError(input.length ? 'Avatar image is too large' : 'Invalid image data', input.length ? 'IMAGE_TOO_LARGE' : 'BAD_IMAGE');
+  }
+
+  const detected = detectAvatarFormat(input);
+  if (!detected || detected !== declared) throw avatarError();
+
+  if (detected === 'gif') {
+    return { buffer: input, extension: 'gif', contentType: 'image/gif' };
+  }
+
+  const metadata = await sharp(input, { failOn: 'error', limitInputPixels: MAX_AVATAR_PIXELS }).metadata();
+  if (!metadata.width || !metadata.height) throw avatarError();
+
+  const pipeline = sharp(input, { failOn: 'error', limitInputPixels: MAX_AVATAR_PIXELS })
+    .rotate()
+    .resize({ width: 1200, height: 1200, fit: 'inside', withoutEnlargement: true });
+  if (detected === 'jpeg') {
+    return { buffer: await pipeline.jpeg({ quality: 85, mozjpeg: true }).toBuffer(), extension: 'jpg', contentType: 'image/jpeg' };
+  }
+  if (detected === 'png') {
+    return { buffer: await pipeline.png().toBuffer(), extension: 'png', contentType: 'image/png' };
+  }
+  return { buffer: await pipeline.webp({ quality: 85 }).toBuffer(), extension: 'webp', contentType: 'image/webp' };
 }
 
 // --------------------------------------------------
@@ -221,13 +421,14 @@ router.post('/', async (req, res) => {
     });
     if (!inserted) return sendError(res, 500, 'Insert failed', 'INSERT_FAIL');
 
+    let pet = inserted;
     const extra = { ...base };
     delete extra.name; delete extra.species; delete extra.breed; delete extra.birthday; delete extra.traits;
     if (Object.keys(extra).length) {
-      await updatePetById(user.id, inserted.id, extra);
+      pet = await updatePetById(user.id, inserted.id, extra) || inserted;
     }
 
-    res.status(201).json({ ok:true, pet: inserted });
+    res.status(201).json({ ok:true, pet });
   } catch (e) {
     errLog('create error:', e);
     sendError(res, 500, 'Failed to create pet', 'CREATE_FAIL');
@@ -278,6 +479,7 @@ router.delete('/:id', async (req, res) => {
 router.post('/:id/avatar', async (req, res) => {
   const user = await resolveUser(req, res);
   if (!user || res.headersSent) return;
+  let filePath = '';
   try {
     const id = String(req.params.id||'').trim();
     const { imageBase64, remove } = req.body || {};
@@ -289,18 +491,21 @@ router.post('/:id/avatar', async (req, res) => {
       return res.json({ ok:true, pet: updated });
     }
 
-    if (!imageBase64 || !/^data:image\/[a-zA-Z]+;base64,/.test(imageBase64)) {
-      return sendError(res, 400, 'Invalid image data', 'BAD_IMAGE');
-    }
-    const ext = imageBase64.match(/^data:image\/([a-zA-Z0-9+]+);base64/)?.[1] || 'png';
-    const fileName = `${id}.${Date.now()}.${ext}`.replace(/[^a-zA-Z0-9._-]/g,'');
-    const filePath = path.join(UPLOAD_DIR, fileName);
-    const b64 = imageBase64.split(',')[1];
-    fs.writeFileSync(filePath, Buffer.from(b64,'base64'));
+    const avatar = await preparePetAvatarUpload(imageBase64);
+    const fileName = `${id}.${Date.now()}.${avatar.extension}`.replace(/[^a-zA-Z0-9._-]/g,'');
+    filePath = path.join(UPLOAD_DIR, fileName);
+    fs.writeFileSync(filePath, avatar.buffer);
     const updated = await updatePetById(user.id, id, { avatar: `/uploads/pets/${fileName}` });
-    if (!updated) return sendError(res, 404, 'Pet not found', 'NOT_FOUND');
+    if (!updated) {
+      cleanupUploadedFile(filePath);
+      return sendError(res, 404, 'Pet not found', 'NOT_FOUND');
+    }
     res.json({ ok:true, pet: updated });
   } catch (e) {
+    cleanupUploadedFile(filePath);
+    if (e?.code === 'BAD_IMAGE' || e?.code === 'IMAGE_TOO_LARGE') {
+      return sendError(res, 400, e.message || 'Invalid image data', e.code);
+    }
     errLog('avatar error:', e);
     sendError(res, 500, 'Failed to upload avatar', 'AVATAR_FAIL');
   }
@@ -345,40 +550,23 @@ router.post('/:id/journal', async (req, res) => {
   const user = await resolveUser(req, res); if (!user || res.headersSent) return;
   try {
     const petId = String(req.params.id||'').trim();
-    const {
-      text,
-      title,
-      entryType,
-      entry_type,
-      occurredAt,
-      occurred_at,
-      mood,
-      tags,
-      photo,
-      photoDataUrl,
-      highlighted,
-      coreMemory,
-      visibility,
-      metadata
-    } = req.body || {};
-    const finalPhoto = photo ?? photoDataUrl ?? null;
-    const finalText = String(text || '').trim();
     if (!petId) return sendError(res, 400, 'Pet id required', 'ID_MISSING');
-    if (!finalText) return sendError(res, 400, 'text required', 'TEXT_MISSING');
+    const payload = normalizeJournalCreatePayload(req.body || {});
     const entry = await addPetJournalEntry(user.id, petId, {
-      text: finalText,
-      title,
-      entryType: entryType ?? entry_type,
-      occurredAt: occurredAt ?? occurred_at,
-      mood,
-      tags,
-      photo: finalPhoto,
-      highlighted: highlighted === true || coreMemory === true,
-      visibility,
-      metadata,
+      text: payload.text,
+      title: payload.title,
+      entryType: payload.entryType,
+      occurredAt: payload.occurredAt,
+      mood: payload.mood,
+      tags: payload.tags,
+      photo: payload.photo,
+      highlighted: payload.highlighted,
+      visibility: payload.visibility,
+      metadata: payload.metadata,
     });
     res.status(201).json({ ok:true, entry });
   } catch (e) {
+    if (e?.status === 400) return sendError(res, 400, e.message, e.code || 'BAD_REQUEST');
     errLog('journal create error:', e);
     sendError(res, 500, 'Failed to add entry', 'JOURNAL_CREATE_FAIL');
   }
@@ -412,22 +600,7 @@ router.patch('/:id/journal/:entryId', async (req, res) => {
     const entryId = String(req.params.entryId||'').trim();
     if (!petId || !entryId) return sendError(res, 400, 'Missing ids', 'ID_MISSING');
 
-    const patch = {};
-    if (req.body.text !== undefined) patch.text = req.body.text;
-    if (req.body.title !== undefined) patch.title = req.body.title;
-    if (req.body.entryType !== undefined) patch.entryType = req.body.entryType;
-    if (req.body.entry_type !== undefined && patch.entryType === undefined) patch.entryType = req.body.entry_type;
-    if (req.body.occurredAt !== undefined) patch.occurredAt = req.body.occurredAt;
-    if (req.body.occurred_at !== undefined && patch.occurredAt === undefined) patch.occurredAt = req.body.occurred_at;
-    if (req.body.mood !== undefined) patch.mood = req.body.mood;
-    if (req.body.tags !== undefined) patch.tags = req.body.tags;
-    if (req.body.photo !== undefined) patch.photo = req.body.photo;
-    if (req.body.highlighted !== undefined) patch.highlighted = req.body.highlighted;
-    if (req.body.coreMemory !== undefined && patch.highlighted === undefined) patch.highlighted = req.body.coreMemory;
-    if (req.body.visibility !== undefined) patch.visibility = req.body.visibility;
-    if (req.body.metadata !== undefined) patch.metadata = req.body.metadata;
-    if (req.body.photoDataUrl !== undefined && patch.photo === undefined) patch.photo = req.body.photoDataUrl;
-    if (req.body.removePhoto === true) patch.photo = null;
+    const patch = normalizeJournalPatchPayload(req.body || {});
 
     if (!Object.keys(patch).length) return sendError(res, 400, 'No patch fields', 'EMPTY_PATCH');
 
@@ -435,6 +608,7 @@ router.patch('/:id/journal/:entryId', async (req, res) => {
     if (!updated) return sendError(res, 404, 'Entry not found or no changes', 'NOT_FOUND');
     res.json({ ok:true, entry: updated });
   } catch (e) {
+    if (e?.status === 400) return sendError(res, 400, e.message, e.code || 'BAD_REQUEST');
     errLog('journal update error:', e);
     sendError(res, 500, 'Failed to update entry', 'JOURNAL_UPDATE_FAIL');
   }
@@ -575,18 +749,18 @@ router.post('/bulk-import', async (req, res) => {
 });
 
 // --------------------------------------------------
-// GET /echo (debug request body/headers)
+// GET /echo (local debug only; never returns cookies or raw headers)
 // --------------------------------------------------
-router.get('/echo', (req, res) => {
-  res.json({
-    ok:true,
-    method:req.method,
-    headers:req.headers,
-    query:req.query,
-    cookies:req.headers.cookie || '',
-    customer:req.customer || null,
-    dbUser:req.dbUser || null
+if (PETS_DEBUG && process.env.NODE_ENV !== 'production') {
+  router.get('/echo', (req, res) => {
+    res.json({
+      ok:true,
+      method:req.method,
+      query:req.query,
+      customerId:req.customer?.id || null,
+      dbUserId:req.dbUser?.id || null
+    });
   });
-});
+}
 
 export default router;

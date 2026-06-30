@@ -1,30 +1,36 @@
 // apps/charmfoundation/routes/volunteersRoutes.js
 import express from 'express';
 import { query } from '../db/pg.js';
+import { sendPrototypeOrUnavailable } from '../utils/prototypeMode.js';
+import {
+  cleanEmail,
+  cleanList,
+  cleanPhone,
+  cleanString,
+  sendValidationError,
+} from '../utils/inputValidation.js';
 
 const router = express.Router();
 
 router.post('/signup', async (req, res) => {
-  const {
-    firstName,
-    lastName,
-    email,
-    phone,
-    interests,
-    availability,
-    message
-  } = req.body || {};
-
-  if (!firstName || !lastName || !email) {
-    return res.status(400).json({ ok: false, error: 'Name and email are required' });
+  let firstName;
+  let lastName;
+  let email;
+  let phone;
+  let interestList;
+  let availability;
+  let message;
+  try {
+    firstName = cleanString(req.body?.firstName, { max: 100, required: true, label: 'First name' });
+    lastName = cleanString(req.body?.lastName, { max: 100, required: true, label: 'Last name' });
+    email = cleanEmail(req.body?.email);
+    phone = cleanPhone(req.body?.phone, { required: false });
+    interestList = cleanList(req.body?.interests, { maxItems: 10, maxLength: 80, label: 'Interests' });
+    availability = cleanString(req.body?.availability, { max: 500, label: 'Availability' });
+    message = cleanString(req.body?.message, { max: 1500, label: 'Message' });
+  } catch (err) {
+    return sendValidationError(res, err);
   }
-
-  const interestList = Array.isArray(interests)
-    ? interests
-    : String(interests || '')
-        .split(',')
-        .map(s => s.trim())
-        .filter(Boolean);
 
   try {
     await query(
@@ -35,7 +41,7 @@ router.post('/signup', async (req, res) => {
     );
     res.json({ ok: true, status: 'received' });
   } catch {
-    res.json({ ok: true, status: 'queued', placeholder: true });
+    return sendPrototypeOrUnavailable(res, 'Prototype only: volunteer signup was queued locally and no live volunteer queue was updated.');
   }
 });
 

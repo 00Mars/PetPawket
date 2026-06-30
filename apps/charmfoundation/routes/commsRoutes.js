@@ -1,15 +1,27 @@
 // apps/charmfoundation/routes/commsRoutes.js
 import express from 'express';
 import { query, hasDb } from '../db/pg.js';
+import { sendPrototypeOrUnavailable } from '../utils/prototypeMode.js';
+import { cleanEmail, cleanString, sendValidationError } from '../utils/inputValidation.js';
 
 const router = express.Router();
 
 router.post('/newsletter', async (req, res) => {
-  const { email, firstName, interests, frequency } = req.body || {};
-  if (!email) return res.status(400).json({ ok: false, message: 'Email is required.' });
+  let email;
+  let firstName;
+  let interests;
+  let frequency;
+  try {
+    email = cleanEmail(req.body?.email);
+    firstName = cleanString(req.body?.firstName, { max: 100, label: 'First name' });
+    interests = cleanString(req.body?.interests, { max: 500, label: 'Interests' });
+    frequency = cleanString(req.body?.frequency, { max: 40, label: 'Frequency' });
+  } catch (err) {
+    return sendValidationError(res, err);
+  }
 
   if (!hasDb()) {
-    return res.json({ ok: true, message: 'Thanks for joining! We saved your signup (placeholder).' });
+    return sendPrototypeOrUnavailable(res, 'Prototype only: newsletter signup was queued locally and no live email list was updated.');
   }
 
   try {
@@ -25,11 +37,21 @@ router.post('/newsletter', async (req, res) => {
 });
 
 router.post('/contact', async (req, res) => {
-  const { name, email, topic, message } = req.body || {};
-  if (!email || !message) return res.status(400).json({ ok: false, message: 'Email and message are required.' });
+  let name;
+  let email;
+  let topic;
+  let message;
+  try {
+    name = cleanString(req.body?.name, { max: 140, label: 'Name' });
+    email = cleanEmail(req.body?.email);
+    topic = cleanString(req.body?.topic, { max: 100, label: 'Topic' });
+    message = cleanString(req.body?.message, { max: 2000, required: true, label: 'Message' });
+  } catch (err) {
+    return sendValidationError(res, err);
+  }
 
   if (!hasDb()) {
-    return res.json({ ok: true, message: 'Thanks! Your message was captured (placeholder).' });
+    return sendPrototypeOrUnavailable(res, 'Prototype only: contact message was queued locally and no live inbox was updated.');
   }
 
   try {
