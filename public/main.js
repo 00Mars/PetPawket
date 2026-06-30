@@ -130,6 +130,7 @@ const modulePromises = {
   widgetDock: tryImport('./widgetDock.js'),
   impactRibbon: tryImport('./impactRibbon.js'),
   storyHub: tryImport('./storyHub.js'),
+  petSurfacePersonalization: tryImport('./petSurfacePersonalization.js'),
   tooltips: tryImport('./tooltips.js'),
   sectionScroll: tryImport('./sectionScroll.js'),
 };
@@ -761,6 +762,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const widgetDockPromise = modulePromises.widgetDock;
   const impactRibbonPromise = modulePromises.impactRibbon;
   const storyHubPromise = modulePromises.storyHub;
+  const petSurfacePersonalizationPromise = modulePromises.petSurfacePersonalization;
   const tooltipsPromise = modulePromises.tooltips;
   const sectionScrollPromise = modulePromises.sectionScroll;
 
@@ -904,6 +906,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       modulePromises.loop,
     ]);
     const storyHubMod = await storyHubPromise;
+    const petSurfacePersonalizationMod = await petSurfacePersonalizationPromise;
 
     const injectHero     = heroMod?.injectHero;
     const injectMission  = missionMod?.injectMission;
@@ -998,6 +1001,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     } catch (e) {
       console.warn('[Story] hub init warning:', e);
+    }
+
+    try {
+      if (typeof petSurfacePersonalizationMod?.initPetSurfacePersonalization === 'function') {
+        petSurfacePersonalizationMod.initPetSurfacePersonalization();
+      }
+    } catch (e) {
+      console.warn('[Pets] surface personalization warning:', e);
     }
   });
 

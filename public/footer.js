@@ -14,6 +14,7 @@ const ROUTE_LABELS = [
   ['/account.html', 'Account'],
   ['/charm.html', 'CHARM Foundation'],
   ['/pawket-network.html', 'Pawket Network'],
+  ['/pawket-places.html', 'Pawket Places'],
   ['/community.html', 'Community'],
   ['/pals.html', 'Pawket Pals'],
   ['/loop.html', 'Pawket Passes'],

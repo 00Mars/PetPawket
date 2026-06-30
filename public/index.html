@@ -24,14 +24,95 @@
 
   <!-- Hero Placeholder -->
   <div id="hero-container"></div>
+
+  <!-- Care And Keepsakes -->
+  <section class="pp-band pp-band--ecosystem" id="pp-expansion">
+    <div class="pp-band-inner">
+      <div class="pp-care-layout">
+        <div class="pp-section-head pp-section-head--left pp-care-copy">
+          <span class="pp-kicker">Begin Here</span>
+          <h2>Care, memories, and gifts start with one pet.</h2>
+          <p>Build a practical profile first. From there, Pet Pawket can help you shop better, save favorite moments, make a private Pal, or send a Pawket Pass without turning private stories public.</p>
+          <div class="pp-care-route" aria-label="Pet Pawket care path">
+            <a class="pp-care-route-step" href="/account.html#account-pets">
+              <i class="bi bi-person-heart" aria-hidden="true"></i>
+              <span>Profile</span>
+            </a>
+            <a class="pp-care-route-step" href="/account.html#pets">
+              <i class="bi bi-bookmark-heart" aria-hidden="true"></i>
+              <span>Memory</span>
+            </a>
+            <a class="pp-care-route-step" href="/pals.html#private-pal-certificate-form">
+              <i class="bi bi-stars" aria-hidden="true"></i>
+              <span>Private Pal</span>
+            </a>
+            <a class="pp-care-route-step" href="/loop.html">
+              <i class="bi bi-send" aria-hidden="true"></i>
+              <span>Pass</span>
+            </a>
+          </div>
+          <div class="pp-section-actions">
+            <a class="pp-impact-btn" href="/account.html#account-pets">Build a pet profile</a>
+            <a class="pp-ghost-btn" href="/pals.html#private-pal-certificate-form">Make a private Pal</a>
+          </div>
+        </div>
+        <div class="pp-care-desk" aria-label="Pet Pawket care desk preview">
+          <div class="pp-care-profile" data-pet-personalize="profile">
+            <div class="pp-care-pet-art">
+              <img src="/assets/images/default-pet.png" alt="Pet profile illustration" data-pet-personalize-image />
+            </div>
+            <div>
+              <span data-pet-personalize-label>Pet profile</span>
+              <strong data-pet-personalize-title>All the useful details in one warm place.</strong>
+              <p data-pet-personalize-body>Sizes, favorites, routines, and notes make shopping, gifts, and keepsakes feel like they belong to them.</p>
+            </div>
+          </div>
+          <div class="pp-care-note-card pp-care-note-card--memory" data-pet-personalize="memory">
+            <i class="bi bi-bookmark-heart" aria-hidden="true"></i>
+            <span data-pet-personalize-label>Favorite memory</span>
+            <strong data-pet-personalize-title>The tiny things are worth saving.</strong>
+            <p data-pet-personalize-body>First walks, brave days, silly habits, and quiet moments all have room here.</p>
+          </div>
+          <div class="pp-care-note-card pp-care-note-card--pal" data-pet-personalize="pal">
+            <i class="bi bi-stars" aria-hidden="true"></i>
+            <span data-pet-personalize-label>Private Pal</span>
+            <strong data-pet-personalize-title>Turn a memory into a keepsake when it feels right.</strong>
+          </div>
+          <div class="pp-care-pass-chip" data-pet-personalize="gift">
+            <i class="bi bi-send" aria-hidden="true"></i>
+            <span data-pet-personalize-body>Send a Pawket Pass when you want to share the love.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="pp-care-strip">
+        <article class="pp-care-strip-card">
+          <span class="pp-care-strip-num">01</span>
+          <strong>Shop with context</strong>
+          <p>Profiles keep sizes, favorites, and notes close to the products.</p>
+        </article>
+        <article class="pp-care-strip-card">
+          <span class="pp-care-strip-num">02</span>
+          <strong>Keep what matters</strong>
+          <p>Journals and Favorite Memories stay private unless you choose a reviewed path.</p>
+        </article>
+        <article class="pp-care-strip-card" data-pet-personalize="gift">
+          <span class="pp-care-strip-num">03</span>
+          <strong data-pet-personalize-title>Share a small kindness</strong>
+          <p data-pet-personalize-body>Pawket Passes and nearby care paths give the next step a place to land.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
   <!-- Pawket Packs -->
   <section class="pp-band pp-band--packs" id="pp-packs">
     <div class="pp-band-inner">
       <div class="pp-packs-layout">
         <div class="pp-section-head pp-section-head--left">
           <span class="pp-kicker">Pawket Packs</span>
-          <h2>Curated boxes that turn routine pet care into a monthly story.</h2>
-          <p>Pawket Packs are the core monthly box line: useful care goods, seasonal joy, species-aware curation, and story prompts. CHARM and Pawket Pals connections are being crafted for later box moments.</p>
+          <h2>Choose the box that fits the moment.</h2>
+          <p>Start small, subscribe for the regular care-and-play rhythm, or pick up special seasonal extras when the timing feels right.</p>
           <div class="pp-section-actions">
             <a class="pp-impact-btn" href="/packs.html">Explore Packs</a>
             <a class="pp-ghost-btn" href="/shop.html">Shop One-Time Picks</a>
@@ -40,33 +121,29 @@
         <div class="pp-pack-stage" aria-label="Pawket Pack visual">
           <div class="pp-pack-stage-card is-main">
             <span>Monthly Pack</span>
-            <strong>Care + play + story</strong>
+            <strong>Care + play + joy</strong>
             <img src="/assets/images/CarePocket.png" alt="Pet Pawket care pocket product art" />
           </div>
           <div class="pp-pack-stage-card is-side">
             <i class="bi bi-heart-pulse" aria-hidden="true"></i>
-            <span>Impact path</span>
+            <span>Kindness</span>
           </div>
           <div class="pp-pack-stage-card is-token">
             <i class="bi bi-infinity" aria-hidden="true"></i>
-            <span>Pawket Pass trail</span>
+            <span>Gift link</span>
           </div>
         </div>
       </div>
 
-      <div class="pp-pack-lanes">
+      <div class="pp-pack-lanes pp-pack-lanes--simple">
         <article class="pp-pack-tier">
           <header>
             <i class="bi bi-box-seam" aria-hidden="true"></i>
             <span>Core</span>
           </header>
           <h3>Standard Pack</h3>
-          <p>The reliable monthly box for treats, toys, wellness basics, and one story prompt.</p>
-          <ul>
-            <li>Species-aware curation</li>
-            <li>Seasonal care theme</li>
-            <li>Starter story prompt</li>
-          </ul>
+          <p>The steady monthly box for treats, toys, care basics, and one sweet extra.</p>
+          <a class="pp-text-link" href="/packs.html">See Packs</a>
         </article>
         <article class="pp-pack-tier is-featured">
           <header>
@@ -74,12 +151,8 @@
             <span>Most Value</span>
           </header>
           <h3>Deluxe Pack</h3>
-          <p>A richer box with upgraded products, higher-value surprises, and more room for seasonal care variety.</p>
-          <ul>
-            <li>Premium surprise lane</li>
-            <li>Expanded care mix</li>
-            <li>More physical-box value</li>
-          </ul>
+          <p>More room for seasonal favorites, playful finds, and care-minded value.</p>
+          <a class="pp-text-link" href="/packs.html">Compare options</a>
         </article>
         <article class="pp-pack-tier">
           <header>
@@ -87,12 +160,8 @@
             <span>Limited</span>
           </header>
           <h3>Collector Pack</h3>
-          <p>Campaign-tied drops for fans who want limited merch, keepsakes, and premium seasonal editions.</p>
-          <ul>
-            <li>Limited seasonal merch</li>
-            <li>Premium keepsake lane</li>
-            <li>Story-led add-ons</li>
-          </ul>
+          <p>Limited seasonal boxes for keepsakes, gifting, and little celebration moments.</p>
+          <a class="pp-text-link" href="/packs.html">Explore seasonal</a>
         </article>
       </div>
 
@@ -100,75 +169,13 @@
         <a class="pp-entry-lane" href="/packets.html">
           <span class="pp-entry-icon"><i class="bi bi-bag-heart" aria-hidden="true"></i></span>
           <strong>Pawket Packets</strong>
-          <span>Mini trial boxes, samples, promos, and low-commitment first steps.</span>
+          <span>Mini boxes, samples, and easy first steps.</span>
         </a>
         <a class="pp-entry-lane" href="/picks.html">
           <span class="pp-entry-icon"><i class="bi bi-stars" aria-hidden="true"></i></span>
           <strong>Pawket Picks</strong>
-          <span>Bonus rewards, threshold gifts, seasonal add-ons, and campaign extras.</span>
+          <span>Small add-ons and happy little extras.</span>
         </a>
-      </div>
-    </div>
-  </section>
-
-  <!-- Ecosystem Loop -->
-  <section class="pp-band pp-band--ecosystem" id="pp-expansion">
-    <div class="pp-band-inner">
-      <div class="pp-ecosystem-layout">
-        <div class="pp-section-head pp-section-head--left">
-          <span class="pp-kicker">The Pet Pawket Loop</span>
-          <h2>Commerce, care, story, and community should reinforce each other.</h2>
-          <p>This is the Pet Pawket loop we are building: storefront shopping, subscription boxes, pet profiles, verified partners, Pawket Passes, impact receipts, and shareable story moments.</p>
-        </div>
-        <div class="pp-loop-board" aria-label="Pet Pawket ecosystem loop">
-          <div class="pp-loop-step">
-            <span>01</span>
-            <strong>Shop or subscribe</strong>
-            <em>Packs, Packets, Picks</em>
-          </div>
-          <div class="pp-loop-step">
-            <span>02</span>
-            <strong>Build pet context</strong>
-            <em>Profiles, needs, preferences</em>
-          </div>
-          <div class="pp-loop-step">
-            <span>03</span>
-            <strong>Pawket Passes</strong>
-            <em>Shareable kindness trails</em>
-          </div>
-          <div class="pp-loop-step">
-            <span>04</span>
-            <strong>CHARM receipts</strong>
-            <em>Tracked rescue care</em>
-          </div>
-        </div>
-      </div>
-
-      <div class="pp-system-grid">
-        <article class="pp-system-card">
-          <i class="bi bi-person-heart" aria-hidden="true"></i>
-          <h3>Pet Profiles</h3>
-          <p>Profiles turn species, preferences, and care needs into smarter picks now, then feed richer story systems as the ecosystem grows.</p>
-          <a class="pp-text-link" href="/account.html">Set up pets</a>
-        </article>
-        <article class="pp-system-card">
-          <i class="bi bi-clock-history" aria-hidden="true"></i>
-          <h3>Core Memory</h3>
-          <p>Important moments become meaningful saved memories instead of throwaway favorites.</p>
-          <a class="pp-text-link" href="/account.html#pets">Open journals</a>
-        </article>
-        <article class="pp-system-card">
-          <i class="bi bi-diagram-3" aria-hidden="true"></i>
-          <h3>Pawket Passes</h3>
-          <p>Shareable passes are being shaped as a simple way to gift, refer, and keep CHARM impact visible.</p>
-          <a class="pp-text-link" href="/loop.html">Open Pawket Passes</a>
-        </article>
-        <article class="pp-system-card">
-          <i class="bi bi-patch-check" aria-hidden="true"></i>
-          <h3>Pawket Network</h3>
-          <p>Verified rescues, vets, groomers, trainers, and pet services create the partner layer.</p>
-          <a class="pp-text-link" href="/pawket-network.html">Browse partners</a>
-        </article>
       </div>
     </div>
   </section>
@@ -179,43 +186,37 @@
       <div class="pp-town-layout">
         <div class="pp-town-feature">
           <span class="pp-kicker">Town Square</span>
-          <h2>Pawprints, rescue wins, and pet memories have a home.</h2>
-          <p>Town Square is taking shape as a cozy community surface for story cards, adoption wins, and pet moments.</p>
+          <h2>Share only the moments meant for the town square.</h2>
+          <p>Pet Pawket keeps private care notes separate from public Pawprints. You can save a memory, shape it into a keepsake, or choose a reviewed sharing path later.</p>
           <div class="pp-town-signal">
-            <span><i class="bi bi-chat-heart" aria-hidden="true"></i> Pawprint-ready</span>
-            <span><i class="bi bi-lock" aria-hidden="true"></i> Core Memory hooks</span>
-            <span><i class="bi bi-share" aria-hidden="true"></i> Share Studio path</span>
+            <span><i class="bi bi-lock" aria-hidden="true"></i> Private by default</span>
+            <span><i class="bi bi-check2-circle" aria-hidden="true"></i> Reviewed when public</span>
+            <span><i class="bi bi-chat-heart" aria-hidden="true"></i> Pawprints by choice</span>
           </div>
         </div>
         <div class="pp-memory-panel">
           <div class="pp-memory-lock"><i class="bi bi-bookmark-heart" aria-hidden="true"></i></div>
-          <span>Core Memory</span>
-          <strong>Protected memorial origin</strong>
-          <p>A private origin marker for love, care, memory, and the meaning behind CHARM.</p>
+          <span>Favorite Memory</span>
+          <strong>A memory kept with care</strong>
+          <p>A quiet place for the moments you want to keep close.</p>
         </div>
       </div>
 
-      <div class="pp-story-grid pp-story-grid--town">
-        <article class="pp-story-card pp-story-card--live" data-story-card="0">
-          <div class="pp-story-icon"><i class="bi bi-heart-pulse" aria-hidden="true"></i></div>
-          <div class="pp-story-meta" data-story-card-kicker>Protected origin</div>
-          <h3 data-story-card-title>Memorial care at the center</h3>
-          <p data-story-card-body>Pet Pawket keeps private memories, rescue stories, and public sharing carefully separated.</p>
-          <a class="pp-text-link" href="/shop.html">Shop Pet Pawket</a>
+      <div class="pp-story-path" aria-label="Pet Pawket story path">
+        <article class="pp-story-path-step" data-story-card="0">
+          <span>Save</span>
+          <strong data-story-card-title>Keep the real note private.</strong>
+          <p data-story-card-body>Care updates, journals, recovery notes, and favorite memories begin inside the account.</p>
         </article>
-        <article class="pp-story-card" data-story-card="1">
-          <div class="pp-story-icon"><i class="bi bi-journal-heart" aria-hidden="true"></i></div>
-          <div class="pp-story-meta" data-story-card-kicker>Story trail</div>
-          <h3 data-story-card-title>Journals become chapters</h3>
-          <p data-story-card-body>Care notes, moods, milestones, and memories can grow into shareable story cards.</p>
-          <a class="pp-text-link" href="/account.html#pets">Open journals</a>
+        <article class="pp-story-path-step" data-story-card="1">
+          <span>Shape</span>
+          <strong data-story-card-title>Turn a memory into a keepsake.</strong>
+          <p data-story-card-body>Private Pals and HeartCodes can carry meaning without making the source story public.</p>
         </article>
-        <article class="pp-story-card" data-story-card="2">
-          <div class="pp-story-icon"><i class="bi bi-award" aria-hidden="true"></i></div>
-          <div class="pp-story-meta" data-story-card-kicker>Community lane</div>
-          <h3 data-story-card-title>Pawprints create momentum</h3>
-          <p data-story-card-body>Adoption wins and pet moments will become cozy community posts as Town Square grows.</p>
-          <a class="pp-text-link" href="/community.html">Visit community</a>
+        <article class="pp-story-path-step" data-story-card="2">
+          <span>Share</span>
+          <strong data-story-card-title>Invite others in when it feels right.</strong>
+          <p data-story-card-body>Pawprints and Community stories belong on public surfaces only after intentional sharing choices.</p>
         </article>
       </div>
     </div>
@@ -224,54 +225,32 @@
   <!-- CHARM Impact -->
   <section class="pp-band pp-band--charm pp-standby-section" id="pp-charm-impact" data-pp-standby="future-addition">
     <div class="pp-band-inner">
-      <div class="pp-charm-layout">
+      <div class="pp-charm-layout pp-charm-layout--quiet">
         <div class="pp-charm-copy">
           <span class="pp-kicker pp-kicker-charm"><i class="bi bi-heart-pulse" aria-hidden="true"></i> CHARM Foundation</span>
-          <h2>Impact should feel visible, careful, and human.</h2>
-          <p>CHARM, Caring Hearts for Animal Rescue and Medicine, is being shaped into a verified impact and receipt experience with rescue updates, care stories, and clear donation trails.</p>
+          <h2>Love for one pet can help another.</h2>
+          <p>CHARM is the kindness lane around Pet Pawket: mission updates, reviewed impact, and future care-support planning kept separate from shopping rewards and insurance.</p>
           <div class="pp-standby-note">
-            <strong>CHARM in progress</strong>
-            <span>The site introduces the CHARM model now while public receipts, funding ledgers, and rescue care stories are verified for release.</span>
-          </div>
-          <div class="pp-charm-flow" data-standby-hide="1">
-            <span><strong>1</strong> Order</span>
-            <span><strong>2</strong> Fund care</span>
-            <span><strong>3</strong> Share pass</span>
-            <span><strong>4</strong> Track receipt</span>
+            <strong>Prepared with care</strong>
+            <span>No public emergency request flow is live on this page. Public updates will be shared when they are ready.</span>
           </div>
           <div class="pp-standby-actions pp-cta-row">
             <a class="pp-impact-btn" href="/shop.html">Shop Pet Pawket</a>
             <a class="pp-ghost-btn" href="/packs.html">Explore Pawket Packs</a>
           </div>
         </div>
-        <div class="pp-charm-board" data-standby-hide="1">
-          <div class="pp-impact-ribbon pp-impact-ribbon--inline" data-impact-ribbon data-impact-steps="1" data-impact-orb-share="1" data-impact-rich="1"></div>
-          <div class="pp-receipt-highlight pp-receipt-highlight--home" data-charm-receipt-highlight>
-            <span class="pp-receipt-kicker"><i class="bi bi-receipt" aria-hidden="true"></i> Impact receipt</span>
-            <strong data-charm-receipt-title>CHARM care fund</strong>
-            <div class="pp-receipt-amount" data-charm-receipt-amount>$2,700</div>
-            <div class="pp-receipt-meta" data-charm-receipt-meta>Spring rescue care</div>
-            <div class="pp-receipt-note" data-charm-receipt-note>Urgent care, recovery kits, and placement support.</div>
-            <a class="pp-text-link" href="/charm.html">See CHARM receipts</a>
+        <div class="pp-charm-preview" aria-label="CHARM mission preview">
+          <div class="pp-charm-preview-core">
+            <i class="bi bi-heart-pulse" aria-hidden="true"></i>
+            <strong>CHARM stays mission-led.</strong>
+            <span>Care support, rewards value, and insurance referrals stay separate.</span>
+          </div>
+          <div class="pp-charm-preview-list">
+            <span><i class="bi bi-bag-heart" aria-hidden="true"></i> Shop with purpose</span>
+            <span><i class="bi bi-receipt" aria-hidden="true"></i> Reviewed updates later</span>
+            <span><i class="bi bi-shield-check" aria-hidden="true"></i> Clear boundaries</span>
           </div>
         </div>
-      </div>
-      <div class="pp-charm-ledger" aria-label="CHARM funding categories" data-standby-hide="1">
-        <article>
-          <span>52%</span>
-          <strong>Urgent medical care</strong>
-          <p>Exam fees, medication, diagnostics, and emergency support.</p>
-        </article>
-        <article>
-          <span>28%</span>
-          <strong>Rescue missions</strong>
-          <p>Transport, intake, foster setup, and safe landing resources.</p>
-        </article>
-        <article>
-          <span>20%</span>
-          <strong>Placement support</strong>
-          <p>Recovery kits, adoption prep, and follow-up care moments.</p>
-        </article>
       </div>
     </div>
   </section>
@@ -281,23 +260,23 @@
     <div class="pp-band-inner">
       <div class="pp-world">
         <div class="pp-world-copy">
-          <span class="pp-kicker">Pawket World</span>
-          <h2>Pawket Pals give the brand-world a warm digital layer.</h2>
-          <p>Pawket Pals, Pawket Park, Town Square, and Share Studio are later companion and community layers being crafted around real Pet Pawket stories.</p>
+          <span class="pp-kicker">Pawket Haven</span>
+          <h2>A cozy home for Pawket Pals is on the way.</h2>
+          <p>Pawket Haven is the future play layer for Pals. For launch, the useful path is simpler: private Pal certificates, saved memories, Pawket Passes, and Community when sharing is intentional.</p>
           <div class="pp-standby-note">
-            <strong>In development</strong>
-            <span>The first launch keeps the world visible as a clear direction while commerce, care, CHARM, and partner trust come online first.</span>
+            <strong>Coming later</strong>
+            <span>For now, shop, profiles, private Pals, Passes, CHARM, and local discovery come first.</span>
           </div>
           <div class="pp-world-tags">
             <span>Pawket Park</span>
             <span>Town Square</span>
             <span>Share Studio</span>
-            <span>Reward paths</span>
+            <span>Rewards</span>
           </div>
           <div class="pp-world-stats" data-standby-hide="1">
             <div class="pp-world-stat">
               <strong data-story-impact-funded data-story-stat-pop>$0</strong>
-              <span>funded this case</span>
+            <span>helped so far</span>
             </div>
             <div class="pp-world-stat">
               <strong data-story-impact-percent data-story-stat-pop>0%</strong>
@@ -305,34 +284,51 @@
             </div>
             <div class="pp-world-stat">
               <strong data-story-pass-count data-story-stat-pop>0</strong>
-              <span>Pawket Passes</span>
+            <span>Passes shared</span>
             </div>
           </div>
           <div class="pp-world-impact" data-standby-hide="1">
-            <span class="pp-world-impact-kicker">Active rescue signal</span>
+            <span class="pp-world-impact-kicker">CHARM kindness</span>
             <strong data-story-impact-title>CHARM care fund</strong>
-            <span data-story-impact-meta>Care funding and Pal moments are coming into view.</span>
+            <span data-story-impact-meta>Care updates and Pal moments will grow together over time.</span>
           </div>
           <div class="pp-world-cta">
-            <a class="pp-impact-btn" href="/shop.html">Shop Pet Pawket</a>
-            <a class="pp-ghost-btn" href="/packs.html">Explore Pawket Packs</a>
+            <a class="pp-impact-btn" href="/pals.html">Meet Pawket Pals</a>
+            <a class="pp-ghost-btn" href="/community.html">Visit Community</a>
+          </div>
+        </div>
+        <div class="pp-world-preview" aria-label="Pawket Pal future path">
+          <div class="pp-world-preview-card is-current">
+            <span>Now</span>
+            <strong>Private HeartCode keepsakes</strong>
+            <p>Create a Pal from a real pet memory and keep the source story private.</p>
+          </div>
+          <div class="pp-world-preview-card is-next">
+            <span>Next</span>
+            <strong>Pawprints and reviewed stories</strong>
+            <p>Share only what belongs in public, with consent and review boundaries.</p>
+          </div>
+          <div class="pp-world-preview-card is-later">
+            <span>Later</span>
+            <strong>Pawket Haven play spaces</strong>
+            <p>A warmer world for Pal moments after the launch spine is steady.</p>
           </div>
         </div>
         <div class="pp-park-map" aria-label="Pawket World zone map" data-standby-hide="1">
           <div class="pp-park-zone pp-park-zone--pals">
             <img src="/assets/mascots/pp-mascot-sunny.svg" alt="Sunny Pawket Pal art" />
             <strong>Pawket Park</strong>
-            <span>Pal growth zones</span>
+            <span>Play and grow</span>
           </div>
           <div class="pp-park-zone pp-park-zone--square">
             <i class="bi bi-chat-square-heart" aria-hidden="true"></i>
             <strong>Town Square</strong>
-            <span>Pawprints + story posts</span>
+            <span>Pawprints and posts</span>
           </div>
           <div class="pp-park-zone pp-park-zone--studio">
             <i class="bi bi-images" aria-hidden="true"></i>
             <strong>Share Studio</strong>
-            <span>Cards, badges, posters</span>
+            <span>Cards and badges</span>
           </div>
           <div class="pp-park-path" aria-hidden="true"></div>
         </div>
@@ -342,7 +338,7 @@
           <div class="pp-pal-art"><img src="/assets/mascots/pp-mascot-sunny.svg" alt="Sunny Pawket Pal" /></div>
           <div class="pp-pal-body">
             <span class="pp-pal-tag"><i class="bi bi-stars" aria-hidden="true"></i> Story Pal</span>
-            <strong data-story-pal-title>Protected memorial origin</strong>
+            <strong data-story-pal-title>Made from love</strong>
             <p data-story-pal-body>Pals are inspired by rescue, adoption, memorial, and everyday pet stories.</p>
           </div>
         </article>
@@ -351,15 +347,15 @@
           <div class="pp-pal-body">
             <span class="pp-pal-tag"><i class="bi bi-cloud-sun" aria-hidden="true"></i> Park zone</span>
             <strong>Care habits unlock growth</strong>
-            <p>Pet profiles, journals, and CHARM Points can support later Pal states.</p>
+            <p>Pet profiles, care notes, and favorite moments already help private Pals feel personal.</p>
           </div>
         </article>
         <article class="pp-pal-card" data-tone="coral">
           <div class="pp-pal-art"><img src="/assets/mascots/pp-mascot-coral.svg" alt="Coral Pawket Pal" /></div>
           <div class="pp-pal-body">
             <span class="pp-pal-tag"><i class="bi bi-share" aria-hidden="true"></i> Shareable</span>
-            <strong>Moments become assets</strong>
-            <p>Share Studio can turn Pal moments into social cards, badges, and deep links.</p>
+            <strong>Moments become keepsakes</strong>
+            <p>Share Studio can turn Pal moments into sweet cards, badges, and links.</p>
           </div>
         </article>
       </div>
@@ -406,7 +402,7 @@
   
   <script type="module">
   import { initFeaturedGrid } from './featuredGrid.js';
-  initFeaturedGrid({ mount: '#pp-featured', limit: 12, mobileLimit: 6 });
+  initFeaturedGrid({ mount: '#pp-featured', limit: 8, mobileLimit: 4 });
   </script>
 
 </body>

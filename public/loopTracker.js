@@ -103,7 +103,7 @@ function renderSignedOutState() {
       <div>
         <span class="pp-loop-launch-kicker">Pawket Passes</span>
         <h3>Sign in to save and track passes.</h3>
-        <p>Pawket Passes appear here after eligible purchases, gifts, or claims. Your account keeps shareable passes, CHARM Points, badges, and impact updates together.</p>
+        <p>Pawket Passes appear here after purchases, gifts, or saved links. Your account keeps passes and CHARM updates together.</p>
       </div>
       <div class="pp-loop-actions-row">
         <a class="pp-loop-mini-btn is-link" href="/login.html">Sign in</a>
@@ -134,9 +134,9 @@ function renderSummary(root, data) {
     ${renderNextReward(nextReward)}
     ${renderPassGuidance({ sent, received, pending, impact })}
     <div class="pp-loop-summary">
-      <div class="pp-loop-chip">CHARM Points ${points}</div>
+      <div class="pp-loop-chip">Points ${points}</div>
       <div class="pp-loop-chip">Available ${sent.length + pending}</div>
-      <div class="pp-loop-chip">Claimed ${received.length}</div>
+      <div class="pp-loop-chip">Saved ${received.length}</div>
       <div class="pp-loop-chip">Shared ${shareCount}</div>
     </div>
     ${badges.length ? `<div class="pp-loop-badges" aria-label="Pawket Pass badges">${badges.map(renderBadge).join('')}</div>` : ''}
@@ -153,11 +153,11 @@ function renderSummary(root, data) {
     ${renderImpactSummary(impact)}
     <div class="pp-loop-rewards">
       <h4>Recent activity</h4>
-      ${rewards.length ? rewards.map(renderRewardRow).join('') : '<div class="pp-loop-reward-empty">No pass activity yet. Pawket Passes will appear here after purchases, gifts, or claims.</div>'}
+      ${rewards.length ? rewards.map(renderRewardRow).join('') : '<div class="pp-loop-reward-empty">No pass activity yet. Pawket Passes will appear here after purchases, gifts, or saved links.</div>'}
     </div>
     <div class="pp-loop-tabs" role="tablist">
       <button class="pp-loop-tab is-active" type="button" data-loop-tab="sent">Shareable</button>
-      <button class="pp-loop-tab" type="button" data-loop-tab="received">Claimed</button>
+      <button class="pp-loop-tab" type="button" data-loop-tab="received">Saved</button>
       <button class="pp-loop-tab" type="button" data-loop-tab="active">In motion</button>
     </div>
     <div class="pp-loop-list" data-loop-list></div>
@@ -170,12 +170,12 @@ function renderSummary(root, data) {
     tabs.forEach(t => t.classList.toggle('is-active', t.dataset.loopTab === tab));
     if (!listEl) return;
     if (tab === 'received') {
-      listEl.innerHTML = received.length ? received.map(itemRowReceived).join('') : emptyRow('No received passes yet. Claimed passes will appear here.');
+      listEl.innerHTML = received.length ? received.map(itemRowReceived).join('') : emptyRow('No saved passes yet.');
     } else if (tab === 'active') {
       const active = sent.filter(s => safeNumber(s?.chainLength, 0) > 1);
       listEl.innerHTML = active.length ? active.map(itemRowSent).join('') : emptyRow('No passes are moving yet. Share a pass when one is available.');
     } else {
-      listEl.innerHTML = sent.length ? sent.map(itemRowSent).join('') : emptyRow('No shareable passes yet. Passes appear here after a purchase, gift, or claim.');
+      listEl.innerHTML = sent.length ? sent.map(itemRowSent).join('') : emptyRow('No shareable passes yet. Passes appear here after a purchase, gift, or saved link.');
     }
   };
 
@@ -295,21 +295,21 @@ function renderLaunchPreview({ points = 0, sent = [], received = [], badges = []
     <section class="pp-loop-launch-card" aria-label="Pawket Pass summary">
       <div class="pp-loop-launch-copy">
         <span class="pp-loop-launch-kicker">Share, claim, and track</span>
-        <h3>Pawket Passes connect purchases to people and impact.</h3>
-        <p>When a pass is available, you can share it, open its claim page, copy the link, and watch for connected CHARM activity without exposing private pet profile or journal data.</p>
+        <h3>Pawket Passes help gifts and care keep moving.</h3>
+        <p>When a pass is available, you can share it, open its page, copy the link, and watch for CHARM activity without exposing private pet details.</p>
       </div>
       <div class="pp-loop-launch-status">
         <span><i class="bi bi-ticket-perforated" aria-hidden="true"></i> Pass links</span>
         <span><i class="bi bi-cart-check" aria-hidden="true"></i> Cart checkout</span>
-        <span><i class="bi bi-heart-pulse-fill" aria-hidden="true"></i> CHARM impact</span>
+        <span><i class="bi bi-heart-pulse-fill" aria-hidden="true"></i> CHARM updates</span>
       </div>
       <div class="pp-loop-launch-grid" aria-label="Pawket Pass metrics">
         <div><strong>${totalPasses}</strong><span>Available</span></div>
-        <div><strong>${received.length}</strong><span>Claimed</span></div>
-        <div><strong>${points}</strong><span>CHARM points</span></div>
+        <div><strong>${received.length}</strong><span>Saved</span></div>
+        <div><strong>${points}</strong><span>Points</span></div>
         <div><strong>${shareCount}</strong><span>Shared</span></div>
         <div><strong>${badges.length}</strong><span>Badges</span></div>
-        <div><strong>${formatMoney(totalImpact)}</strong><span>Impact tracked</span></div>
+        <div><strong>${formatMoney(totalImpact)}</strong><span>CHARM</span></div>
       </div>
     </section>
   `;
@@ -323,7 +323,7 @@ function renderPassGuidance({ sent = [], received = [], pending = 0, impact = {}
     <section class="pp-loop-pass-guide" aria-label="Pawket Pass actions">
       <div class="pp-loop-pass-guide-copy">
         <span class="pp-loop-launch-kicker">${hasShareable ? 'Ready to use' : 'How to start'}</span>
-        <h4>${hasShareable ? 'You have a pass ready to share.' : 'Your first pass appears after an eligible order or claim.'}</h4>
+        <h4>${hasShareable ? 'You have a pass ready to share.' : 'Your first pass appears after an order, gift, or claimed link.'}</h4>
         <p>${hasShareable
           ? 'Use the Shareable tab to open the pass page, copy the link, or generate the share card.'
           : 'Shop through the Pet Pawket cart, claim a pass link, or send a gift. New pass activity will collect here.'}</p>
@@ -450,9 +450,9 @@ function itemRowReceived(t) {
   return `
     <article class="pp-loop-item pp-loop-pass-item is-received">
       <div class="pp-loop-pass-main">
-        <span class="pp-loop-pass-kicker">${position ? `Connection ${position}` : 'Claimed pass'}</span>
+        <span class="pp-loop-pass-kicker">${position ? `Connection ${position}` : 'Saved pass'}</span>
         <strong class="pp-loop-code">${esc(code)}</strong>
-        <div><small>${esc(formatDate(t?.redeemedAt) || 'Claimed recently')}</small></div>
+        <div><small>${esc(formatDate(t?.redeemedAt) || 'Saved recently')}</small></div>
         ${renderChainDots(positiveInt(t?.chainLength, position || 1))}
       </div>
       <div class="pp-loop-actions">
@@ -467,7 +467,7 @@ function emptyRow(msg) {
   return `
     <div class="pp-loop-empty">
       <strong>${esc(msg)}</strong>
-      <span>Passes are tied to purchases, gifts, and claims. They will become more useful as Pawket Packs, Pals, and CHARM impact deepen.</span>
+      <span>Passes are tied to purchases, gifts, and saved links. They will become more useful as Pawket Packs, Pals, and CHARM kindness deepens.</span>
       <div class="pp-loop-actions-row">
         <a class="pp-loop-mini-btn is-link" href="/shop.html">Shop</a>
         <a class="pp-loop-mini-btn is-link" href="/loop.html">Pass Hub</a>
@@ -503,7 +503,7 @@ function renderRewardRow(entry) {
         <strong>${esc(reason)}</strong>
         <div class="pp-loop-reward-meta">${esc(when || 'Just now')}</div>
       </div>
-      <div class="pp-loop-reward-points">${sign}${points} CHARM Points</div>
+      <div class="pp-loop-reward-points">${sign}${points} points</div>
     </div>
   `;
 }
@@ -536,7 +536,7 @@ function getNextReward({ shareCount = 0, chainLength = 1, sharesRecent = 0 }) {
   if (shareCount < 5) {
     return {
       title: 'Kindness Spreader Badge',
-      meta: `${5 - shareCount} more successful claims to reach this badge.`,
+      meta: `${5 - shareCount} more saved passes to reach this badge.`,
       current: shareCount,
       target: 5,
     };
@@ -552,7 +552,7 @@ function getNextReward({ shareCount = 0, chainLength = 1, sharesRecent = 0 }) {
   if (sharesRecent < 3) {
     return {
       title: 'Three-Day Momentum',
-      meta: `${3 - sharesRecent} more claims in 3 days to keep momentum going.`,
+      meta: `${3 - sharesRecent} more saved passes in 3 days to keep momentum going.`,
       current: sharesRecent,
       target: 3,
     };

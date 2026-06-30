@@ -5,12 +5,12 @@
   --section-pad: 18px;
 
   --card-bg: #fff;
-  --card-border: #e9ecef;
+  --card-border: rgba(15, 111, 138, .13);
   --card-radius: 18px;
-  --card-shadow: 0 10px 30px rgba(0,0,0,.06);
+  --card-shadow: var(--pp-shadow-card, 0 18px 40px rgba(13, 53, 67, .16)), var(--pp-surface-glow, none);
 
   /* unified header look (same across ALL cards) */
-  --card-head-bg: #f2f6f8;       /* light tint */
+  --card-head-bg: linear-gradient(135deg, rgba(255,255,255,.96), rgba(231, 250, 255, .9));       /* light tint */
   --card-head-text: #008ca1;     /* teal */
 }
 
@@ -624,7 +624,7 @@ main.container .row.g-4 > .col-lg-3 > * > :is(h1,h2,h3,h4,h5,h6):first-child{
   --pet-soft:#eaf9fb;
   --pet-warm:#fff7ed;
   --pet-line:rgba(0,142,166,.16);
-  --pet-shadow:0 18px 42px rgba(15,23,42,.10);
+  --pet-shadow:var(--pp-shadow-card, 0 18px 40px rgba(13, 53, 67, .16)), var(--pp-surface-glow, none);
   position:relative;
   overflow:hidden;
   isolation:isolate;
@@ -855,6 +855,11 @@ main.container .row.g-4 > .col-lg-3 > * > :is(h1,h2,h3,h4,h5,h6):first-child{
   border-color:color-mix(in srgb, var(--pet-accent) 30%, white);
   color:var(--pet-accent-dark);
   background:rgba(255,255,255,.84);
+}
+.account-pet-actions .account-pal-handoff-btn{
+  border-color:rgba(10, 140, 163, .24);
+  color:#075f71;
+  background:linear-gradient(135deg, rgba(232, 248, 251, .95), rgba(255,255,255,.88));
 }
 .account-pet-actions .btn[data-action="delete-pet"]{
   border-color:rgba(185,65,65,.18);
@@ -2628,6 +2633,11 @@ body.authenticated .requires-auth {
   font-size:.78rem;
   white-space:nowrap;
 }
+.journal-actions .account-pal-handoff-btn{
+  border-color:rgba(10, 140, 163, .28);
+  color:#075f71;
+  background:#eefbff;
+}
 .journal-photo img{
   width:100%;
   max-height:210px;
@@ -2945,6 +2955,34 @@ body.authenticated .requires-auth {
   margin: 4px 0 4px;
 }
 
+.pp-story-spine-note{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:14px;
+  padding:10px;
+  border:1px solid rgba(10, 140, 163, .14);
+  border-radius:16px;
+  background:linear-gradient(135deg, rgba(239, 253, 255, .88), rgba(255,255,255,.82));
+}
+.pp-story-spine-note span{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  min-height:30px;
+  padding:5px 10px;
+  border:1px solid rgba(10, 140, 163, .12);
+  border-radius:999px;
+  background:rgba(255,255,255,.84);
+  color:#31525c;
+  font-size:.78rem;
+  font-weight:850;
+  line-height:1.2;
+}
+.pp-story-spine-note i{
+  color:#0b6f89;
+}
+
 .pp-story-context{
   margin-top:16px;
   padding:14px;
@@ -3051,6 +3089,254 @@ body.authenticated .requires-auth {
   color:#0b6f89;
 }
 
+/* ---------- Account Pawket Pals panel ---------- */
+.account-pal-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.account-pal-summary{
+  display:grid;
+  gap:14px;
+}
+.account-pal-empty{
+  display:grid;
+  grid-template-columns:auto minmax(0, 1fr);
+  gap:12px;
+  align-items:start;
+  padding:14px;
+  border:1px solid rgba(10, 140, 163, .14);
+  border-radius:18px;
+  background:linear-gradient(135deg, rgba(239, 253, 255, .9), rgba(255,255,255,.92));
+}
+.account-pal-empty-icon{
+  width:48px;
+  height:48px;
+  display:grid;
+  place-items:center;
+  border-radius:16px;
+  color:#075f71;
+  background:#dff8ff;
+}
+.account-pal-empty p,
+.account-pal-next span{
+  color:#5b6b74;
+  font-size:.9rem;
+  line-height:1.45;
+}
+.account-pal-empty-actions,
+.account-pal-next-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.account-pal-empty .account-pal-source-map{
+  grid-column:1 / -1;
+}
+.account-pal-empty-actions{
+  grid-column:2 / -1;
+  justify-content:flex-start;
+}
+.account-pal-next-actions{
+  justify-content:flex-end;
+}
+.account-pal-dashboard{
+  display:grid;
+  gap:14px;
+}
+.account-pal-metrics{
+  display:grid;
+  grid-template-columns:repeat(4, minmax(0, 1fr));
+  gap:8px;
+}
+.account-pal-metrics span{
+  min-width:0;
+  padding:10px;
+  border:1px solid rgba(10, 140, 163, .12);
+  border-radius:14px;
+  background:rgba(239, 253, 255, .7);
+  text-align:center;
+}
+.account-pal-metrics strong,
+.account-pal-metrics small{
+  display:block;
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.account-pal-metrics strong{
+  color:#0b6f89;
+  font-size:1.15rem;
+  line-height:1;
+}
+.account-pal-metrics small{
+  margin-top:4px;
+  color:#657580;
+  font-size:.68rem;
+  font-weight:800;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+.account-pal-source-map{
+  display:grid;
+  grid-template-columns:repeat(4, minmax(0, 1fr));
+  gap:8px;
+  padding:10px;
+  border:1px solid rgba(10, 140, 163, .12);
+  border-radius:16px;
+  background:
+    linear-gradient(90deg, rgba(10,140,163,.08), rgba(68,193,156,.08)),
+    rgba(255,255,255,.72);
+}
+.account-pal-source-map span{
+  display:grid;
+  grid-template-columns:auto minmax(0, 1fr);
+  grid-template-rows:auto auto;
+  gap:1px 7px;
+  min-width:0;
+  align-items:center;
+  padding:8px;
+  border-radius:12px;
+  background:rgba(255,255,255,.78);
+}
+.account-pal-source-map i{
+  grid-row:1 / span 2;
+  width:26px;
+  height:26px;
+  display:grid;
+  place-items:center;
+  border-radius:9px;
+  color:#075f71;
+  background:#dff8ff;
+}
+.account-pal-source-map strong,
+.account-pal-source-map small{
+  display:block;
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.account-pal-source-map strong{
+  color:#173c46;
+  font-size:.8rem;
+  font-weight:900;
+  line-height:1.15;
+}
+.account-pal-source-map small{
+  color:#657580;
+  font-size:.68rem;
+  font-weight:800;
+}
+.account-pal-paths{
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  gap:8px;
+}
+.account-pal-paths span{
+  display:grid;
+  grid-template-columns:auto minmax(0, 1fr);
+  gap:2px 8px;
+  align-items:start;
+  min-width:0;
+  padding:10px;
+  border:1px solid rgba(10, 140, 163, .12);
+  border-radius:14px;
+  background:linear-gradient(135deg, rgba(255,255,255,.92), rgba(239,253,255,.74));
+}
+.account-pal-paths i{
+  grid-row:1 / span 2;
+  width:28px;
+  height:28px;
+  display:grid;
+  place-items:center;
+  border-radius:10px;
+  color:#075f71;
+  background:#dff8ff;
+}
+.account-pal-paths strong,
+.account-pal-paths small{
+  display:block;
+  min-width:0;
+}
+.account-pal-paths strong{
+  color:#173c46;
+  font-size:.84rem;
+  font-weight:900;
+  line-height:1.2;
+}
+.account-pal-paths small{
+  color:#5b6b74;
+  font-size:.76rem;
+  font-weight:700;
+  line-height:1.32;
+}
+.account-pal-mini-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+  gap:10px;
+}
+.account-pal-mini-card{
+  display:grid;
+  gap:7px;
+  min-width:0;
+  padding:12px;
+  border:1px solid rgba(10, 140, 163, .13);
+  border-radius:16px;
+  background:#fff;
+  box-shadow:0 8px 18px rgba(15,23,42,.06);
+}
+.account-pal-mini-card h3{
+  margin:0;
+  color:#173c46;
+  font-size:1rem;
+  line-height:1.2;
+}
+.account-pal-mini-card code{
+  color:#075f71;
+  font-size:.76rem;
+  font-weight:900;
+  letter-spacing:.04em;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+.account-pal-chip{
+  width:max-content;
+  max-width:100%;
+  padding:4px 8px;
+  border:1px solid rgba(10, 140, 163, .16);
+  border-radius:999px;
+  color:#075f71;
+  background:#eefbff;
+  font-size:.7rem;
+  font-weight:900;
+}
+.account-pal-card-meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  color:#657580;
+  font-size:.78rem;
+  font-weight:700;
+}
+.account-pal-next{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:12px;
+  border:1px dashed rgba(10, 140, 163, .2);
+  border-radius:16px;
+  background:rgba(255,255,255,.78);
+}
+.account-pal-next div{
+  display:grid;
+  gap:2px;
+}
+
 .pp-storyboard{
   margin-top: 18px;
   padding: 14px;
@@ -3145,6 +3431,28 @@ body.authenticated .requires-auth {
   }
   .pp-story-context-metrics{
     grid-template-columns:repeat(2, minmax(0,1fr));
+  }
+  .account-pal-empty,
+  .account-pal-next{
+    grid-template-columns:1fr;
+  }
+  .account-pal-next{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .account-pal-empty-actions,
+  .account-pal-next-actions{
+    grid-column:1 / -1;
+    justify-content:flex-start;
+  }
+  .account-pal-metrics{
+    grid-template-columns:repeat(2, minmax(0,1fr));
+  }
+  .account-pal-source-map{
+    grid-template-columns:repeat(2, minmax(0,1fr));
+  }
+  .account-pal-paths{
+    grid-template-columns:1fr;
   }
 }
 @media (prefers-reduced-motion: reduce){

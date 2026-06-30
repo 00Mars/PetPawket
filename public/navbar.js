@@ -411,7 +411,7 @@ const SEARCH_STATIC_ITEMS = [
   {
     id: 'picks',
     title: 'Pawket Picks',
-    meta: 'Rotating rewards, bonuses, and campaign extras.',
+    meta: 'Small extras, seasonal favorites, and care surprises.',
     href: '/picks.html',
     icon: 'bi-stars',
     categories: ['products', 'impact'],
@@ -420,7 +420,7 @@ const SEARCH_STATIC_ITEMS = [
   {
     id: 'pals',
     title: 'Pawket Pals',
-    meta: 'Digital companions connected to pet stories and Pawket World.',
+    meta: 'Private keepsakes and Pals inspired by real pet stories.',
     href: '/pals.html',
     icon: 'bi-stars',
     categories: ['impact'],
@@ -445,9 +445,18 @@ const SEARCH_STATIC_ITEMS = [
     keywords: 'pawket network partners partner vet vets groomer trainer shelter rescue verified'
   },
   {
+    id: 'places',
+    title: 'Pawket Places',
+    meta: 'Dog parks, trails, travel stops, and pet-friendly places.',
+    href: '/pawket-places.html',
+    icon: 'bi-map',
+    categories: ['impact', 'pets'],
+    keywords: 'pawket places pet safe dog park dog parks parks trails trail beach beaches relief area travel pet friendly off leash map'
+  },
+  {
     id: 'passes',
     title: 'Pawket Passes',
-    meta: 'Shareable passes for gifts, referrals, and CHARM impact.',
+    meta: 'Shareable passes for gifts, saved links, and CHARM kindness.',
     href: '/loop.html',
     icon: 'bi-ticket-perforated',
     categories: ['impact'],
@@ -456,7 +465,7 @@ const SEARCH_STATIC_ITEMS = [
   {
     id: 'pets',
     title: 'Pet profiles',
-    meta: 'Species, traits, care details, and personal pet story roots.',
+    meta: 'Details that make shopping and care feel more personal.',
     href: '/account.html#pets',
     icon: 'bi-person-hearts',
     categories: ['pets'],
@@ -465,7 +474,7 @@ const SEARCH_STATIC_ITEMS = [
   {
     id: 'journal',
     title: 'Care journals',
-    meta: 'Care moments, Story Trail progress, and Core Memories.',
+    meta: 'Care notes, favorite memories, and saved story moments.',
     href: '/account.html#journal',
     icon: 'bi-journal-heart',
     categories: ['journal'],
@@ -568,7 +577,7 @@ function productImage(p = {}) {
 
 function renderSearchHome(container) {
   if (!container) return;
-  const featured = ['shop', 'packs', 'pals', 'charm', 'network', 'journal']
+  const featured = ['shop', 'packs', 'pals', 'charm', 'network', 'places']
     .map((id) => SEARCH_STATIC_ITEMS.find((item) => item.id === id))
     .filter(Boolean);
   container.removeAttribute('aria-busy');
@@ -639,7 +648,7 @@ function renderSearchHandoff(q, cat, options = {}) {
   if (!query) return '';
   const petShelf = inferPetShelf(query);
   const productIntent = cat === 'all' || cat === 'products';
-  const isImpactIntent = cat === 'impact' || /\b(charm|rescue|shelter|vet|partner|network|impact|heartcode|pass)\b/i.test(query);
+  const isImpactIntent = cat === 'impact' || /\b(charm|rescue|shelter|vet|partner|network|places|park|trail|impact|heartcode|pass)\b/i.test(query);
   const isCareIntent = cat === 'pets' || cat === 'journal' || /\b(journal|memory|profile|pet|pets|care|story|quest|checkpoint)\b/i.test(query);
   const actions = [];
 
@@ -688,6 +697,12 @@ function renderSearchHandoff(q, cat, options = {}) {
       icon: 'bi-patch-check',
       label: 'Pawket Network',
       meta: 'Verified partners'
+    });
+    actions.push({
+      href: '/pawket-places.html',
+      icon: 'bi-map',
+      label: 'Pawket Places',
+      meta: 'Pet-safe locations'
     });
   }
 
@@ -1073,45 +1088,80 @@ function wirePPSubnav(root = document) {
     const links = Array.from(bar.querySelectorAll('a'));
     if (!links.length) return;
     links.forEach((x) => x.classList.remove('active'));
+    bar.querySelectorAll('.pp-subnav-group.has-active').forEach((g) => g.classList.remove('has-active'));
 
     const path = window.location.pathname.replace(/\/+$/, '') || '/';
     const url = new URL(window.location.href);
     const cat = url.searchParams.get('cat') || url.searchParams.get('category') || url.searchParams.get('shop');
     const stored = sessionStorage.getItem('ppSubnavActive') || '';
 
-    const pathMatches = links.filter((a) => {
+    const linkInfo = links.map((a) => {
       const href = a.getAttribute('href') || '';
-      if (!href || href === '#') return false;
+      if (!href || href === '#') return { a, url: null };
       try {
-        const u = new URL(href, window.location.origin);
-        return u.pathname.replace(/\/+$/, '') === path;
+        return { a, url: new URL(href, window.location.origin) };
       } catch {
-        return false;
+        return { a, url: null };
       }
     });
 
-    let match = null;
+    const exactMatches = linkInfo
+      .filter(({ url: linkUrl }) => {
+        if (!linkUrl || linkUrl.origin !== window.location.origin) return false;
+        const linkPath = linkUrl.pathname.replace(/\/+$/, '') || '/';
+        if (linkPath !== path || linkUrl.search !== url.search) return false;
+        return url.hash ? linkUrl.hash === url.hash : !linkUrl.hash;
+      })
+      .map(({ a }) => a);
 
-    if (!match && cat) {
-      match = links.find((a) => a.dataset.shopCat === cat);
+    const pathMatches = linkInfo
+      .filter(({ url: linkUrl }) => {
+        if (!linkUrl || linkUrl.origin !== window.location.origin) return false;
+        const linkPath = linkUrl.pathname.replace(/\/+$/, '') || '/';
+        return linkPath === path && !linkUrl.search && !linkUrl.hash;
+      })
+      .map(({ a }) => a);
+
+    let activeTargets = [];
+
+    if (!activeTargets.length && cat) {
+      const match = links.find((a) => a.dataset.shopCat === cat);
+      if (match) activeTargets = [match];
     }
 
-    if (!match && stored) {
-      match =
+    if (!activeTargets.length && stored) {
+      const match =
         links.find((a) => a.dataset.shopCat && a.dataset.shopCat === stored) ||
         links.find((a) => (a.textContent || '').trim().toLowerCase() === stored);
+      if (match) activeTargets = [match];
     }
 
-    if (!match && pathMatches.length === 1) {
-      match = pathMatches[0];
+    if (!activeTargets.length && exactMatches.length) {
+      activeTargets = exactMatches;
     }
 
-    if (!match && path === '/shop.html') {
-      match = links.find((a) => (a.getAttribute('href') || '').includes('/shop.html') && !a.dataset.shopCat);
+    if (!activeTargets.length && path === '/shop.html') {
+      activeTargets = links.filter((a) => {
+        const href = a.getAttribute('href') || '';
+        try {
+          const linkUrl = new URL(href, window.location.origin);
+          return linkUrl.pathname === '/shop.html' && !linkUrl.search && !linkUrl.hash && !a.dataset.shopCat;
+        } catch {
+          return false;
+        }
+      });
     }
 
-    if (match) {
+    if (!activeTargets.length && pathMatches.length) {
+      activeTargets = pathMatches;
+    }
+
+    activeTargets.forEach((match) => {
       match.classList.add('active');
+      match.closest('.pp-subnav-group')?.classList.add('has-active');
+    });
+    if (!activeTargets.length) {
+      bar.querySelectorAll('.pp-subnav-group.is-open').forEach((group) => group.classList.remove('has-active'));
     }
   }
 
@@ -1223,9 +1273,11 @@ function wirePPSubnav(root = document) {
     const key = a.dataset.shopCat || (a.textContent || '').trim().toLowerCase();
     if (key) sessionStorage.setItem('ppSubnavActive', key);
     bar.querySelectorAll('a.active').forEach((x) => x.classList.remove('active'));
+    bar.querySelectorAll('.pp-subnav-group.has-active').forEach((g) => g.classList.remove('has-active'));
     a.classList.add('active');
     const group = a.closest('.pp-subnav-group');
     if (group) {
+      group.classList.add('has-active');
       group.classList.add('is-open');
       const toggle = group.querySelector(toggleSelector);
       if (toggle) toggle.setAttribute('aria-expanded', 'true');

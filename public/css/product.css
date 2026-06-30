@@ -18,7 +18,7 @@
   --pdp-gap-x: 1.15rem;  /* left vs right */
   --pdp-gap-y: 1.05rem;  /* stacked cards */
 
-  --pdp-border: rgba(0,0,0,.09);
+  --pdp-border: rgba(15, 111, 138, .13);
 
   /* Layered backplates for depth */
   --pdp-plate-1: rgba(255,255,255,.32);
@@ -27,8 +27,8 @@
 
   --pdp-card: rgba(255,255,255,.96);
 
-  --pdp-shadow-md: 0 10px 26px rgba(0,0,0,.10);
-  --pdp-shadow-lg: 0 18px 42px rgba(0,0,0,.12);
+  --pdp-shadow-md: var(--pp-shadow-card, 0 18px 40px rgba(13, 53, 67, .16));
+  --pdp-shadow-lg: var(--pp-shadow-panel, 0 28px 62px rgba(13, 53, 67, .21));
 
   --pdp-sticky-top: calc(var(--nav-fixed-h) + 12px);
 
@@ -70,7 +70,7 @@
 .pdp-stage{position:relative;z-index:1;padding:14px}
 .pdp-plate{
   position:absolute;inset:0;border-radius:calc(var(--pdp-radius-lg) + 6px);
-  border:1px solid var(--pdp-border);box-shadow:var(--pdp-shadow-md);
+  border:1px solid rgba(255,255,255,.62);box-shadow:var(--pdp-shadow-md), var(--pp-surface-glow, none);
   pointer-events:none;
 }
 .pdp-plate--1{background:var(--pdp-plate-1);-webkit-backdrop-filter:blur(1.5px);backdrop-filter:blur(1.5px)}
@@ -81,7 +81,7 @@
 .pdp-head{position:relative;z-index:2;margin:6px 0 10px}
 .pdp-head-card{
   margin:0 auto 8px;padding:1rem 1.25rem;border-radius:var(--pdp-radius-lg);
-  border:1px solid var(--pdp-border);background:var(--pdp-card);box-shadow:var(--pdp-shadow-md)
+  border:1px solid rgba(255,255,255,.72);background:var(--pdp-card);box-shadow:var(--pdp-shadow-md), var(--pp-surface-glow, none)
 }
 .pdp-title{margin:0;font-size:clamp(1.6rem,1.2rem + 1.6vw,2.1rem);font-weight:800;line-height:1.2}
 .pdp-usps .pdp-usp{padding:.35rem .7rem;border:1px solid var(--pdp-border);border-radius:999px;background:#fff;font-size:.9rem}

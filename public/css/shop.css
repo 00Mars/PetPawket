@@ -27,8 +27,8 @@
   --shop-lilac: #8d82ff;
   --shop-line: rgba(28, 70, 72, .13);
   --shop-line-strong: rgba(28, 70, 72, .22);
-  --shop-shadow: 0 18px 46px rgba(19, 46, 50, .10);
-  --shop-shadow-soft: 0 10px 26px rgba(19, 46, 50, .07);
+  --shop-shadow: var(--pp-shadow-panel, 0 28px 62px rgba(13, 53, 67, .21));
+  --shop-shadow-soft: var(--pp-shadow-card, 0 18px 40px rgba(13, 53, 67, .16));
 }
 
 .shop-page{
@@ -103,6 +103,7 @@
   border-radius:999px;
   color:var(--shop-teal-dark);
   background:rgba(255,255,255,.72);
+  box-shadow:var(--pp-shadow-xs, 0 4px 10px rgba(13, 53, 67, .09)), var(--pp-surface-glow, none);
   font-size:.72rem;
   font-weight:900;
   letter-spacing:.08em;
@@ -113,6 +114,7 @@
 .shop-page .btn{
   border-radius:999px;
   font-weight:850;
+  box-shadow:var(--pp-shadow-control, 0 9px 18px rgba(13, 53, 67, .14)), var(--pp-surface-glow, none);
 }
 
 .shop-page .btn-primary{
@@ -1346,13 +1348,13 @@
   background:
     linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,255,255,.92)),
     linear-gradient(135deg, rgba(226,250,251,.4), rgba(255,244,235,.34));
-  box-shadow:0 10px 24px rgba(19,46,50,.07);
+  box-shadow:var(--pp-shadow-card, 0 18px 40px rgba(13, 53, 67, .16)), var(--pp-surface-glow, none);
   transition:transform .16s ease, border-color .16s ease, box-shadow .16s ease;
 }
 
 #pp-grid .pp-card:hover{
   border-color:rgba(12,123,134,.22);
-  box-shadow:0 16px 32px rgba(19,46,50,.12);
+  box-shadow:var(--pp-shadow-card-hover, 0 24px 54px rgba(13, 53, 67, .2)), var(--pp-surface-glow, none);
   transform:translateY(-2px);
 }
 
@@ -1672,6 +1674,40 @@
   border-radius:999px;
   background:var(--shop-sage);
   box-shadow:0 0 0 4px rgba(120,146,127,.13);
+}
+
+.shop-hero,
+.shop-hero-panel,
+.shop-route-grid,
+.shop-workbench,
+.shop-command-card,
+.shop-curated,
+.shop-shelf,
+.pp-my-pane,
+.pp-my-card,
+.pp-my-state{
+  box-shadow: var(--pp-shadow-card, 0 18px 40px rgba(13, 53, 67, .16)), var(--pp-surface-glow, none);
+}
+
+.shop-hero-trail span,
+.shop-status-grid > a,
+.shop-preview-card,
+.shop-route-card,
+.chip,
+.shop-filter-pills a,
+.shop-mini-card,
+.pp-my-intro-stats span,
+.pp-my-reasons span,
+.pp-my-product,
+.shop-platform-note{
+  box-shadow: var(--pp-shadow-control, 0 9px 18px rgba(13, 53, 67, .14)), var(--pp-surface-glow, none);
+}
+
+.shop-route-card:focus-visible,
+.shop-mini-card:focus-visible,
+.shop-route-card:hover,
+.shop-mini-card:hover{
+  box-shadow: var(--pp-shadow-control-hover, 0 13px 26px rgba(13, 53, 67, .18)), var(--pp-surface-glow, none);
 }
 
 @media (width <= 980px){

@@ -31,14 +31,14 @@ function renderRibbon(el, payload) {
   const rich = el.dataset.impactRich === '1';
   const active = payload?.activeCase || null;
   const recent = payload?.recentlyFunded || null;
-  const title = active?.title || 'Rescue funding in motion';
-  const body = active?.body || 'Every order helps fund rescue care and medical support.';
+  const title = active?.title || 'CHARM update coming into view';
+  const body = active?.body || 'Reviewed CHARM care updates appear when the details are ready.';
   const funded = Number(active?.fundedAmount || 0);
   const goal = Number(active?.goalAmount || 0);
   const pct = percent(active?.progressPct);
   const meta = goal
     ? `${formatMoney(funded, active?.currency)} of ${formatMoney(goal, active?.currency)} funded`
-    : 'Active rescue case coming into view';
+    : 'CHARM update coming into view';
   const celebration = recent?.title
     ? `<span class="pp-impact-ribbon-tag">Rescue completed: ${esc(recent.title)}</span>`
     : '';
@@ -48,8 +48,8 @@ function renderRibbon(el, payload) {
       <div class="pp-impact-how">How it works</div>
       <div class="pp-impact-steps-inline">
         <span><strong>1</strong> Shop or start a Pawket Pack</span>
-        <span><strong>2</strong> Share a Pawket Pass</span>
-        <span><strong>3</strong> Both earn CHARM Points</span>
+        <span><strong>2</strong> Share kindness forward</span>
+        <span><strong>3</strong> See care updates when ready</span>
       </div>
     `
     : '';
@@ -57,14 +57,14 @@ function renderRibbon(el, payload) {
   const formula = rich
     ? `
       <div class="pp-impact-formula">
-        <span>Impact formula</span>
-        <strong>$0.50 + 1% of order</strong>
-        <small>Cap $5 per order</small>
+        <span>Mission care</span>
+        <strong>Shared when ready</strong>
+        <small>Details stay careful and clear.</small>
       </div>
     `
     : '';
 
-  const liveTag = rich ? `<span class="pp-impact-live"><i class="bi bi-activity"></i> Live impact</span>` : '';
+  const liveTag = rich ? `<span class="pp-impact-live"><i class="bi bi-activity"></i> Care update</span>` : '';
 
   const shareBtn = !orbShare && loopAvailable
     ? `<button class="pp-impact-btn" type="button" data-loop-open>Share Pawket Pass</button>`
@@ -95,7 +95,7 @@ function renderRibbon(el, payload) {
           </div>
           <div class="pp-impact-actions">
             ${liveTag}
-            <a class="pp-impact-link" href="/charm.html">See impact</a>
+            <a class="pp-impact-link" href="/charm.html">Open CHARM</a>
           </div>
         </div>
         ${steps}
