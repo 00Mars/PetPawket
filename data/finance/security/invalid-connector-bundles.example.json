@@ -1,0 +1,63 @@
+{
+  "status": "example_only",
+  "last_updated": "2026-05-27",
+  "examples": [
+    {
+      "case": "missing_signature",
+      "bundle": {
+        "bundle_id": "invalid_missing_signature",
+        "schema_version": "pawket-admin.connector-bundle.v0",
+        "connector_id": "connector_petpawket_website_readonly_v0",
+        "generated_at": "2026-05-27T12:00:00Z",
+        "cursor_start": "cursor-0001",
+        "cursor_end": "cursor-0002",
+        "record_count": 1,
+        "payload_hash": "0f1d2c3b4a59687766554433221100ffeeddccbbaa99887766554433221100ff",
+        "events": [
+          {
+            "event_id": "invalid_event_0001",
+            "event_type": "order.created",
+            "occurred_at": "2026-05-27T12:10:00Z",
+            "source_record_id": "order_1001",
+            "idempotency_key": "petpawket-website:order:1001",
+            "payload": {
+              "gross_amount": 68,
+              "currency": "USD"
+            }
+          }
+        ]
+      },
+      "expected_rejection": "signature or hmac placeholder is required"
+    },
+    {
+      "case": "unsupported_event_type",
+      "bundle": {
+        "bundle_id": "invalid_unsupported_event_type",
+        "schema_version": "pawket-admin.connector-bundle.v0",
+        "connector_id": "connector_petpawket_website_readonly_v0",
+        "generated_at": "2026-05-27T12:00:00Z",
+        "cursor_start": "cursor-0001",
+        "cursor_end": "cursor-0002",
+        "record_count": 1,
+        "payload_hash": "0f1d2c3b4a59687766554433221100ffeeddccbbaa99887766554433221100ff",
+        "signature": {
+          "status": "mock_signature_placeholder",
+          "key_id": "connector_key_placeholder"
+        },
+        "events": [
+          {
+            "event_id": "invalid_event_0002",
+            "event_type": "ledger.write",
+            "occurred_at": "2026-05-27T12:10:00Z",
+            "source_record_id": "ledger_unsafe_0001",
+            "idempotency_key": "petpawket-website:ledger-write:0001",
+            "payload": {
+              "attempted_live_ledger_write": true
+            }
+          }
+        ]
+      },
+      "expected_rejection": "unsupported event type"
+    }
+  ]
+}

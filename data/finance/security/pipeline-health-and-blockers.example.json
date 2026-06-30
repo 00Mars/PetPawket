@@ -1,0 +1,36 @@
+{
+  "schema_version": "pawket-admin-pipeline-health-and-blockers-example-v0",
+  "production_enabled": false,
+  "read_only": true,
+  "example_blockers": {
+    "missing_evidence": [
+      {
+        "record_id": "commit_gate_evidence_public_0001",
+        "message": "Missing public-safe proof document."
+      }
+    ],
+    "unresolved_risks": [
+      {
+        "record_id": "report_review_public_0001",
+        "risk_flag": "privacy_review_needed"
+      }
+    ],
+    "disabled_production_gates": [
+      "live_ledger_commit",
+      "official_balances",
+      "official_reports",
+      "final_exports"
+    ],
+    "rejected_review_outcomes": [
+      {
+        "record_id": "decision_rejected_0001",
+        "reason": "Public evidence still contains private assistance context."
+      }
+    ]
+  },
+  "example_warnings": {
+    "privacy_warnings": ["Private assistance context must stay internal."],
+    "redaction_warnings": ["Public impact preview requires redaction review."],
+    "report_warnings": ["Preview only. Not an official report."]
+  }
+}

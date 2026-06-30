@@ -1,0 +1,25 @@
+{
+  "fixture_type": "desktop_composition_guardrails",
+  "production_enabled": false,
+  "read_only": true,
+  "local_only": true,
+  "packaged_app": false,
+  "mutation_actions_enabled": false,
+  "export_actions_enabled": false,
+  "connector_networking_enabled": false,
+  "document_upload_enabled": false,
+  "public_route_enabled": false,
+  "forbidden_outputs": [
+    "pdf",
+    "csv",
+    "xlsx",
+    "zip",
+    "official_report",
+    "official_balance",
+    "final_export",
+    "public_impact_claim",
+    "raw_document_content",
+    "public_website_file",
+    "packaged_desktop_app"
+  ]
+}

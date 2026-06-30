@@ -1,0 +1,24 @@
+{
+  "status": "example_only",
+  "last_updated": "2026-05-27",
+  "periods": [
+    {
+      "period_id": "2026-05",
+      "status": "open",
+      "entity_scope": ["ent_petpawket"],
+      "notes": "Open period may accept proposed ledger records but not automatic live ledger writes."
+    },
+    {
+      "period_id": "2026-04",
+      "status": "closed",
+      "entity_scope": ["ent_petpawket"],
+      "notes": "Closed period requires future reopen or adjustment workflow before changes."
+    }
+  ],
+  "audit_events_required": [
+    "period_closed",
+    "period_locked",
+    "period_reopened",
+    "period_adjustment_created"
+  ]
+}

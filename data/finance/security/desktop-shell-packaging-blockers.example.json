@@ -1,0 +1,21 @@
+{
+  "schema_version": "pawket-admin-desktop-shell-packaging-blockers-example-v0",
+  "production_enabled": false,
+  "read_only": true,
+  "local_only": true,
+  "packaged_app": false,
+  "source_mode": "local_non_production_desktop_scaffold",
+  "packaging_status": "blocked_pending_review",
+  "blockers": [
+    "production encryption not reviewed",
+    "raw document storage not reviewed",
+    "live ledger commits disabled",
+    "official balance/report generation disabled",
+    "final export generation disabled",
+    "connector networking disabled",
+    "privacy/redaction review required",
+    "legal/accounting/tax/security/privacy review required",
+    "UI security review required",
+    "local vault hardening required"
+  ]
+}

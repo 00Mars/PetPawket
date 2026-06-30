@@ -1,0 +1,27 @@
+{
+  "schema_version": "pawket-admin-desktop-operator-shell-example-v0",
+  "production_enabled": false,
+  "read_only": true,
+  "official_balance_status": "disabled",
+  "official_report_status": "disabled",
+  "final_export_status": "disabled",
+  "source_mode": "local_non_production_view",
+  "raw_document_content_included": false,
+  "purpose": "Metadata-only read model for a future Pawket Admin desktop shell.",
+  "allowed_behavior": [
+    "read local NDJSON records",
+    "summarize counts",
+    "summarize statuses",
+    "summarize blockers",
+    "summarize warnings",
+    "build in-memory view models"
+  ],
+  "blocked_behavior": [
+    "production ledger commits",
+    "official balances",
+    "official reports",
+    "final exports",
+    "raw document content",
+    "public website files"
+  ]
+}

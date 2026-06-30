@@ -1,0 +1,32 @@
+{
+  "fixture": "evidence-coverage.example",
+  "status": "example_only_not_real_finance_data",
+  "coverage_examples": [
+    {
+      "target_type": "proposed_journal_entry",
+      "target_id": "pje_sale_example_0001",
+      "coverage_status": "complete",
+      "required_document_types": ["order_source"],
+      "linked_document_ids": ["doc_order_source_example_0001"],
+      "missing_document_types": [],
+      "deferred_requirements": [],
+      "rejected_document_ids": [],
+      "privacy_warnings": ["Document doc_order_source_example_0001 is financial_sensitive."],
+      "redaction_warnings": [],
+      "risk_flags": ["privacy_review_needed"]
+    },
+    {
+      "target_type": "proposed_journal_entry",
+      "target_id": "pje_sale_example_0002",
+      "coverage_status": "deferred_approved",
+      "required_document_types": ["order_source"],
+      "linked_document_ids": [],
+      "missing_document_types": [],
+      "deferred_requirements": ["deferral_order_source_example_0001"],
+      "rejected_document_ids": [],
+      "privacy_warnings": [],
+      "redaction_warnings": [],
+      "risk_flags": ["evidence_deferral"]
+    }
+  ]
+}

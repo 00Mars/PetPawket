@@ -1,0 +1,17 @@
+{
+  "schema_version": "pawket-admin-desktop-shell-architecture-example-v0",
+  "production_enabled": false,
+  "read_only": true,
+  "local_only": true,
+  "packaged_app": false,
+  "source_mode": "local_non_production_desktop_scaffold",
+  "consumes": [
+    "operator_shell_view_model",
+    "desktop_ui_adapter_state",
+    "sample_vault_preview_metadata"
+  ],
+  "creates_public_routes": false,
+  "creates_exports": false,
+  "creates_official_balances": false,
+  "creates_official_reports": false
+}

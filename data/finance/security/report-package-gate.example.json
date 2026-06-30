@@ -1,0 +1,39 @@
+{
+  "schema_version": "pawket-admin-report-package-gate-example-v0",
+  "production_exports_enabled": false,
+  "allowed_metadata_files": [
+    "manifests/export-intent-records.ndjson",
+    "manifests/report-preview-packages.ndjson"
+  ],
+  "report_package_statuses": [
+    "requested",
+    "manifest_validated",
+    "redaction_profile_validated",
+    "evidence_checked",
+    "privacy_checked",
+    "approval_required",
+    "approved_for_preview_package",
+    "blocked_pending_review",
+    "final_export_disabled",
+    "rejected",
+    "superseded"
+  ],
+  "blocked_final_export_behavior": {
+    "pdf": "blocked",
+    "csv": "blocked",
+    "xlsx": "blocked",
+    "zip": "blocked",
+    "official_reports": "blocked",
+    "official_balances": "blocked"
+  },
+  "example_preview_package_request": {
+    "report_manifest_id": "rmanifest_internal_0001",
+    "requested_report_type": "internal_management_preview",
+    "source_mode": "proposed",
+    "period": "2026-05",
+    "requested_by": "finance_admin_example",
+    "intended_recipient_type": "internal_management",
+    "required_redaction_profile": "owner_full_internal",
+    "expected_final_export_status": "disabled"
+  }
+}

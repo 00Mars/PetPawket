@@ -1,0 +1,43 @@
+{
+  "example_type": "desktop_contract_inspection_output",
+  "demo": true,
+  "production_enabled": false,
+  "read_only": true,
+  "local_only": true,
+  "stdout_only": true,
+  "in_memory_only": true,
+  "packaged_app": false,
+  "official_balance_status": "disabled",
+  "official_report_status": "disabled",
+  "final_export_status": "disabled",
+  "source_mode": "local_non_production_desktop_contract_inspection",
+  "raw_document_content_included": false,
+  "mutation_actions_enabled": false,
+  "export_actions_enabled": false,
+  "connector_networking_enabled": false,
+  "document_upload_enabled": false,
+  "public_route_enabled": false,
+  "runtime_snapshot_persistence_enabled": false,
+  "banner": "PAWKET ADMIN DESKTOP CONTRACT INSPECTION — NON-PRODUCTION",
+  "included_fields": [
+    "inspection_status",
+    "baseline_comparison_status",
+    "matched_guardrail_count",
+    "failed_guardrail_count",
+    "missing_guardrail_count",
+    "unexpected_unsafe_state_count",
+    "panel_count",
+    "disabled_action_count",
+    "packaging_blocker_count",
+    "attention_item_count",
+    "disabled_production_gate_count",
+    "sample_preview_binding_status"
+  ],
+  "forbidden_content": [
+    "raw_document_content",
+    "private_payloads",
+    "real_records",
+    "generated_export_paths",
+    "persisted_snapshot_paths"
+  ]
+}

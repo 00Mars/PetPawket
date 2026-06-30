@@ -1,0 +1,51 @@
+{
+  "schema_version": "pawket-admin-operator-dashboard-read-model-example-v0",
+  "example_dashboard": {
+    "production_enabled": false,
+    "read_only": true,
+    "official_balance_status": "disabled",
+    "official_report_status": "disabled",
+    "final_export_status": "disabled",
+    "source_mode": "local_non_production_view",
+    "raw_document_content_included": false,
+    "view_model_type": "operator_dashboard",
+    "sections": {
+      "quarantine": { "total": 1 },
+      "staged_source_events": { "total": 1 },
+      "draft_finance_records": { "total": 1 },
+      "review_queue": { "total": 1 },
+      "proposed_ledger_records": { "total": 2 },
+      "proposed_journal_entries": { "total": 1 },
+      "evidence": {
+        "evidence_manifest_ids": ["commit_evidence_pje_sale_example_0001"],
+        "coverage_status_counts": {
+          "complete": 1
+        }
+      },
+      "commit_gate": {
+        "integration_record_ids": ["commit_gate_evidence_pje_sale_example_0001"]
+      },
+      "test_only_ledger": { "total": 1 },
+      "reporting": {
+        "report_manifest_ids": ["rmanifest_internal_0001"]
+      },
+      "report_package_gate": {
+        "export_intent_ids": ["export_intent_internal_0001"],
+        "preview_package_ids": ["preview_pkg_internal_0001"]
+      },
+      "report_review_queue": {
+        "report_review_item_ids": ["report_review_internal_0001"],
+        "report_review_decision_ids": ["decision_approved_0001"]
+      },
+      "production_disabled_gates": {
+        "blocked_actions": ["live_ledger_commit", "official_balances", "official_reports", "final_exports"]
+      },
+      "blockers": {
+        "total": 4
+      },
+      "warnings": {
+        "total": 1
+      }
+    }
+  }
+}

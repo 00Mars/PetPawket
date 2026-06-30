@@ -1,0 +1,35 @@
+{
+  "schema_version": "pawket-admin-sample-vault-data-model-example-v0",
+  "demo": true,
+  "production_enabled": false,
+  "source_mode": "sample_vault_non_production",
+  "record_sets": [
+    "quarantine",
+    "staged_source_events",
+    "draft_finance_records",
+    "review_queue",
+    "proposed_ledger_records",
+    "proposed_journal_entries",
+    "evidence_manifests",
+    "commit_gate_evidence_integration_records",
+    "test_only_immutable_ledger_entries",
+    "report_manifests",
+    "export_intents",
+    "preview_packages",
+    "report_review_items",
+    "report_review_decisions",
+    "report_preview_supersessions",
+    "redaction_review_outcomes",
+    "report_reviewer_notes"
+  ],
+  "required_record_labels": {
+    "demo": true,
+    "production_enabled": false,
+    "read_only": true,
+    "local_only": true,
+    "official_balance_status": "disabled",
+    "official_report_status": "disabled",
+    "final_export_status": "disabled",
+    "raw_document_content_included": false
+  }
+}

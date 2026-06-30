@@ -1,0 +1,35 @@
+{
+  "example_type": "desktop_contract_smoke_failure_modes",
+  "demo": true,
+  "production_enabled": false,
+  "read_only": true,
+  "local_only": true,
+  "stdout_only": true,
+  "packaged_app": false,
+  "official_balance_status": "disabled",
+  "official_report_status": "disabled",
+  "final_export_status": "disabled",
+  "source_mode": "local_non_production_desktop_contract_smoke",
+  "raw_document_content_included": false,
+  "mutation_actions_enabled": false,
+  "export_actions_enabled": false,
+  "connector_networking_enabled": false,
+  "document_upload_enabled": false,
+  "public_route_enabled": false,
+  "safe_failure_modes": [
+    "invalid_vault_path",
+    "public_path_rejected",
+    "export_artifact_path_rejected",
+    "malformed_ndjson",
+    "operator_shell_validation_failed",
+    "ui_adapter_validation_failed",
+    "scaffold_validation_failed",
+    "composition_validation_failed",
+    "stdout_only_guard_failed"
+  ],
+  "failure_output": {
+    "stdout_text": "",
+    "stderr_text": "safe validation error only",
+    "files_written": []
+  }
+}

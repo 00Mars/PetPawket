@@ -1,0 +1,65 @@
+{
+  "status": "example_only_not_ledger_truth",
+  "last_updated": "2026-05-28",
+  "notes": [
+    "Proposed journal entries group proposed ledger records only.",
+    "They are not posted journal entries and do not update balances."
+  ],
+  "proposed_journal_entries": [
+    {
+      "proposed_journal_entry_id": "pje_order_1001_sales",
+      "source_proposed_ledger_record_ids": [
+        "proposed_review_order_sales_0001_draft_order_sales_0001_debit_01",
+        "proposed_review_order_sales_0001_draft_order_sales_0001_credit_02"
+      ],
+      "source_review_item_ids": ["review_order_sales_0001"],
+      "source_draft_record_ids": ["draft_order_sales_0001"],
+      "source_event_ids": ["source_event_order_created_0001"],
+      "source_bundle_ids": ["bundle_import_test_0001"],
+      "entity_id": "ent_petpawket",
+      "fund_id": "fund_operating",
+      "class_id": "class_commerce",
+      "effective_period": "2026-05",
+      "transaction_date": "2026-05-28",
+      "description": "Proposed sale journal entry for order 1001",
+      "journal_type": "sale",
+      "currency": "USD",
+      "total_debits": 60,
+      "total_credits": 60,
+      "balance_status": "balanced",
+      "document_coverage_status": "complete",
+      "approval_status": "proposed",
+      "commit_status": "not_committed",
+      "risk_flags": [],
+      "created_by": "finance_admin_example",
+      "created_at": "2026-05-28T10:05:00Z",
+      "updated_at": "2026-05-28T10:05:00Z"
+    },
+    {
+      "proposed_journal_entry_id": "pje_story_review_0001",
+      "source_proposed_ledger_record_ids": ["proposed_review_story_0001_draft_story_0001_non_financial_review_01"],
+      "source_review_item_ids": ["review_story_0001"],
+      "source_draft_record_ids": ["draft_story_0001"],
+      "source_event_ids": ["source_event_story_0001"],
+      "source_bundle_ids": ["bundle_import_test_0002"],
+      "entity_id": "ent_petpawket",
+      "fund_id": "fund_operating",
+      "class_id": "class_story",
+      "effective_period": "2026-05",
+      "transaction_date": "2026-05-28",
+      "description": "Non-financial story impact proof review",
+      "journal_type": "impact_nonfinancial",
+      "currency": "USD",
+      "total_debits": 0,
+      "total_credits": 0,
+      "balance_status": "nonfinancial_not_required",
+      "document_coverage_status": "complete",
+      "approval_status": "proposed",
+      "commit_status": "not_committed",
+      "risk_flags": ["privacy_review_needed"],
+      "created_by": "foundation_admin_example",
+      "created_at": "2026-05-28T10:06:00Z",
+      "updated_at": "2026-05-28T10:06:00Z"
+    }
+  ]
+}

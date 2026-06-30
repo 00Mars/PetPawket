@@ -1,0 +1,51 @@
+{
+  "status": "example_only",
+  "last_updated": "2026-05-27",
+  "pipeline": [
+    "staged_source_event",
+    "draft_finance_record",
+    "review_queue_item",
+    "future_human_approval",
+    "future_live_ledger_write_out_of_scope"
+  ],
+  "supported_mappings": {
+    "order.created": ["sales_revenue", "sales_tax_payable", "charm_pledge_hint", "care_credit_hint"],
+    "payment.received": ["payment_received"],
+    "refund.issued": ["refund_reversal"],
+    "subscription.created": ["subscription_created"],
+    "subscription.cancelled": ["subscription_cancelled"],
+    "pawket_packet.purchased": ["packet_revenue"],
+    "pawket_pick.selected": ["pawket_pick_reward_cost"],
+    "donation.created": ["donation_received"],
+    "care_credit.planned": ["care_credit_liability_review"],
+    "charm_pledge.created": ["donation_payable"],
+    "story.submitted": ["story_impact_review"],
+    "pawket_pal.created": ["pawket_pal_asset_review"]
+  },
+  "review_statuses": [
+    "unreviewed",
+    "needs_mapping",
+    "needs_documents",
+    "ready_for_review",
+    "approved_for_ledger_later",
+    "rejected",
+    "superseded"
+  ],
+  "risk_flags": [
+    "missing_document",
+    "unsupported_event_type",
+    "tax_mapping_needed",
+    "donation_mapping_needed",
+    "care_credit_liability_review",
+    "restricted_fund_review",
+    "refund_reversal_needed",
+    "duplicate_possible",
+    "amount_mismatch",
+    "privacy_review_needed"
+  ],
+  "warnings": [
+    "This fixture is not production accounting.",
+    "Draft records are not live ledger truth.",
+    "Review queue decisions do not write official balances."
+  ]
+}

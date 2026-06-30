@@ -1,0 +1,47 @@
+{
+  "schema_version": "pawket-admin-export-intent-records-example-v0",
+  "records": [
+    {
+      "export_intent_id": "export_intent_internal_0001",
+      "report_manifest_id": "rmanifest_internal_0001",
+      "requested_report_type": "internal_management_preview",
+      "source_mode": "proposed",
+      "period": "2026-05",
+      "entity_scope": [
+        "ent_petpawket"
+      ],
+      "fund_scope": [
+        "fund_operating"
+      ],
+      "class_scope": [
+        "class_commerce"
+      ],
+      "requested_by": "finance_admin_example",
+      "requested_at": "2026-05-29T12:05:00Z",
+      "intended_recipient_type": "internal_management",
+      "required_redaction_profile": "owner_full_internal",
+      "included_record_ids": [
+        "pje_sale_0001"
+      ],
+      "evidence_manifest_ids": [
+        "cem_pje_sale_0001"
+      ],
+      "privacy_warnings": [],
+      "redaction_warnings": [],
+      "missing_evidence_warnings": [],
+      "export_risk_flags": [],
+      "approval_status": "approval_required",
+      "production_status": "preview_only",
+      "final_export_status": "disabled",
+      "audit_event_id": "audit_export_intent_0001"
+    }
+  ],
+  "blocked_example": {
+    "requested_report_type": "public_impact_preview",
+    "privacy_warnings": [
+      "private donor and assistance story context present"
+    ],
+    "production_status": "blocked_pending_review",
+    "final_export_status": "blocked"
+  }
+}

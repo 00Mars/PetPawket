@@ -1,0 +1,44 @@
+{
+  "status": "example_only",
+  "last_updated": "2026-05-27",
+  "rules": {
+    "sales_revenue": {
+      "required_documents": ["order_source_evidence"],
+      "preferred_documents": ["payment_source_evidence"]
+    },
+    "payment_received": {
+      "required_documents": ["payment_source_evidence"],
+      "preferred_documents": []
+    },
+    "refund_reversal": {
+      "required_documents": ["refund_source_evidence"],
+      "preferred_documents": ["original_order_reference"],
+      "risk_flags": ["refund_reversal_needed"]
+    },
+    "donation_received": {
+      "required_documents": ["donor_source_evidence"],
+      "preferred_documents": ["donor_acknowledgment_review"],
+      "risk_flags": ["donation_mapping_needed"]
+    },
+    "donation_payable": {
+      "required_documents": ["pledge_rule_source_evidence"],
+      "preferred_documents": ["source_order_or_campaign"],
+      "risk_flags": ["restricted_fund_review"]
+    },
+    "care_credit_liability_review": {
+      "required_documents": ["care_credit_rule_source_evidence"],
+      "preferred_documents": ["customer_account_reference"],
+      "risk_flags": ["care_credit_liability_review"]
+    },
+    "story_impact_review": {
+      "required_documents": ["consent_privacy_review_reference"],
+      "preferred_documents": [],
+      "risk_flags": ["privacy_review_needed"]
+    },
+    "pawket_pal_asset_review": {
+      "required_documents": ["story_asset_heartcode_source_reference"],
+      "preferred_documents": ["ip_rights_review_reference"],
+      "risk_flags": ["privacy_review_needed"]
+    }
+  }
+}

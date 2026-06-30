@@ -1,0 +1,43 @@
+{
+  "fixture": "ledger-commit-authorization-policy",
+  "status": "production_commit_disabled",
+  "roles": {
+    "owner_root": {
+      "future_commit_authority": "all_scopes_after_review",
+      "current_production_commit_allowed": false
+    },
+    "finance_admin": {
+      "future_commit_authority": "operating_scope_after_review",
+      "current_production_commit_allowed": false
+    },
+    "foundation_admin": {
+      "future_commit_authority": "foundation_scope_only_after_review",
+      "current_production_commit_allowed": false
+    },
+    "bookkeeper": {
+      "future_commit_authority": "prepare_only",
+      "current_production_commit_allowed": false
+    },
+    "accountant_export_user": {
+      "future_commit_authority": "review_export_only",
+      "current_production_commit_allowed": false
+    },
+    "investor_read_only": {
+      "future_commit_authority": "never",
+      "current_production_commit_allowed": false
+    },
+    "connector_node": {
+      "future_commit_authority": "never",
+      "current_production_commit_allowed": false
+    }
+  },
+  "dual_control_future_option": {
+    "enabled_current_phase": false,
+    "candidate_rule": "preparer and committer should be different users for high-risk production entries"
+  },
+  "high_risk_override": {
+    "requires_reason": true,
+    "requires_audit_event": true,
+    "does_not_remove_original_risk_flag": true
+  }
+}

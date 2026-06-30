@@ -1,0 +1,45 @@
+{
+  "schema_version": "pawket-admin-report-package-approvals-example-v0",
+  "approval_policy": {
+    "internal_management_preview": [
+      "owner_root",
+      "finance_admin"
+    ],
+    "accountant_pack_preview": [
+      "owner_root",
+      "finance_admin"
+    ],
+    "irs_support_preview": [
+      "owner_root"
+    ],
+    "investor_summary_preview": [
+      "owner_root",
+      "finance_admin"
+    ],
+    "foundation_pack_preview": [
+      "owner_root",
+      "foundation_admin"
+    ],
+    "public_impact_preview": [
+      "owner_root"
+    ],
+    "security_audit_preview": [
+      "owner_root"
+    ]
+  },
+  "example_approval_result": {
+    "approved_for_preview_package": true,
+    "blockers": [],
+    "warnings": [
+      "Final export remains disabled; approval can create preview metadata only."
+    ],
+    "final_export_status": "disabled",
+    "production_status": "preview_only",
+    "approval_status": "approved_for_preview_package"
+  },
+  "example_blocker": {
+    "requested_report_type": "public_impact_preview",
+    "actor_role": "finance_admin",
+    "blocker": "Role finance_admin is not allowed to approve public_impact_preview."
+  }
+}

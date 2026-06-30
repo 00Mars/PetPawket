@@ -1,0 +1,103 @@
+{
+  "status": "schema_example_only",
+  "last_updated": "2026-05-26",
+  "notes": [
+    "No live finance tables are created in this pass.",
+    "Care Credit, CHARM assistance, and insurance referral records are future-only until approved in docs/PET_PAWKET_CARE_SUPPORT_DECISION_LOG.md."
+  ],
+  "core_accounting": [
+    "finance_entities",
+    "finance_accounts",
+    "finance_funds",
+    "finance_classes",
+    "finance_transactions",
+    "finance_journal_entries",
+    "finance_journal_lines",
+    "finance_documents",
+    "finance_calculation_rules",
+    "finance_period_closes",
+    "finance_audit_events"
+  ],
+  "commerce_operations": [
+    "finance_orders",
+    "finance_order_items",
+    "finance_products",
+    "finance_skus",
+    "finance_subscriptions",
+    "finance_payments",
+    "finance_refunds",
+    "finance_expenses",
+    "finance_inventory_movements",
+    "finance_campaigns",
+    "finance_coupons"
+  ],
+  "rewards": [
+    "finance_care_credit_ledger",
+    "finance_pawket_points_ledger",
+    "finance_heartpoints_ledger",
+    "finance_customer_tiers",
+    "finance_reward_redemptions",
+    "finance_pawket_picks"
+  ],
+  "foundations_mission": [
+    "finance_donations",
+    "finance_donor_acknowledgments",
+    "finance_fund_restrictions",
+    "finance_assistance_applications",
+    "finance_assistance_awards",
+    "finance_assistance_payments",
+    "finance_impact_outcomes",
+    "finance_foundation_partners"
+  ],
+  "pawket_pals_asset_value": [
+    "finance_pawket_pals",
+    "finance_heartcodes",
+    "finance_story_submissions",
+    "finance_pal_editions",
+    "finance_asset_ledger",
+    "finance_contractors_creators"
+  ],
+  "reporting": [
+    "finance_report_runs",
+    "finance_report_exports",
+    "finance_reconciliations",
+    "finance_decisions",
+    "finance_promises",
+    "finance_value_flow_edges"
+  ],
+  "transaction_base_fields": [
+    "transaction_id",
+    "event_id",
+    "date_time",
+    "entity_id",
+    "fund_id",
+    "class_id",
+    "account_id",
+    "category",
+    "subcategory",
+    "source_system",
+    "source_record_id",
+    "customer_id",
+    "vendor_id",
+    "order_id",
+    "subscription_id",
+    "campaign_id",
+    "product_sku",
+    "gross_amount",
+    "discount_amount",
+    "tax_amount",
+    "fee_amount",
+    "net_amount",
+    "currency",
+    "payment_method",
+    "status",
+    "document_links",
+    "calculation_rule_id",
+    "reconciled_status",
+    "approval_status",
+    "audit_hash",
+    "notes",
+    "created_at",
+    "updated_at"
+  ]
+}

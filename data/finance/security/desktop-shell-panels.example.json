@@ -1,0 +1,28 @@
+{
+  "schema_version": "pawket-admin-desktop-shell-panels-example-v0",
+  "production_enabled": false,
+  "read_only": true,
+  "local_only": true,
+  "source_mode": "local_non_production_desktop_scaffold",
+  "panels": [
+    "Overview",
+    "Pipeline",
+    "Evidence",
+    "Ledger Proposals",
+    "Test-Only Ledger",
+    "Reporting",
+    "Report Packages",
+    "Report Review",
+    "Blockers",
+    "Warnings",
+    "Disabled Production Gates",
+    "Audit Notes",
+    "Sample Vault Preview"
+  ],
+  "panel_rules": {
+    "read_only": true,
+    "mutation_actions_enabled": false,
+    "export_actions_enabled": false,
+    "raw_document_content_allowed": false
+  }
+}

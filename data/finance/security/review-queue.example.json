@@ -1,0 +1,31 @@
+{
+  "status": "example_only",
+  "last_updated": "2026-05-27",
+  "notes": [
+    "Review queue items group draft finance records for future human review.",
+    "Review decisions do not write the live ledger in this phase."
+  ],
+  "review_items": [
+    {
+      "review_item_id": "review_example_order_1001",
+      "draft_record_ids": [
+        "draft_staged_connector_bundle_example_0001_evt_0001_sales_revenue_01"
+      ],
+      "source_event_ids": ["source_event_order_1001"],
+      "review_type": "commerce_finance_review",
+      "review_status": "needs_documents",
+      "assigned_role": "bookkeeper",
+      "required_documents": ["order_source_evidence"],
+      "missing_documents": ["order_source_evidence"],
+      "warnings": ["Required source documents are missing."],
+      "risk_flags": ["missing_document"],
+      "reviewer_notes": "",
+      "decision": null,
+      "decided_by": null,
+      "decided_at": null,
+      "audit_event_id": "audit_review_queue_example_order_1001",
+      "created_at": "2026-05-27T14:05:00Z",
+      "updated_at": "2026-05-27T14:05:00Z"
+    }
+  ]
+}

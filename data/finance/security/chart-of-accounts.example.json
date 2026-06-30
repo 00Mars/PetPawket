@@ -1,0 +1,68 @@
+{
+  "status": "example_only",
+  "last_updated": "2026-05-27",
+  "notes": [
+    "Baseline chart for proposed ledger mapping only.",
+    "Production chart requires accounting and tax review."
+  ],
+  "accounts": [
+    { "account_id": "asset_cash", "account_name": "Cash", "account_type": "asset", "normal_balance": "debit" },
+    { "account_id": "asset_payment_processor_receivable", "account_name": "Payment Processor Receivable", "account_type": "asset", "normal_balance": "debit" },
+    { "account_id": "asset_inventory", "account_name": "Inventory", "account_type": "asset", "normal_balance": "debit" },
+    { "account_id": "asset_prepaid_expenses", "account_name": "Prepaid Expenses", "account_type": "asset", "normal_balance": "debit" },
+    { "account_id": "asset_document_vault_assets", "account_name": "Document Vault Assets", "account_type": "asset", "normal_balance": "debit", "optional_future": true },
+    { "account_id": "asset_pawket_pal_digital_assets", "account_name": "Pawket Pal Digital Assets", "account_type": "asset", "normal_balance": "debit", "optional_future": true },
+
+    { "account_id": "liability_sales_tax_payable", "account_name": "Sales Tax Payable", "account_type": "liability", "normal_balance": "credit" },
+    { "account_id": "liability_charm_donation_payable", "account_name": "CHARM Donation Payable", "account_type": "liability", "normal_balance": "credit" },
+    { "account_id": "liability_cherish_donation_payable", "account_name": "CHERISH Donation Payable", "account_type": "liability", "normal_balance": "credit" },
+    { "account_id": "liability_pawket_care_credit", "account_name": "Pawket Care Credit Liability", "account_type": "liability", "normal_balance": "credit" },
+    { "account_id": "liability_gift_card_store_credit", "account_name": "Gift Card / Store Credit Liability", "account_type": "liability", "normal_balance": "credit" },
+    { "account_id": "liability_accounts_payable", "account_name": "Accounts Payable", "account_type": "liability", "normal_balance": "credit" },
+    { "account_id": "liability_credit_card_payable", "account_name": "Credit Card Payable", "account_type": "liability", "normal_balance": "credit" },
+    { "account_id": "liability_deferred_subscription_revenue", "account_name": "Deferred Subscription Revenue", "account_type": "liability", "normal_balance": "credit" },
+
+    { "account_id": "equity_owner_contributions", "account_name": "Owner Contributions", "account_type": "equity", "normal_balance": "credit" },
+    { "account_id": "equity_owner_draws", "account_name": "Owner Draws", "account_type": "equity", "normal_balance": "debit" },
+    { "account_id": "equity_retained_earnings", "account_name": "Retained Earnings", "account_type": "equity", "normal_balance": "credit" },
+
+    { "account_id": "income_product_sales", "account_name": "Product Sales", "account_type": "income", "normal_balance": "credit" },
+    { "account_id": "income_pawket_pack_revenue", "account_name": "Pawket Pack Revenue", "account_type": "income", "normal_balance": "credit" },
+    { "account_id": "income_pawket_packet_revenue", "account_name": "Pawket Packet Revenue", "account_type": "income", "normal_balance": "credit" },
+    { "account_id": "income_pawket_pal_revenue", "account_name": "Pawket Pal Revenue", "account_type": "income", "normal_balance": "credit" },
+    { "account_id": "income_digital_product_revenue", "account_name": "Digital Product Revenue", "account_type": "income", "normal_balance": "credit" },
+    { "account_id": "income_affiliate_referral", "account_name": "Affiliate / Referral Income", "account_type": "income", "normal_balance": "credit" },
+    { "account_id": "income_sponsorship", "account_name": "Sponsorship Income", "account_type": "income", "normal_balance": "credit" },
+    { "account_id": "income_donation_foundation", "account_name": "Donation Income, Foundation Entities Only", "account_type": "income", "normal_balance": "credit" },
+    { "account_id": "income_grant_foundation", "account_name": "Grant Income, Foundation Entities Only", "account_type": "income", "normal_balance": "credit" },
+
+    { "account_id": "cogs_product", "account_name": "Product COGS", "account_type": "cogs", "normal_balance": "debit" },
+    { "account_id": "cogs_pawket_pack", "account_name": "Pawket Pack COGS", "account_type": "cogs", "normal_balance": "debit" },
+    { "account_id": "cogs_pawket_packet", "account_name": "Pawket Packet COGS", "account_type": "cogs", "normal_balance": "debit" },
+    { "account_id": "cogs_packaging", "account_name": "Packaging", "account_type": "cogs", "normal_balance": "debit" },
+    { "account_id": "cogs_inbound_freight", "account_name": "Inbound Freight", "account_type": "cogs", "normal_balance": "debit" },
+    { "account_id": "cogs_fulfillment_materials", "account_name": "Fulfillment Materials", "account_type": "cogs", "normal_balance": "debit" },
+    { "account_id": "cogs_pawket_pick", "account_name": "Pawket Pick Cost", "account_type": "cogs", "normal_balance": "debit" },
+
+    { "account_id": "expense_shipping", "account_name": "Shipping Expense", "account_type": "expense", "normal_balance": "debit" },
+    { "account_id": "expense_payment_processing_fees", "account_name": "Payment Processing Fees", "account_type": "expense", "normal_balance": "debit" },
+    { "account_id": "expense_advertising_marketing", "account_name": "Advertising / Marketing", "account_type": "expense", "normal_balance": "debit" },
+    { "account_id": "expense_software_hosting", "account_name": "Software / Hosting", "account_type": "expense", "normal_balance": "debit" },
+    { "account_id": "expense_contractors", "account_name": "Contractors", "account_type": "expense", "normal_balance": "debit" },
+    { "account_id": "expense_legal", "account_name": "Legal", "account_type": "expense", "normal_balance": "debit" },
+    { "account_id": "expense_accounting", "account_name": "Accounting", "account_type": "expense", "normal_balance": "debit" },
+    { "account_id": "expense_design_illustration", "account_name": "Design / Illustration", "account_type": "expense", "normal_balance": "debit" },
+    { "account_id": "expense_insurance", "account_name": "Insurance", "account_type": "expense", "normal_balance": "debit" },
+    { "account_id": "expense_office_admin", "account_name": "Office / Admin", "account_type": "expense", "normal_balance": "debit" },
+    { "account_id": "expense_bank_fees", "account_name": "Bank Fees", "account_type": "expense", "normal_balance": "debit" },
+    { "account_id": "expense_refund_chargeback_losses", "account_name": "Refund / Chargeback Losses", "account_type": "expense", "normal_balance": "debit" },
+    { "account_id": "expense_care_credit_issuance", "account_name": "Care Credit Issuance Expense", "account_type": "expense", "normal_balance": "debit" },
+
+    { "account_id": "program_charm_emergency_assistance", "account_name": "CHARM Emergency Assistance", "account_type": "program_expense", "normal_balance": "debit" },
+    { "account_id": "program_charm_rescue_medicine", "account_name": "CHARM Rescue Medicine", "account_type": "program_expense", "normal_balance": "debit" },
+    { "account_id": "program_charm_shelter_support", "account_name": "CHARM Shelter Support", "account_type": "program_expense", "normal_balance": "debit" },
+    { "account_id": "program_cherish_youth_programs", "account_name": "CHERISH Youth Programs", "account_type": "program_expense", "normal_balance": "debit" },
+    { "account_id": "program_cherish_family_support", "account_name": "CHERISH Family Support", "account_type": "program_expense", "normal_balance": "debit" },
+    { "account_id": "program_memorial_costs", "account_name": "Memorial Program Costs", "account_type": "program_expense", "normal_balance": "debit" }
+  ]
+}

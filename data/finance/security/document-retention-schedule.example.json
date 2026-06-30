@@ -1,0 +1,39 @@
+{
+  "fixture": "document-retention-schedule.example",
+  "status": "example_only_not_real_finance_data",
+  "retention_classes": [
+    {
+      "retention_class": "tax_support",
+      "description": "Tax support documents such as receipts, invoices, bank records, and processor records.",
+      "default_minimum_years_placeholder": "requires_tax_accounting_review",
+      "review_frequency": "annual",
+      "destruction_allowed": false,
+      "destruction_requires_approval": true,
+      "legal_hold_supported": true,
+      "export_allowed": true,
+      "notes": "Placeholder only. Production period requires legal/accounting/tax review."
+    },
+    {
+      "retention_class": "assistance_sensitive",
+      "description": "CHARM/CHERISH assistance applications, award records, and payment proof.",
+      "default_minimum_years_placeholder": "requires_legal_privacy_charity_review",
+      "review_frequency": "semiannual",
+      "destruction_allowed": false,
+      "destruction_requires_approval": true,
+      "legal_hold_supported": true,
+      "export_allowed": false,
+      "notes": "Sensitive assistance context must not be public by default."
+    },
+    {
+      "retention_class": "story_consent",
+      "description": "Story and Pawket Pal consent records.",
+      "default_minimum_years_placeholder": "requires_privacy_legal_review",
+      "review_frequency": "semiannual",
+      "destruction_allowed": false,
+      "destruction_requires_approval": true,
+      "legal_hold_supported": true,
+      "export_allowed": false,
+      "notes": "Consent records are proof, not public story content."
+    }
+  ]
+}

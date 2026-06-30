@@ -1,0 +1,44 @@
+{
+  "status": "example_only_commit_gate_not_live_commit",
+  "last_updated": "2026-05-28",
+  "required_checks": [
+    "allowed_commit_role",
+    "proposed_journal_entry_valid",
+    "period_open",
+    "balanced_or_nonfinancial_not_required",
+    "document_coverage_complete_or_approved_deferral",
+    "source_traceability_complete",
+    "calculation_rules_present_for_financial_entries",
+    "risk_flags_resolved_or_approved",
+    "audit_context_present",
+    "append_only_write_model"
+  ],
+  "commit_roles": {
+    "owner_root": "future_commit_allowed_after_production_review",
+    "finance_admin": "future_finance_commit_allowed_after_production_review",
+    "foundation_admin": "future_foundation_scoped_commit_only_if_policy_allows",
+    "bookkeeper": "prepare_only",
+    "accountant_export_user": "review_export_only",
+    "connector_node": "never_commit",
+    "investor_read_only": "never_commit"
+  },
+  "example_validation_result": {
+    "eligible": true,
+    "can_commit": false,
+    "blockers": [],
+    "warnings": [
+      "Live ledger commit remains disabled; this gate can validate eligibility only unless enableTestCommit is true."
+    ],
+    "required_role": "finance_admin",
+    "commit_mode": "validation_only_live_commit_disabled"
+  },
+  "test_only_commit_artifact": {
+    "allowed_file": "events/test-ledger-commits.ndjson",
+    "forbidden_files": [
+      "events/journal-entries.ndjson",
+      "events/live-ledger.ndjson",
+      "events/final-ledger.ndjson",
+      "events/official-balances.ndjson"
+    ]
+  }
+}

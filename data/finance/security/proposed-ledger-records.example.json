@@ -1,0 +1,60 @@
+{
+  "status": "example_only",
+  "last_updated": "2026-05-27",
+  "notes": [
+    "Proposed ledger records are pre-ledger records only.",
+    "They are not final ledger truth."
+  ],
+  "proposed_records": [
+    {
+      "proposed_ledger_record_id": "proposed_review_example_order_1001_draft_order_sales_debit_01",
+      "source_draft_record_ids": ["draft_order_sales"],
+      "source_review_item_id": "review_example_order_1001",
+      "source_bundle_ids": ["bundle_import_test_0001"],
+      "source_event_ids": ["source_event_order_created_0001"],
+      "entity_id": "ent_petpawket",
+      "fund_id": "fund_operating",
+      "class_id": "class_commerce",
+      "account_id": "asset_payment_processor_receivable",
+      "account_type": "asset",
+      "debit_amount": 60,
+      "credit_amount": 0,
+      "currency": "USD",
+      "description": "sales_revenue proposed debit",
+      "transaction_date": "2026-05-27T14:02:00Z",
+      "effective_period": "2026-05",
+      "document_links": ["doc_order_1001"],
+      "calculation_rule_id": "net_product_sales",
+      "approval_status": "proposed",
+      "approval_role_required": "finance_admin",
+      "risk_flags": [],
+      "created_at": "2026-05-27T15:00:00Z",
+      "updated_at": "2026-05-27T15:00:00Z"
+    },
+    {
+      "proposed_ledger_record_id": "proposed_review_example_order_1001_draft_order_sales_credit_02",
+      "source_draft_record_ids": ["draft_order_sales"],
+      "source_review_item_id": "review_example_order_1001",
+      "source_bundle_ids": ["bundle_import_test_0001"],
+      "source_event_ids": ["source_event_order_created_0001"],
+      "entity_id": "ent_petpawket",
+      "fund_id": "fund_operating",
+      "class_id": "class_commerce",
+      "account_id": "income_product_sales",
+      "account_type": "income",
+      "debit_amount": 0,
+      "credit_amount": 60,
+      "currency": "USD",
+      "description": "sales_revenue proposed credit",
+      "transaction_date": "2026-05-27T14:02:00Z",
+      "effective_period": "2026-05",
+      "document_links": ["doc_order_1001"],
+      "calculation_rule_id": "net_product_sales",
+      "approval_status": "proposed",
+      "approval_role_required": "finance_admin",
+      "risk_flags": [],
+      "created_at": "2026-05-27T15:00:00Z",
+      "updated_at": "2026-05-27T15:00:00Z"
+    }
+  ]
+}

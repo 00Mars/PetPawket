@@ -1,0 +1,27 @@
+{
+  "status": "example_only",
+  "last_updated": "2026-05-27",
+  "required_checks": [
+    "review item status approved_for_ledger_later",
+    "required role present",
+    "required documents complete or explicitly deferred",
+    "draft records not rejected or superseded",
+    "entity/fund/class mapping present",
+    "account mapping present",
+    "calculation rule reference present where required",
+    "period open",
+    "unresolved high-risk flags resolved or explicitly allowed",
+    "live ledger write disabled"
+  ],
+  "example_result": {
+    "ok": true,
+    "live_ledger_write_enabled": false,
+    "document_coverage": [
+      {
+        "draft_record_id": "draft_order_sales",
+        "coverage_status": "complete",
+        "missing_documents": []
+      }
+    ]
+  }
+}

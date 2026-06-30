@@ -1,0 +1,23 @@
+{
+  "sample_preview_binding_type": "desktop_sample_preview_binding",
+  "sample_preview_available": true,
+  "demo": true,
+  "sample_only": true,
+  "stdout_only": true,
+  "production_enabled": false,
+  "read_only": true,
+  "local_only": true,
+  "sample_vault_path": "data/finance/security/sample-vault",
+  "required_nonproduction_banner": "PAWKET ADMIN LOCAL READ-ONLY PREVIEW — NON-PRODUCTION",
+  "nonproduction_banner_present": true,
+  "attention_types": [
+    "missing_evidence",
+    "unresolved_risk",
+    "rejected_report_review",
+    "privacy_blocker",
+    "redaction_blocker",
+    "disabled_production_gate"
+  ],
+  "raw_document_content_included": false,
+  "export_actions_enabled": false
+}

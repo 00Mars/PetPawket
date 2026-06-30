@@ -1,0 +1,41 @@
+{
+  "fixture": "document-redaction-privacy.example",
+  "status": "example_only_not_real_finance_data",
+  "redaction_states": [
+    "none_required",
+    "pending_review",
+    "redaction_required",
+    "redacted",
+    "export_restricted",
+    "private_internal_only",
+    "public_safe",
+    "blocked"
+  ],
+  "privacy_classes": [
+    "public",
+    "internal",
+    "financial_sensitive",
+    "donor_sensitive",
+    "customer_sensitive",
+    "assistance_sensitive",
+    "medical_adjacent_sensitive",
+    "story_sensitive",
+    "minor_or_family_sensitive",
+    "partner_confidential",
+    "legal_confidential"
+  ],
+  "example_rules": [
+    {
+      "privacy_class": "assistance_sensitive",
+      "default_redaction_state": "pending_review",
+      "public_export_allowed": false,
+      "notes": "CHARM/CHERISH assistance context is sensitive and requires purpose-specific review."
+    },
+    {
+      "privacy_class": "public",
+      "default_redaction_state": "public_safe",
+      "public_export_allowed": true,
+      "notes": "Only use for aggregate or consent-approved public impact proof."
+    }
+  ]
+}

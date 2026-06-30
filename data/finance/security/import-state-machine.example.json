@@ -1,0 +1,54 @@
+{
+  "status": "example_only",
+  "last_updated": "2026-05-27",
+  "states": [
+    "received",
+    "quarantined",
+    "schema_validated",
+    "signature_pending",
+    "signature_verified_mock",
+    "payload_hash_verified",
+    "idempotency_checked",
+    "staged",
+    "rejected",
+    "superseded",
+    "import_failed"
+  ],
+  "allowed_transitions": {
+    "received": ["quarantined", "rejected", "import_failed"],
+    "quarantined": ["schema_validated", "rejected", "import_failed"],
+    "schema_validated": ["signature_pending", "rejected", "import_failed"],
+    "signature_pending": ["signature_verified_mock", "rejected", "import_failed"],
+    "signature_verified_mock": ["payload_hash_verified", "rejected", "import_failed"],
+    "payload_hash_verified": ["idempotency_checked", "rejected", "import_failed"],
+    "idempotency_checked": ["staged", "rejected", "import_failed"],
+    "staged": ["superseded"],
+    "rejected": [],
+    "superseded": [],
+    "import_failed": []
+  },
+  "supported_event_types": [
+    "order.created",
+    "payment.received",
+    "refund.issued",
+    "subscription.created",
+    "subscription.cancelled",
+    "pawket_packet.purchased",
+    "pawket_pick.selected",
+    "donation.created",
+    "care_credit.planned",
+    "charm_pledge.created",
+    "story.submitted",
+    "pawket_pal.created"
+  ],
+  "example_transition": {
+    "bundle_id": "bundle_import_state_example_0001",
+    "from_state": "quarantined",
+    "to_state": "schema_validated",
+    "actor": {
+      "actor_id": "finance_admin_example",
+      "role": "finance_admin"
+    },
+    "reason": "Schema fields present in test fixture."
+  }
+}

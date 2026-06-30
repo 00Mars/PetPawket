@@ -1,0 +1,16 @@
+{
+  "fixture_type": "desktop_shell_composition",
+  "production_enabled": false,
+  "read_only": true,
+  "local_only": true,
+  "packaged_app": false,
+  "source_mode": "local_non_production_desktop_shell_contract",
+  "composition_inputs": [
+    "operator_shell_read_model",
+    "desktop_ui_adapter_state",
+    "desktop_shell_scaffold_state",
+    "optional_sample_preview_metadata"
+  ],
+  "writes_files": false,
+  "raw_document_content_included": false
+}

@@ -1,0 +1,35 @@
+{
+  "schema_version": "pawket-admin-ui-adapter-guardrails-example-v0",
+  "guardrails": {
+    "production_enabled": false,
+    "read_only": true,
+    "local_only": true,
+    "mutation_actions_enabled": false,
+    "export_actions_enabled": false,
+    "raw_document_content_included": false,
+    "forbidden_file_extensions": [
+      ".pdf",
+      ".csv",
+      ".xlsx",
+      ".zip"
+    ],
+    "forbidden_paths": [
+      "public/",
+      "official-report",
+      "official-balance",
+      "final-export",
+      "irs-export",
+      "accountant-export",
+      "investor-export",
+      "foundation-export",
+      "public-impact-export"
+    ],
+    "blocked_outputs": [
+      "production ledger commits",
+      "official balances",
+      "official reports",
+      "final exports",
+      "public impact claims"
+    ]
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "schema_version": "pawket-admin-pipeline-status-view-model-example-v0",
+  "example_view_model": {
+    "production_enabled": false,
+    "read_only": true,
+    "official_balance_status": "disabled",
+    "official_report_status": "disabled",
+    "final_export_status": "disabled",
+    "source_mode": "local_non_production_view",
+    "raw_document_content_included": false,
+    "view_model_type": "pipeline_status",
+    "sections": {
+      "quarantine": {
+        "total": 1,
+        "ids": ["bundle_import_example_0001"],
+        "statuses": {
+          "quarantined": 1
+        }
+      },
+      "staged_source_events": {
+        "total": 1,
+        "ids": ["staged_event_order_created_example_0001"]
+      },
+      "draft_finance_records": {
+        "total": 1,
+        "ids": ["draft_order_sales_example_0001"]
+      },
+      "review_queue": {
+        "total": 1,
+        "ids": ["review_order_sales_example_0001"]
+      },
+      "proposed_ledger_records": {
+        "total": 2,
+        "ids": ["proposed_sales_debit_example_0001", "proposed_sales_credit_example_0001"]
+      },
+      "proposed_journal_entries": {
+        "total": 1,
+        "ids": ["pje_sale_example_0001"]
+      }
+    },
+    "production_disabled_gates": {
+      "live_ledger_commit_status": "disabled",
+      "official_balance_status": "disabled",
+      "official_report_status": "disabled",
+      "final_export_status": "disabled"
+    }
+  }
+}

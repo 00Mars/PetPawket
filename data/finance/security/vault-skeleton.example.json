@@ -1,0 +1,71 @@
+{
+  "status": "example_only",
+  "last_updated": "2026-05-27",
+  "storage_warning": "Plaintext local skeleton for tests only. Not production encryption.",
+  "directories": ["audit", "events", "quarantine", "documents", "exports", "manifests", "meta"],
+  "audit_event_example": {
+    "audit_event_id": "audit_vault_example_0001",
+    "timestamp": "2026-05-27T12:00:00Z",
+    "actor_id": "finance_admin_example",
+    "role": "finance_admin",
+    "action": "connector_bundle_quarantined",
+    "target_type": "connector_bundle",
+    "target_id": "bundle_example_0001",
+    "reason": "Example quarantine-only connector import.",
+    "previous_hash": "GENESIS",
+    "payload_hash": "computed_by_utils_pawketAdminVault",
+    "event_hash": "computed_by_utils_pawketAdminVault",
+    "app_version": "pawket-admin-vault-skeleton-v0"
+  },
+  "connector_bundle_example": {
+    "bundle_id": "bundle_example_0001",
+    "schema_version": "pawket-admin.connector-bundle.v0",
+    "connector_id": "connector_petpawket_website_readonly_v0",
+    "source_node_authority": "source_node_read_only",
+    "cursor_start": "cursor-0001",
+    "cursor_end": "cursor-0002",
+    "payload_hash": "0f1d2c3b4a59687766554433221100ffeeddccbbaa99887766554433221100ff",
+    "signature": {
+      "status": "mock_signature_placeholder",
+      "key_id": "connector_key_placeholder"
+    },
+    "record_count": 2,
+    "events": [
+      {
+        "source_event_id": "source_event_order_1001",
+        "event_type": "order_created",
+        "idempotency_key": "petpawket-website:order:1001"
+      },
+      {
+        "source_event_id": "source_event_refund_1001_a",
+        "event_type": "refund_created",
+        "idempotency_key": "petpawket-website:refund:1001:a"
+      }
+    ],
+    "import_policy": {
+      "can_write_to_vault": false,
+      "requires_quarantine": true,
+      "requires_admin_review": true,
+      "can_request_exports": false,
+      "can_access_decrypted_documents": false
+    }
+  },
+  "export_manifest_example": {
+    "export_id": "export_manifest_accountant_pack_2026_05_example",
+    "export_profile": "accountant_pack",
+    "date_range": {
+      "start": "2026-05-01",
+      "end": "2026-05-31"
+    },
+    "entity_scope": ["ent_petpawket"],
+    "fund_scope": ["fund_operating"],
+    "field_allowlist": ["entity_id", "period_id", "account_id", "category", "net_amount", "currency", "source_document_id"],
+    "redaction_rules": ["redact_private_story_fields", "redact_assistance_narratives", "mask_customer_contact"],
+    "created_by": {
+      "actor_id": "finance_admin_example",
+      "role": "finance_admin"
+    },
+    "purpose": "Example accountant package manifest.",
+    "manifest_hash": "computed_by_utils_pawketAdminVault"
+  }
+}

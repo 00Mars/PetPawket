@@ -1,0 +1,18 @@
+{
+  "schema_version": "pawket-admin-sample-vault-smoke-testing-example-v0",
+  "demo": true,
+  "command": "npm run pawket-admin:preview:sample",
+  "expected_banner": "PAWKET ADMIN LOCAL READ-ONLY PREVIEW — NON-PRODUCTION",
+  "expected_attention_states": [
+    "missing_evidence",
+    "unresolved_risk",
+    "rejected_report_review",
+    "privacy_blocker",
+    "redaction_blocker",
+    "disabled_production_gate"
+  ],
+  "writes_files": false,
+  "creates_exports": false,
+  "creates_official_balances": false,
+  "creates_official_reports": false
+}

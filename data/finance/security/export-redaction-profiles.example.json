@@ -1,0 +1,32 @@
+{
+  "fixture": "export-redaction-profiles.example",
+  "status": "example_only_not_real_finance_data",
+  "profiles": [
+    {
+      "profile_id": "accountant_pack",
+      "allowed_privacy_classes": ["internal", "financial_sensitive", "customer_sensitive", "legal_confidential"],
+      "excluded_privacy_classes": ["donor_sensitive", "assistance_sensitive", "medical_adjacent_sensitive", "story_sensitive", "minor_or_family_sensitive"],
+      "required_redaction_states": ["none_required", "redacted", "public_safe"],
+      "allowed_document_types": ["order_source", "payment_processor_record", "refund_record", "receipt", "invoice", "supplier_invoice", "bank_statement", "export_manifest"],
+      "excluded_document_types": ["charm_assistance_application", "pawket_pal_story_consent"],
+      "aggregate_only_fields": [],
+      "document_metadata_allowed": true,
+      "blob_access_allowed": true,
+      "requires_approval_role": "finance_admin",
+      "export_risk_flags": ["accountant_pack_sensitive_financial_data"]
+    },
+    {
+      "profile_id": "public_impact_report",
+      "allowed_privacy_classes": ["public"],
+      "excluded_privacy_classes": ["internal", "financial_sensitive", "donor_sensitive", "customer_sensitive", "assistance_sensitive", "medical_adjacent_sensitive", "story_sensitive", "minor_or_family_sensitive", "partner_confidential", "legal_confidential"],
+      "required_redaction_states": ["public_safe", "redacted"],
+      "allowed_document_types": ["public_impact_proof", "export_manifest"],
+      "excluded_document_types": ["donor_record", "charm_assistance_application", "pawket_pal_story_consent"],
+      "aggregate_only_fields": ["dollars_donated", "animals_helped", "shelters_supported", "families_supported"],
+      "document_metadata_allowed": true,
+      "blob_access_allowed": false,
+      "requires_approval_role": "owner_root",
+      "export_risk_flags": ["public_privacy_review_required"]
+    }
+  ]
+}

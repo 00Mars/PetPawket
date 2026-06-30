@@ -1,0 +1,22 @@
+{
+  "fixture": "evidence-deferrals.example",
+  "status": "example_only_not_real_finance_data",
+  "deferrals": [
+    {
+      "deferral_id": "deferral_order_source_example_0001",
+      "target_type": "proposed_journal_entry",
+      "target_id": "pje_sale_example_0002",
+      "missing_requirement": "order_source",
+      "reason": "Example only: connector source export is delayed and must be attached before final reporting.",
+      "approved_by": "finance_admin_example",
+      "approver_role": "finance_admin",
+      "approved_at": "2026-05-28T12:20:00Z",
+      "expires_at": "2026-06-15T00:00:00Z",
+      "review_due_at": "2026-06-01T00:00:00Z",
+      "risk_flags": ["missing_document", "evidence_deferral"],
+      "replacement_document_expected": "order_source",
+      "audit_event_id": "audit_example_evidence_deferral_0001",
+      "status": "approved"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "schema_version": "pawket-admin-sample-vault-harness-example-v0",
+  "demo": true,
+  "production_enabled": false,
+  "read_only": true,
+  "local_only": true,
+  "stdout_only": true,
+  "source_mode": "sample_vault_non_production",
+  "sample_vault_path": "data/finance/security/sample-vault",
+  "chain": [
+    "sample vault fixture",
+    "operator preview runner",
+    "operator shell read model",
+    "UI adapter",
+    "CLI preview",
+    "stdout"
+  ],
+  "blocked_behavior": [
+    "production ledger commits",
+    "official balances",
+    "official reports",
+    "final exports",
+    "public files",
+    "raw document content",
+    "real private data"
+  ]
+}

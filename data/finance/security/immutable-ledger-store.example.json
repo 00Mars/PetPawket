@@ -1,0 +1,63 @@
+{
+  "fixture": "immutable-ledger-store",
+  "status": "future_model_test_only_current_phase",
+  "future_journal_entry_shape": {
+    "journal_entry_id": "je_2026_05_000001",
+    "journal_line_id": "jl_2026_05_000001_01",
+    "source_proposed_journal_entry_id": "pje_sale_0001",
+    "source_proposed_ledger_record_ids": [
+      "proposed_sales_debit_0001",
+      "proposed_sales_credit_0001"
+    ],
+    "source_draft_record_ids": [
+      "draft_order_sales_0001"
+    ],
+    "source_review_item_ids": [
+      "review_order_sales_0001"
+    ],
+    "source_event_ids": [
+      "source_event_order_created_0001"
+    ],
+    "source_bundle_ids": [
+      "bundle_import_test_0001"
+    ],
+    "evidence_manifest_id": "cem_pje_sale_0001",
+    "commit_gate_record_id": "disabled_commit_pje_sale_0001_20260529",
+    "entity_id": "ent_petpawket",
+    "fund_id": "fund_operating",
+    "class_id": "class_commerce",
+    "account_id": "asset_payment_processor_receivable",
+    "account_type": "asset",
+    "normal_balance": "debit",
+    "debit_amount": 60,
+    "credit_amount": 0,
+    "currency": "USD",
+    "transaction_date": "2026-05-29",
+    "effective_period": "2026-05",
+    "description": "Future committed sale journal line example.",
+    "document_links": [
+      "doc_order_1001"
+    ],
+    "calculation_rule_ids": [
+      "net_product_sales_v1"
+    ],
+    "committed_by": "owner_root_example",
+    "committed_at": "future_review_required",
+    "audit_event_id": "audit_future_required",
+    "previous_ledger_hash": "GENESIS",
+    "ledger_entry_hash": "future_hash_required",
+    "correction_of": null,
+    "adjustment_for": null,
+    "reversal_of": null,
+    "immutable_status": "committed"
+  },
+  "immutable_statuses": [
+    "committed",
+    "corrected_by_later_entry",
+    "reversed_by_later_entry",
+    "adjusted_by_later_entry",
+    "superseded_before_commit",
+    "voided_before_commit"
+  ],
+  "current_test_only_file": "events/test-immutable-ledger-entries.ndjson"
+}

@@ -1,0 +1,27 @@
+{
+  "fixture": "commit-evidence-manifests.example",
+  "status": "example_only_not_real_finance_data",
+  "manifests": [
+    {
+      "manifest_id": "commit_evidence_pje_sale_example_0001",
+      "proposed_journal_entry_id": "pje_sale_example_0001",
+      "source_proposed_ledger_record_ids": [
+        "proposed_sales_debit_example_0001",
+        "proposed_sales_credit_example_0001"
+      ],
+      "source_draft_record_ids": ["draft_order_sales_example_0001"],
+      "source_event_ids": ["source_event_order_created_example_0001"],
+      "source_bundle_ids": ["bundle_import_example_0001"],
+      "required_document_types": ["order_source"],
+      "linked_document_ids": ["doc_order_source_example_0001"],
+      "missing_document_types": [],
+      "deferred_requirements": [],
+      "redaction_warnings": [],
+      "privacy_warnings": ["Document doc_order_source_example_0001 is financial_sensitive."],
+      "coverage_status": "complete",
+      "manifest_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "generated_by": "finance_admin_example",
+      "generated_at": "2026-05-28T12:30:00Z"
+    }
+  ]
+}

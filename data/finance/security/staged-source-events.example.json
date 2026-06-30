@@ -1,0 +1,50 @@
+{
+  "status": "example_only",
+  "last_updated": "2026-05-27",
+  "notes": [
+    "Staged source events are evidence only.",
+    "They are not accounting truth and do not write the live ledger."
+  ],
+  "staged_events": [
+    {
+      "staged_event_id": "staged_connector_bundle_example_0001_evt_0001",
+      "source_bundle_id": "connector_bundle_example_0001",
+      "source_event_id": "source_event_order_1001",
+      "connector_id": "connector_petpawket_website_readonly_v0",
+      "event_type": "order.created",
+      "occurred_at": "2026-05-27T12:10:00Z",
+      "source_record_id": "order_1001",
+      "idempotency_key": "petpawket-website:order:1001",
+      "payload_hash": "computed_from_payload",
+      "normalized_preview": {
+        "gross_amount": 68,
+        "currency": "USD",
+        "source_record_id": "order_1001"
+      },
+      "validation_status": "validated_for_staging",
+      "staging_status": "staged",
+      "rejection_reason": null,
+      "created_at": "2026-05-27T12:15:00Z"
+    },
+    {
+      "staged_event_id": "staged_connector_bundle_example_0001_evt_0002",
+      "source_bundle_id": "connector_bundle_example_0001",
+      "source_event_id": "source_event_refund_1001_a",
+      "connector_id": "connector_petpawket_website_readonly_v0",
+      "event_type": "refund.issued",
+      "occurred_at": "2026-05-27T12:11:00Z",
+      "source_record_id": "refund_1001_a",
+      "idempotency_key": "petpawket-website:refund:1001:a",
+      "payload_hash": "computed_from_payload",
+      "normalized_preview": {
+        "refund_amount": 8,
+        "currency": "USD",
+        "source_record_id": "refund_1001_a"
+      },
+      "validation_status": "validated_for_staging",
+      "staging_status": "staged",
+      "rejection_reason": null,
+      "created_at": "2026-05-27T12:15:00Z"
+    }
+  ]
+}

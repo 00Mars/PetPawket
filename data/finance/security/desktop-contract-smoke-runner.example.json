@@ -1,0 +1,30 @@
+{
+  "example_type": "desktop_contract_smoke_runner",
+  "demo": true,
+  "production_enabled": false,
+  "read_only": true,
+  "local_only": true,
+  "stdout_only": true,
+  "packaged_app": false,
+  "official_balance_status": "disabled",
+  "official_report_status": "disabled",
+  "final_export_status": "disabled",
+  "source_mode": "local_non_production_desktop_contract_smoke",
+  "raw_document_content_included": false,
+  "mutation_actions_enabled": false,
+  "export_actions_enabled": false,
+  "connector_networking_enabled": false,
+  "document_upload_enabled": false,
+  "public_route_enabled": false,
+  "default_sample_vault_path": "data/finance/security/sample-vault",
+  "script": "npm run pawket-admin:desktop-contract:smoke",
+  "allowed_output": "stdout_only_contract_summary",
+  "forbidden_outputs": [
+    "official_balances",
+    "official_reports",
+    "final_exports",
+    "public_routes",
+    "raw_document_content",
+    "packaged_app"
+  ]
+}

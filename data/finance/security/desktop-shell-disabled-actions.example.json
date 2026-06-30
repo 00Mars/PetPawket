@@ -1,0 +1,27 @@
+{
+  "schema_version": "pawket-admin-desktop-shell-disabled-actions-example-v0",
+  "production_enabled": false,
+  "read_only": true,
+  "local_only": true,
+  "source_mode": "local_non_production_desktop_scaffold",
+  "disabled_actions": [
+    "create ledger entry",
+    "commit ledger entry",
+    "edit finance record",
+    "approve production ledger",
+    "create official balance",
+    "create official report",
+    "create final export",
+    "generate PDF",
+    "generate CSV",
+    "generate XLSX",
+    "generate ZIP",
+    "upload document",
+    "connect live connector",
+    "publish public impact claim",
+    "send accountant package",
+    "send investor package",
+    "send IRS package",
+    "package desktop app"
+  ]
+}

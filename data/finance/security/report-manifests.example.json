@@ -1,0 +1,49 @@
+{
+  "fixture": "report-manifests",
+  "status": "manifest_metadata_only_no_final_export",
+  "allowed_report_manifest_types": [
+    "internal_management_preview",
+    "accountant_pack_preview",
+    "irs_support_preview",
+    "investor_summary_preview",
+    "foundation_pack_preview",
+    "public_impact_preview",
+    "security_audit_preview"
+  ],
+  "report_manifest": {
+    "report_manifest_id": "rmanifest_internal_management_2026_05",
+    "report_type": "internal_management_preview",
+    "source_mode": "proposed",
+    "period": "2026-05",
+    "entity_scope": [
+      "ent_petpawket"
+    ],
+    "fund_scope": [
+      "fund_operating"
+    ],
+    "class_scope": [
+      "class_commerce"
+    ],
+    "included_record_ids": [
+      "pje_sale_0001"
+    ],
+    "excluded_record_ids": [],
+    "evidence_manifest_ids": [
+      "cem_pje_sale_0001"
+    ],
+    "required_redaction_profile": "owner_full_internal",
+    "privacy_warnings": [],
+    "missing_evidence_warnings": [],
+    "required_nonproduction_labels": [
+      "non_production_preview",
+      "not_official_accounting",
+      "not_for_tax_filing",
+      "not_for_investor_reliance"
+    ],
+    "production_status": "non_production_preview",
+    "final_export_created": false,
+    "generated_by": "finance_admin_example",
+    "generated_at": "2026-05-29T11:10:00Z",
+    "manifest_hash": "placeholder_sha256_generated_by_code"
+  }
+}
