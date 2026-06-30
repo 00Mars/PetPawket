@@ -3,6 +3,7 @@ const host = document.querySelector('[data-network-detail]');
 const CATEGORY_LABELS = {
   vet: 'Veterinary',
   groomer: 'Grooming',
+  cleaner: 'Cleaner',
   shelter: 'Shelter',
   trainer: 'Training',
   boarding: 'Boarding',
@@ -96,10 +97,10 @@ function claimForm(listing) {
 function listingBadges(listing) {
   const out = [];
   if (listing.status === 'partner') {
-    out.push('<span class="pp-network-badge status-partner">Pawket Partner</span>');
+    out.push('<span class="pp-network-badge status-partner">Pawket Verified Partner</span>');
     out.push(`<span class="pp-network-badge tier">${esc(tierLabel(listing.partner_tier))}</span>`);
   } else if (listing.status === 'claimed') {
-    out.push('<span class="pp-network-badge status-claimed">Claimed</span>');
+    out.push('<span class="pp-network-badge status-claimed">Owner Claimed</span>');
   } else {
     out.push('<span class="pp-network-badge status-unclaimed">Network Listing</span>');
   }
@@ -295,6 +296,7 @@ function render(listing) {
       if (!href) return;
       fetch(`/api/network/listings/${encodeURIComponent(listing.id)}/outbound-click`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           href,
@@ -312,6 +314,7 @@ function render(listing) {
     status.textContent = 'Sending request...';
     const resp = await fetch(`/api/network/listings/${encodeURIComponent(listing.id)}/leads`, {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name: form.get('name'),

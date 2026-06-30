@@ -1,0 +1,69 @@
+{
+  "name": "Pawket Network Northeast starter source plan",
+  "description": "Internal candidate staging plan for early Northeast coverage. These jobs create source candidates only; they do not publish listings, claim businesses, assign Pawket Partner status, or enable CHARM support.",
+  "jobs": [
+    {
+      "id": "irs-new-england-animal-nonprofits",
+      "type": "irs",
+      "description": "Animal-focused nonprofit rescue, shelter, humane society, SPCA, wildlife, and veterinary candidates from IRS EO BMF state CSVs.",
+      "enabled": true,
+      "args": {
+        "states": "MA,RI,CT,NH,ME,VT",
+        "per-source-limit": 1000
+      }
+    },
+    {
+      "id": "osm-boston-metro-pet-services",
+      "type": "osm",
+      "description": "Veterinary, shelter, boarding, grooming, and dog wash candidates from OpenStreetMap tags around Boston.",
+      "enabled": true,
+      "args": {
+        "bbox": "-71.25,42.20,-70.85,42.55",
+        "state": "MA"
+      }
+    },
+    {
+      "id": "osm-providence-pet-services",
+      "type": "osm",
+      "description": "Veterinary, shelter, boarding, grooming, and dog wash candidates from OpenStreetMap tags around Providence.",
+      "enabled": true,
+      "args": {
+        "bbox": "-71.55,41.65,-71.25,41.95",
+        "state": "RI"
+      }
+    },
+    {
+      "id": "osm-worcester-pet-services",
+      "type": "osm",
+      "description": "Veterinary, shelter, boarding, grooming, and dog wash candidates from OpenStreetMap tags around Worcester.",
+      "enabled": true,
+      "args": {
+        "bbox": "-71.95,42.15,-71.65,42.40",
+        "state": "MA"
+      }
+    },
+    {
+      "id": "osm-southcoast-pet-services",
+      "type": "osm",
+      "description": "Veterinary, shelter, boarding, grooming, and dog wash candidates from OpenStreetMap tags around New Bedford and Fall River.",
+      "enabled": true,
+      "args": {
+        "bbox": "-71.25,41.55,-70.85,41.85",
+        "state": "MA"
+      }
+    },
+    {
+      "id": "overture-boston-metro-places",
+      "type": "overture_bbox",
+      "description": "Optional Overture Maps Places bbox download around Boston. This stages source candidates directly from Overture without a manual extract step.",
+      "enabled": false,
+      "args": {
+        "bbox": "-71.25,42.20,-70.85,42.55",
+        "state": "MA",
+        "limit": 5000,
+        "format": "geojsonseq",
+        "keep-file": true
+      }
+    }
+  ]
+}

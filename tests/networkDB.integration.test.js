@@ -119,7 +119,7 @@ maybeRun('network DB: claim approve flow promotes listing and owner membership',
 
     await mod.approveClaim(created.id, reviewerId, 'integration-approved');
 
-    const updated = await mod.getPublicListingById(seeded.id);
+    const updated = await mod.getInternalListingById(seeded.id);
     assert.equal(updated.status, 'claimed');
     assert.equal(updated.claim_status, 'approved');
     assert.equal(updated.owner_user_id, claimantId);

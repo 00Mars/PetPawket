@@ -33,9 +33,25 @@
           <section class="pp-network-panel">
             <h3>Listing editor</h3>
             <p class="pp-network-status" data-owner-status>Select a listing to edit.</p>
+            <div class="pp-network-chip-row" data-owner-readiness></div>
 
             <form data-owner-profile-form>
               <input class="pp-network-input" name="name" placeholder="Listing name" />
+              <select class="pp-network-select" name="category_primary">
+                <option value="">Category</option>
+                <option value="vet">Veterinary</option>
+                <option value="groomer">Grooming</option>
+                <option value="cleaner">Cleaner</option>
+                <option value="shelter">Shelter</option>
+                <option value="trainer">Training</option>
+                <option value="boarding">Boarding</option>
+                <option value="sitter">Sitting</option>
+                <option value="walker">Walking</option>
+                <option value="daycare">Daycare</option>
+                <option value="rescue">Rescue</option>
+                <option value="other">Other</option>
+              </select>
+              <input class="pp-network-input" name="address_line1" placeholder="Street address or service area" />
               <div class="pp-network-row">
                 <input class="pp-network-input" name="city" placeholder="City" />
                 <input class="pp-network-input" name="state" placeholder="State" maxlength="2" />
@@ -44,6 +60,8 @@
               <input class="pp-network-input" name="phone" placeholder="Phone" />
               <input class="pp-network-input" name="website_url" placeholder="Website URL (https://...)" />
               <textarea class="pp-network-textarea" name="short_description" placeholder="Short description"></textarea>
+              <textarea class="pp-network-textarea" name="description" placeholder="Full profile description"></textarea>
+              <textarea class="pp-network-textarea pp-network-textarea--sm" name="hours_text" placeholder="Hours or availability"></textarea>
               <div class="pp-network-actions">
                 <button class="pp-network-btn" type="submit">Save profile</button>
               </div>

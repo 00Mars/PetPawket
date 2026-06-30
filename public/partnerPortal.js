@@ -3,6 +3,7 @@ import { getSession } from './auth.js';
 
 const listEl = document.querySelector('[data-owner-listings]');
 const statusEl = document.querySelector('[data-owner-status]');
+const readinessEl = document.querySelector('[data-owner-readiness]');
 
 const profileForm = document.querySelector('[data-owner-profile-form]');
 const servicesForm = document.querySelector('[data-owner-services-form]');
@@ -224,15 +225,44 @@ function collectOffers() {
   return offers;
 }
 
+function publicStatusLabel(status) {
+  if (status === 'partner') return 'Pawket Verified Partner';
+  if (status === 'claimed') return 'Owner Claimed';
+  return 'Network Listing';
+}
+
+function renderReadiness(listing) {
+  if (!readinessEl) return;
+  if (!listing) {
+    readinessEl.innerHTML = '';
+    return;
+  }
+  const items = [
+    { label: 'Profile', done: !!(listing.name && listing.category_primary && listing.short_description) },
+    { label: 'Location', done: !!(listing.location?.city && listing.location?.state) },
+    { label: 'Contact', done: !!(listing.contact?.phone || listing.contact?.website_url) },
+    { label: 'Services', done: Array.isArray(listing.services) && listing.services.length > 0 },
+    { label: 'Integration', done: !!(listing.external_site_url || listing.features?.enable_lead_form || listing.contact?.website_url) },
+  ];
+  readinessEl.innerHTML = `
+    <span class="pp-network-badge">${esc(publicStatusLabel(listing.status))}</span>
+    ${items.map((item) => `<span class="pp-network-chip ${item.done ? '' : 'pp-network-chip--clear'}">${item.done ? 'Ready' : 'Needs'} ${esc(item.label)}</span>`).join('')}
+  `;
+}
+
 function fillProfile(listing) {
   if (!profileForm || !listing) return;
   profileForm.name.value = listing.name || '';
+  profileForm.category_primary.value = listing.category_primary || '';
+  profileForm.address_line1.value = listing.location?.address_line1 || '';
   profileForm.city.value = listing.location?.city || '';
   profileForm.state.value = listing.location?.state || '';
   profileForm.postal_code.value = listing.location?.postal_code || '';
   profileForm.phone.value = listing.contact?.phone || '';
   profileForm.website_url.value = listing.contact?.website_url || '';
   profileForm.short_description.value = listing.short_description || '';
+  profileForm.description.value = listing.description || '';
+  profileForm.hours_text.value = listing.hours_text || '';
 
   setRows(servicesRowsEl, listing.services || [], renderServiceRow);
   setRows(faqsRowsEl, listing.faqs || [], renderFaqRow);
@@ -245,6 +275,7 @@ function fillProfile(listing) {
   integrationForm.lead_webhook_url.value = listing.lead_webhook_url || '';
   integrationForm.enable_lead_form.checked = !!listing.features?.enable_lead_form;
   integrationForm.enable_offers.checked = !!listing.features?.enable_offers;
+  renderReadiness(listing);
 }
 
 function renderList() {
@@ -258,7 +289,7 @@ function renderList() {
     <button type="button" class="pp-network-item ${selectedId === item.id ? 'is-selected' : ''}" data-owner-id="${esc(item.id)}">
       <div class="pp-network-item-head">
         <strong>${esc(item.name)}</strong>
-        <span class="pp-network-badge">${esc(item.status)}</span>
+        <span class="pp-network-badge">${esc(publicStatusLabel(item.status))}</span>
       </div>
       <span class="pp-network-muted">${esc(item.location?.city || '')}${item.location?.city && item.location?.state ? ', ' : ''}${esc(item.location?.state || '')}</span>
     </button>
@@ -294,7 +325,10 @@ async function loadOwnedListings() {
   selectedId = cache[0]?.id || null;
   renderList();
   if (selectedId) await loadDetail(selectedId);
-  else setStatus('No managed listings yet.');
+  else {
+    renderReadiness(null);
+    setStatus('No managed listings yet.');
+  }
 }
 
 function wireForm(form, endpointBuilder, payloadBuilder, label) {
@@ -336,15 +370,22 @@ function wireForm(form, endpointBuilder, payloadBuilder, label) {
 wireForm(
   profileForm,
   (id) => `/api/network/owner/listings/${encodeURIComponent(id)}/profile`,
-  () => ({
-    name: profileForm.name.value,
-    city: profileForm.city.value,
-    state: profileForm.state.value,
-    postal_code: profileForm.postal_code.value,
-    phone: profileForm.phone.value,
-    website_url: profileForm.website_url.value,
-    short_description: profileForm.short_description.value,
-  }),
+  () => {
+    const payload = {
+      name: profileForm.name.value,
+      address_line1: profileForm.address_line1.value,
+      city: profileForm.city.value,
+      state: profileForm.state.value,
+      postal_code: profileForm.postal_code.value,
+      phone: profileForm.phone.value,
+      website_url: profileForm.website_url.value,
+      short_description: profileForm.short_description.value,
+      description: profileForm.description.value,
+      hours_text: profileForm.hours_text.value,
+    };
+    if (profileForm.category_primary.value) payload.category_primary = profileForm.category_primary.value;
+    return payload;
+  },
   'profile'
 );
 

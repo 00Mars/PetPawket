@@ -1,20 +1,34 @@
 // routes/networkRoutes.js — Pawket Network + Pawket Partners Ops APIs
+import dns from 'node:dns/promises';
+import net from 'node:net';
 import express from 'express';
 import fs from 'fs';
 import path from 'path';
 import multer from 'multer';
 import { fileURLToPath } from 'url';
-import { requireAuth as requireAuthDefault } from '../middleware/requireAuth.js';
+import { attachAuthIfPresent as attachAuthIfPresentDefault, requireAuth as requireAuthDefault } from '../middleware/requireAuth.js';
 import {
   listPublicListings,
+  listPublicListingSuggestions,
   getPublicListingBySlug,
   getPublicListingById,
+  getInternalListingById,
   getGeocodeCache,
   upsertGeocodeCache,
   createLead,
   updateLeadDelivery,
   createActivityEvent,
+  createNetworkNomination,
+  listNetworkNominations,
+  updateNetworkNomination,
+  prepareNetworkImportCandidate,
+  upsertNetworkImportCandidate,
+  listNetworkImportCandidates,
+  summarizeNetworkImportCandidates,
+  updateNetworkImportCandidateStatus,
+  promoteNetworkImportCandidate,
   createClaimRequest,
+  getClaimProofById,
   getOwnerListings,
   getOwnerListingById,
   hasOwnerMembership,
@@ -31,26 +45,32 @@ import {
   updateOpsListingTier,
   updateOpsListingFeatures,
   listOpsListings,
-  upsertListingFromSeed,
+  upsertApprovedLaunchListing,
+  prepareApprovedLaunchListing,
 } from '../networkDB.pg.js';
-import { geocodeUsLocation, buildGeocodeKey } from '../utils/networkGeocode.js';
+import { geocodeUsLocation, buildGeocodeKey, normalizeUsStateCode } from '../utils/networkGeocode.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const claimUploadDir = path.join(__dirname, '..', 'uploads', 'network', 'claims');
+const claimUploadDir = path.join(__dirname, '..', 'private_uploads', 'network', 'claims');
 fs.mkdirSync(claimUploadDir, { recursive: true });
 
 const VALID_STATUS = new Set(['unclaimed', 'claimed', 'partner']);
 const VALID_TIERS = new Set(['partner', 'partner_plus', 'partner_elite']);
-const VALID_CATEGORIES = new Set(['vet', 'groomer', 'shelter', 'trainer', 'boarding', 'sitter', 'walker', 'daycare', 'rescue', 'other']);
+const VALID_CATEGORIES = new Set(['vet', 'groomer', 'cleaner', 'shelter', 'trainer', 'boarding', 'sitter', 'walker', 'daycare', 'rescue', 'other']);
 const VALID_SORT = new Set(['relevance', 'distance', 'featured', 'newest']);
 const VALID_CLAIM_STATUS = new Set(['pending', 'approved', 'rejected']);
+const VALID_NOMINATION_STATUS = new Set(['pending', 'reviewed', 'dismissed', 'converted']);
+const VALID_IMPORT_SOURCES = new Set(['overture', 'osm', 'irs_eo_bmf', 'manual', 'paid_provider', 'partner_api']);
+const VALID_IMPORT_CANDIDATE_STATUS = new Set(['new', 'needs_review', 'approved', 'rejected', 'promoted']);
+const VALID_IMPORT_CANDIDATE_READINESS = new Set(['all', 'promotable', 'needs_contact', 'needs_location', 'contact_ready', 'location_ready']);
 const VALID_PORTAL_MODE = new Set(['internal_profile', 'external_site']);
 const VALID_LEAD_DESTINATION = new Set(['email', 'webhook', 'both']);
 const VALID_LEAD_DELIVERY_MODE = new Set(['test', 'live', 'disabled']);
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
 const SIMPLE_PHONE_RE = /^[+\d().\-\s]{7,40}$/;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const LEAD_WEBHOOK_TIMEOUT_MS = 8_000;
 
 const allowedClaimMime = new Set(['application/pdf', 'image/png', 'image/jpeg']);
 const upload = multer({
@@ -70,7 +90,8 @@ const upload = multer({
 
 const ipWindow = new Map();
 function limited(req, key, max = 8, ms = 60_000) {
-  const ip = req.headers['x-forwarded-for']?.toString().split(',')[0]?.trim() || req.socket.remoteAddress || 'unknown';
+  const trustProxyIp = String(process.env.TRUST_PROXY_RATE_LIMIT_IPS || '').toLowerCase() === 'true';
+  const ip = (trustProxyIp ? req.ip : req.socket.remoteAddress) || req.ip || 'unknown';
   const now = Date.now();
   const token = `${ip}:${key}`;
   const data = ipWindow.get(token) || [];
@@ -107,6 +128,120 @@ function isHttpsUrl(v) {
   }
 }
 
+function ipv4Parts(ip) {
+  const parts = String(ip || '').split('.');
+  if (parts.length !== 4) return null;
+  const nums = parts.map((part) => Number(part));
+  if (nums.some((n, i) => !Number.isInteger(n) || n < 0 || n > 255 || String(n) !== parts[i])) return null;
+  return nums;
+}
+
+function isPrivateOrReservedIpv4(ip) {
+  const parts = ipv4Parts(ip);
+  if (!parts) return false;
+  const [a, b, c, d] = parts;
+  return (
+    a === 0 ||
+    a === 10 ||
+    a === 127 ||
+    (a === 169 && b === 254) ||
+    (a === 172 && b >= 16 && b <= 31) ||
+    (a === 192 && b === 168) ||
+    (a === 100 && b >= 64 && b <= 127) ||
+    (a === 192 && b === 0 && c === 0) ||
+    (a === 192 && b === 0 && c === 2) ||
+    (a === 198 && (b === 18 || b === 19)) ||
+    (a === 198 && b === 51 && c === 100) ||
+    (a === 203 && b === 0 && c === 113) ||
+    a >= 224 ||
+    (a === 255 && b === 255 && c === 255 && d === 255)
+  );
+}
+
+function isPrivateOrReservedIp(ip) {
+  const value = String(ip || '').trim().toLowerCase();
+  if (!value) return true;
+  if (value.startsWith('::ffff:')) return isPrivateOrReservedIpv4(value.slice(7));
+  if (net.isIP(value) === 4) return isPrivateOrReservedIpv4(value);
+  if (net.isIP(value) !== 6) return false;
+  return (
+    value === '::' ||
+    value === '::1' ||
+    value.startsWith('fc') ||
+    value.startsWith('fd') ||
+    value.startsWith('fe80:')
+  );
+}
+
+function validateLeadWebhookUrl(value) {
+  const s = clean(value, 2048);
+  if (!s) return { url: null };
+  try {
+    const u = new URL(s);
+    const hostname = u.hostname.toLowerCase().replace(/\.$/, '');
+    const hostForCheck = hostname.replace(/^\[/, '').replace(/\]$/, '');
+    if (u.protocol !== 'https:') return { error: 'lead_webhook_url must be https://' };
+    if (u.username || u.password) return { error: 'lead_webhook_url must not include credentials' };
+    if (u.port && u.port !== '443') return { error: 'lead_webhook_url must use the standard https port' };
+    if (!hostname || hostname === 'localhost' || hostname.endsWith('.localhost') || hostname.endsWith('.local') || hostname.endsWith('.internal') || hostname.endsWith('.test') || hostname.endsWith('.invalid')) {
+      return { error: 'lead_webhook_url must use a public hostname' };
+    }
+    if (net.isIP(hostForCheck)) {
+      return { error: 'lead_webhook_url must use a public hostname' };
+    }
+    u.hash = '';
+    return { url: u.toString() };
+  } catch {
+    return { error: 'lead_webhook_url must be https://' };
+  }
+}
+
+async function withTimeout(promise, ms, code) {
+  let timer = null;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise((_, reject) => {
+        timer = setTimeout(() => {
+          const err = new Error(code);
+          err.code = code;
+          reject(err);
+        }, ms);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+async function assertLeadWebhookTargetAllowed(value) {
+  const checked = validateLeadWebhookUrl(value);
+  if (checked.error || !checked.url) {
+    const err = new Error(checked.error || 'LEAD_WEBHOOK_MISSING');
+    err.code = 'WEBHOOK_TARGET_BLOCKED';
+    throw err;
+  }
+  const url = new URL(checked.url);
+  const records = await withTimeout(dns.lookup(url.hostname, { all: true, verbatim: true }), 2_500, 'WEBHOOK_DNS_TIMEOUT');
+  if (!records.length || records.some((record) => isPrivateOrReservedIp(record.address))) {
+    const err = new Error('WEBHOOK_TARGET_BLOCKED');
+    err.code = 'WEBHOOK_TARGET_BLOCKED';
+    throw err;
+  }
+  return checked.url;
+}
+
+function isHttpUrl(v) {
+  const s = clean(v, 2048);
+  if (!s) return false;
+  try {
+    const u = new URL(s);
+    return ['http:', 'https:'].includes(u.protocol);
+  } catch {
+    return false;
+  }
+}
+
 function isValidId(v) {
   const s = clean(v, 80);
   return !!(s && (UUID_RE.test(s) || /^[A-Za-z0-9_-]{4,80}$/.test(s)));
@@ -130,17 +265,71 @@ function unauthorized(res) {
   return res.status(401).json({ ok: false, error: 'Unauthorized' });
 }
 
+function sanitizePublicListingPayload(listing) {
+  if (!listing || typeof listing !== 'object') return listing;
+  const features = listing.features && typeof listing.features === 'object' ? listing.features : {};
+  const out = {
+    id: listing.id,
+    slug: listing.slug,
+    name: listing.name,
+    category_primary: listing.category_primary,
+    categories: Array.isArray(listing.categories) ? listing.categories : [],
+    location: listing.location,
+    contact: listing.contact,
+    short_description: listing.short_description,
+    description: listing.description,
+    hours_text: listing.hours_text,
+    status: listing.status,
+    partner_tier: listing.partner_tier,
+    partner_since: listing.partner_since,
+    features: {
+      enable_lead_form: !!features.enable_lead_form,
+      enable_offers: !!features.enable_offers,
+    },
+    portal_mode: listing.portal_mode,
+    external_site_url: listing.external_site_url,
+    charm_support: listing.charm_support,
+    cover_image_url: listing.cover_image_url,
+    created_at: listing.created_at,
+    updated_at: listing.updated_at,
+  };
+  for (const key of ['distance_mi', 'media', 'services', 'faqs', 'offers', 'badges']) {
+    if (Object.prototype.hasOwnProperty.call(listing, key)) out[key] = listing[key];
+  }
+  return out;
+}
+
+function sanitizePublicListingPage(data = {}) {
+  return {
+    ...data,
+    items: Array.isArray(data.items) ? data.items.map(sanitizePublicListingPayload) : [],
+  };
+}
+
 let deps = {
   requireAuth: requireAuthDefault,
+  attachAuthIfPresent: attachAuthIfPresentDefault,
   listPublicListings,
+  listPublicListingSuggestions,
   getPublicListingBySlug,
   getPublicListingById,
+  getInternalListingById,
   getGeocodeCache,
   upsertGeocodeCache,
   createLead,
   updateLeadDelivery,
   createActivityEvent,
+  createNetworkNomination,
+  listNetworkNominations,
+  updateNetworkNomination,
+  prepareNetworkImportCandidate,
+  upsertNetworkImportCandidate,
+  listNetworkImportCandidates,
+  summarizeNetworkImportCandidates,
+  updateNetworkImportCandidateStatus,
+  promoteNetworkImportCandidate,
   createClaimRequest,
+  getClaimProofById,
   getOwnerListings,
   getOwnerListingById,
   hasOwnerMembership,
@@ -157,7 +346,8 @@ let deps = {
   updateOpsListingTier,
   updateOpsListingFeatures,
   listOpsListings,
-  upsertListingFromSeed,
+  upsertApprovedLaunchListing,
+  prepareApprovedLaunchListing,
   geocodeUsLocation,
   buildGeocodeKey,
 };
@@ -170,13 +360,67 @@ export function __setNetworkRouteDepsForTests(partial = {}) {
 
 export function __resetNetworkRouteDepsForTests() {
   deps = { ...defaultDeps };
+  ipWindow.clear();
 }
 
 const networkAuth = (req, res, next) => deps.requireAuth()(req, res, next);
 
+async function optionalNetworkAuth(req, _res, next) {
+  try {
+    await deps.attachAuthIfPresent(req);
+  } catch {
+    // Public Network actions remain public if optional auth cannot resolve.
+  }
+  return next();
+}
+
 function requireDbUser(req, res, next) {
   if (!req.dbUser?.id) return unauthorized(res);
   return next();
+}
+
+function cleanupClaimUpload(req) {
+  const filePath = req.file?.path;
+  if (!filePath) return;
+  fs.promises.unlink(filePath).catch(() => {});
+}
+
+function storedClaimProofPath(fileName) {
+  return `network/claims/${fileName}`;
+}
+
+function claimProofDownloadUrl(claimId) {
+  return `/api/network/partners-ops/claims/${encodeURIComponent(claimId)}/proof`;
+}
+
+function exposeOpsClaim(claim = {}) {
+  const uploaded = !!claim.businessIdentityDocPath;
+  const out = { ...claim };
+  delete out.businessIdentityDocPath;
+  return {
+    ...out,
+    businessIdentityDocAvailable: uploaded,
+    businessIdentityDocDownloadUrl: uploaded ? claimProofDownloadUrl(claim.id) : null,
+  };
+}
+
+function resolveClaimProofDiskPath(storedPath) {
+  const raw = clean(storedPath, 500);
+  if (!raw) return null;
+  const normalized = raw.replace(/\\/g, '/');
+  const fileName = path.basename(normalized);
+  if (!fileName || fileName === '.' || fileName === '..') return null;
+
+  if (normalized.startsWith('network/claims/')) {
+    return path.join(__dirname, '..', 'private_uploads', 'network', 'claims', fileName);
+  }
+  if (normalized.startsWith('/private_uploads/network/claims/')) {
+    return path.join(__dirname, '..', 'private_uploads', 'network', 'claims', fileName);
+  }
+  if (normalized.startsWith('/uploads/network/claims/')) {
+    return path.join(__dirname, '..', 'uploads', 'network', 'claims', fileName);
+  }
+  return null;
 }
 
 function claimUploadMiddleware(req, res, next) {
@@ -194,7 +438,7 @@ function claimUploadMiddleware(req, res, next) {
 
 function validateListingsQuery(query = {}) {
   const out = {};
-  const q = clean(query.q, 120);
+  const q = clean(query.q ?? query.search ?? query.query, 120);
   if (q) out.q = q;
 
   const category = cleanLower(query.category, 40);
@@ -285,6 +529,19 @@ function validateListingsQuery(query = {}) {
   return { value: out };
 }
 
+function validateListingSuggestionsQuery(query = {}) {
+  const out = {};
+  const q = clean(query.q ?? query.search ?? query.query, 100);
+  if (q) out.q = q;
+
+  const limitRaw = query.limit;
+  const limit = limitRaw != null ? Number(limitRaw) : 8;
+  if (!Number.isInteger(limit) || limit < 1 || limit > 12) return { error: 'Invalid suggestion limit' };
+  out.limit = limit;
+
+  return { value: out };
+}
+
 function validateLeadPayload(body = {}) {
   const name = clean(body.name, 140);
   const email = clean(body.email, 240);
@@ -294,6 +551,261 @@ function validateLeadPayload(body = {}) {
   if (!EMAIL_RE.test(email)) return { error: 'Invalid email format' };
   if (phone && !SIMPLE_PHONE_RE.test(phone)) return { error: 'Invalid phone format' };
   return { value: { name, email, phone, message } };
+}
+
+function includesSensitiveStoryText(value) {
+  const s = String(value || '').toLowerCase();
+  if (!s) return false;
+  return /\b(my|our)\s+(dog|cat|pet|puppy|kitten|bird|rabbit|hamster|horse)\b/.test(s)
+    || /\b(medical record|diagnosis|diagnosed|surgery|medicine|medication|euthan|passed away|died|memorial|grief)\b/.test(s)
+    || /\b(adoption story|rescue story|medical story|memorial story)\b/.test(s);
+}
+
+function validateNominationPayload(body = {}) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return { error: 'Body must be an object' };
+  const providerName = clean(body.provider_name || body.providerName, 180);
+  const category = cleanLower(body.category_primary || body.categoryPrimary, 40);
+  const city = clean(body.city, 120);
+  const state = clean(body.state, 16);
+  const postalCode = clean(body.postal_code || body.postalCode, 20);
+  const websiteUrl = clean(body.website_url || body.websiteUrl, 2048);
+  const phone = clean(body.phone, 40);
+  const nominatorEmail = clean(body.nominator_email || body.nominatorEmail, 240);
+  const note = clean(body.note, 1200);
+  const sourcePath = clean(body.source_path || body.sourcePath, 400);
+
+  if (!providerName || !category || !city || !state) return { error: 'provider_name, category_primary, city, and state are required' };
+  if (!VALID_CATEGORIES.has(category)) return { error: 'Invalid category_primary' };
+  if (!/^[A-Za-z]{2}$/.test(state)) return { error: 'state must be a 2-letter code' };
+  if (postalCode && !/^[A-Za-z0-9\- ]{3,12}$/.test(postalCode)) return { error: 'Invalid postal_code' };
+  if (websiteUrl && !isHttpsUrl(websiteUrl)) return { error: 'website_url must be https://' };
+  if (phone && !SIMPLE_PHONE_RE.test(phone)) return { error: 'Invalid phone format' };
+  if (nominatorEmail && !EMAIL_RE.test(nominatorEmail)) return { error: 'Invalid nominator_email format' };
+  if (note && includesSensitiveStoryText(note)) {
+    return { error: 'Please keep nominations to provider details only. Do not include private pet, rescue, adoption, medical, or memorial stories here.' };
+  }
+
+  return {
+    value: {
+      providerName,
+      categoryPrimary: category,
+      city,
+      state: state.toUpperCase(),
+      postalCode,
+      websiteUrl,
+      phone,
+      nominatorEmail,
+      note,
+      sourcePath,
+    },
+  };
+}
+
+function validateNominationOpsPatch(body = {}) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return { error: 'Body must be an object' };
+  const allowed = new Set(['status', 'review_notes']);
+  const unknown = Object.keys(body).filter((k) => !allowed.has(k));
+  if (unknown.length) return { error: `Unknown nomination fields: ${unknown.join(', ')}` };
+  if (!Object.keys(body).length) return { error: 'At least one nomination field is required' };
+  const patch = {};
+  if (body.status !== undefined) {
+    const status = cleanLower(body.status, 24);
+    if (!VALID_NOMINATION_STATUS.has(status)) return { error: 'Invalid nomination status' };
+    patch.status = status;
+  }
+  if (body.review_notes !== undefined) patch.review_notes = clean(body.review_notes, 1800);
+  return { value: patch };
+}
+
+function validateLaunchImportPayload(body = {}) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return { error: 'Body must be an object' };
+  const items = Array.isArray(body.items) ? body.items : [];
+  if (!items.length) return { error: 'items must contain at least one launch listing' };
+  if (items.length > 500) return { error: 'Too many launch listing items' };
+  const prepared = [];
+  for (let i = 0; i < items.length; i += 1) {
+    try {
+      prepared.push(deps.prepareApprovedLaunchListing(items[i]));
+    } catch (err) {
+      return { error: `Launch listing ${i + 1}: ${err?.message || 'invalid launch listing'}` };
+    }
+  }
+  return { value: prepared };
+}
+
+function validateCandidateImportPayload(body = {}) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return { error: 'Body must be an object' };
+  const source = cleanLower(body.source, 40);
+  if (source && !VALID_IMPORT_SOURCES.has(source)) return { error: 'Invalid candidate source' };
+  const items = Array.isArray(body.items) ? body.items : [];
+  if (!items.length) return { error: 'items must contain at least one import candidate' };
+  if (items.length > 1000) return { error: 'Too many import candidate items' };
+  const prepared = [];
+  for (let i = 0; i < items.length; i += 1) {
+    if (!items[i] || typeof items[i] !== 'object' || Array.isArray(items[i])) {
+      return { error: `Import candidate ${i + 1}: item must be an object` };
+    }
+    const itemStatus = cleanLower(items[i].status, 24);
+    if (itemStatus && !['new', 'needs_review'].includes(itemStatus)) {
+      return { error: `Import candidate ${i + 1}: source imports can only start as new or needs_review` };
+    }
+    try {
+      prepared.push(deps.prepareNetworkImportCandidate(items[i], { source }));
+    } catch (err) {
+      return { error: `Import candidate ${i + 1}: ${err?.message || 'invalid import candidate'}` };
+    }
+  }
+  return { value: prepared };
+}
+
+function validateCandidateQuery(query = {}) {
+  const out = {};
+  const status = cleanLower(query.status, 24) || 'new';
+  if (status !== 'all' && !VALID_IMPORT_CANDIDATE_STATUS.has(status)) return { error: 'Invalid candidate status filter' };
+  out.status = status;
+
+  const source = cleanLower(query.source, 40);
+  if (source) {
+    if (!VALID_IMPORT_SOURCES.has(source)) return { error: 'Invalid candidate source filter' };
+    out.source = source;
+  }
+
+  const category = cleanLower(query.category, 40);
+  if (category) {
+    if (!VALID_CATEGORIES.has(category)) return { error: 'Invalid category filter' };
+    out.category = category;
+  }
+
+  const state = clean(query.state, 16);
+  if (state) {
+    if (!/^[A-Za-z]{2}$/.test(state)) return { error: 'Invalid state filter' };
+    out.state = state.toUpperCase();
+  }
+
+  const q = clean(query.q, 120);
+  if (q) out.q = q;
+
+  const readiness = cleanLower(query.readiness, 32);
+  if (readiness) {
+    if (!VALID_IMPORT_CANDIDATE_READINESS.has(readiness)) return { error: 'Invalid candidate readiness filter' };
+    out.readiness = readiness;
+  }
+
+  const limit = query.limit != null ? Number(query.limit) : 120;
+  if (!Number.isInteger(limit) || limit < 1 || limit > 500) return { error: 'Invalid limit' };
+  out.limit = limit;
+
+  const offset = query.offset != null ? Number(query.offset) : 0;
+  if (!Number.isInteger(offset) || offset < 0) return { error: 'Invalid offset' };
+  out.offset = offset;
+  return { value: out };
+}
+
+function validateCandidatePatch(body = {}) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return { error: 'Body must be an object' };
+  const allowed = new Set(['status', 'review_notes', 'phone', 'website_url', 'short_description', 'category_primary']);
+  const unknown = Object.keys(body).filter((k) => !allowed.has(k));
+  if (unknown.length) return { error: `Unknown candidate fields: ${unknown.join(', ')}` };
+  if (!Object.keys(body).length) return { error: 'At least one candidate field is required' };
+  const patch = {};
+  if (body.status !== undefined) {
+    const status = cleanLower(body.status, 24);
+    if (!VALID_IMPORT_CANDIDATE_STATUS.has(status)) return { error: 'Invalid candidate status' };
+    if (status === 'promoted') return { error: 'Use promote action to move a candidate into public listings' };
+    patch.status = status;
+  }
+  if (body.review_notes !== undefined) patch.review_notes = clean(body.review_notes, 1800);
+  if (body.phone !== undefined) {
+    const phone = clean(body.phone, 40);
+    if (phone && !SIMPLE_PHONE_RE.test(phone)) return { error: 'Invalid phone format' };
+    patch.phone = phone;
+  }
+  if (body.website_url !== undefined) {
+    const website = clean(body.website_url, 2048);
+    if (website && !isHttpUrl(website)) return { error: 'website_url must be http:// or https://' };
+    patch.website_url = website;
+  }
+  if (body.short_description !== undefined) patch.short_description = clean(body.short_description, 360);
+  if (body.category_primary !== undefined) {
+    const category = cleanLower(body.category_primary, 40);
+    if (!category || !VALID_CATEGORIES.has(category)) return { error: 'Invalid category_primary' };
+    patch.category_primary = category;
+  }
+  return { value: patch };
+}
+
+function validateCandidateBulkPatch(body = {}) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return { error: 'Body must be an object' };
+  const allowed = new Set(['ids', 'status', 'review_notes']);
+  const unknown = Object.keys(body).filter((k) => !allowed.has(k));
+  if (unknown.length) return { error: `Unknown candidate bulk fields: ${unknown.join(', ')}` };
+  const ids = Array.isArray(body.ids)
+    ? Array.from(new Set(body.ids.map((id) => clean(id, 80)).filter(Boolean)))
+    : [];
+  if (!ids.length) return { error: 'ids must contain at least one candidate id' };
+  if (ids.length > 100) return { error: 'Too many candidate ids' };
+  const invalidIds = ids.filter((id) => !isValidId(id));
+  if (invalidIds.length) return { error: 'Invalid candidate id in bulk update' };
+  const patch = {};
+  if (body.status !== undefined) {
+    const status = cleanLower(body.status, 24);
+    if (!VALID_IMPORT_CANDIDATE_STATUS.has(status)) return { error: 'Invalid candidate status' };
+    if (status === 'promoted') return { error: 'Use promote action to move a candidate into public listings' };
+    patch.status = status;
+  }
+  if (body.review_notes !== undefined) patch.review_notes = clean(body.review_notes, 1800);
+  if (!Object.keys(patch).length) return { error: 'Bulk update requires status or review_notes' };
+  return { value: { ids, patch } };
+}
+
+function validateCandidatePromotePayload(body = {}) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return { error: 'Body must be an object' };
+  const allowed = new Set(['slug', 'name', 'category_primary', 'address_line1', 'city', 'state', 'postal_code', 'lat', 'lng', 'phone', 'website_url', 'short_description', 'description']);
+  const unknown = Object.keys(body).filter((k) => !allowed.has(k));
+  if (unknown.length) return { error: `Unknown promote fields: ${unknown.join(', ')}` };
+  const patch = {};
+  if (body.slug !== undefined) {
+    const slug = clean(body.slug, 180);
+    if (slug && !/^[a-z0-9][a-z0-9-]{1,178}[a-z0-9]$/i.test(slug)) return { error: 'Invalid slug' };
+    patch.slug = slug;
+  }
+  if (body.name !== undefined) patch.name = clean(body.name, 160);
+  if (body.category_primary !== undefined) {
+    const category = cleanLower(body.category_primary, 40);
+    if (!category || !VALID_CATEGORIES.has(category)) return { error: 'Invalid category_primary' };
+    patch.category_primary = category;
+  }
+  if (body.address_line1 !== undefined) patch.address_line1 = clean(body.address_line1, 180);
+  if (body.city !== undefined) patch.city = clean(body.city, 120);
+  if (body.state !== undefined) {
+    const state = clean(body.state, 16);
+    if (state && !/^[A-Za-z]{2}$/.test(state)) return { error: 'state must be a 2-letter code' };
+    patch.state = state ? state.toUpperCase() : null;
+  }
+  if (body.postal_code !== undefined) patch.postal_code = clean(body.postal_code, 20);
+  if (body.lat !== undefined && body.lat !== null && body.lat !== '') {
+    const lat = toFinite(body.lat);
+    if (lat == null || lat < -90 || lat > 90) return { error: 'Invalid lat value' };
+    patch.lat = lat;
+  }
+  if (body.lng !== undefined && body.lng !== null && body.lng !== '') {
+    const lng = toFinite(body.lng);
+    if (lng == null || lng < -180 || lng > 180) return { error: 'Invalid lng value' };
+    patch.lng = lng;
+  }
+  if (body.phone !== undefined) {
+    const phone = clean(body.phone, 40);
+    if (phone && !SIMPLE_PHONE_RE.test(phone)) return { error: 'Invalid phone format' };
+    patch.phone = phone;
+  }
+  if (body.website_url !== undefined) {
+    const website = clean(body.website_url, 2048);
+    if (website && !isHttpsUrl(website)) return { error: 'website_url must be https://' };
+    patch.website_url = website;
+  }
+  if (body.short_description !== undefined) patch.short_description = clean(body.short_description, 280);
+  if (body.description !== undefined) patch.description = clean(body.description, 7000);
+  return { value: patch };
 }
 
 function validateClaimPayload(body = {}, hasFile = false) {
@@ -391,8 +903,10 @@ function validateOwnerIntegrationPatch(body = {}) {
   if (patch.external_site_url !== undefined && clean(patch.external_site_url, 2048) && !isHttpsUrl(patch.external_site_url)) {
     return { error: 'external_site_url must be https://' };
   }
-  if (patch.lead_webhook_url !== undefined && clean(patch.lead_webhook_url, 2048) && !isHttpsUrl(patch.lead_webhook_url)) {
-    return { error: 'lead_webhook_url must be https://' };
+  if (patch.lead_webhook_url !== undefined && clean(patch.lead_webhook_url, 2048)) {
+    const webhook = validateLeadWebhookUrl(patch.lead_webhook_url);
+    if (webhook.error) return { error: webhook.error };
+    patch.lead_webhook_url = webhook.url;
   }
   if (patch.lead_email !== undefined && clean(patch.lead_email, 240)) {
     if (!EMAIL_RE.test(patch.lead_email)) return { error: 'Invalid lead_email format' };
@@ -447,7 +961,7 @@ async function requireOwnerAccess(req, res, next) {
   try {
     const listingId = clean(req.params?.id, 80);
     if (!listingId || !isValidId(listingId)) return invalid(res, 'Invalid listing id');
-    const listing = await deps.getPublicListingById(listingId);
+    const listing = await deps.getInternalListingById(listingId);
     if (!listing) return res.status(404).json({ ok: false, error: 'Listing not found' });
     const allowed = await deps.hasOwnerMembership(req.dbUser.id, listingId);
     if (!allowed) return res.status(403).json({ ok: false, error: 'Forbidden' });
@@ -495,9 +1009,15 @@ async function dispatchLead(listing, lead, payload) {
 
   if (destination === 'webhook' || destination === 'both') {
     if (listing?.lead_webhook_url) {
+      let timeout = null;
       try {
-        const resp = await fetch(listing.lead_webhook_url, {
+        const webhookUrl = await assertLeadWebhookTargetAllowed(listing.lead_webhook_url);
+        const controller = new AbortController();
+        timeout = setTimeout(() => controller.abort(), LEAD_WEBHOOK_TIMEOUT_MS);
+        const resp = await fetch(webhookUrl, {
           method: 'POST',
+          redirect: 'error',
+          signal: controller.signal,
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             leadId: lead.id,
@@ -513,7 +1033,10 @@ async function dispatchLead(listing, lead, payload) {
         webhookOk = resp.ok;
         if (!resp.ok) webhookError = `WEBHOOK_HTTP_${resp.status}`;
       } catch (err) {
-        webhookError = err?.message || 'WEBHOOK_FAILED';
+        if (err?.name === 'AbortError') webhookError = 'WEBHOOK_TIMEOUT';
+        else webhookError = err?.code || err?.message || 'WEBHOOK_FAILED';
+      } finally {
+        if (timeout) clearTimeout(timeout);
       }
     } else {
       webhookError = 'LEAD_WEBHOOK_MISSING';
@@ -533,10 +1056,21 @@ router.get('/listings', async (req, res) => {
   try {
     const checked = validateListingsQuery(req.query || {});
     if (checked.error) return invalid(res, checked.error);
-    const data = await deps.listPublicListings(checked.value || {});
+    const data = sanitizePublicListingPage(await deps.listPublicListings(checked.value || {}));
     return res.json({ ok: true, ...data });
   } catch (err) {
     return res.status(500).json({ ok: false, error: 'Failed to load listings' });
+  }
+});
+
+router.get('/listings/suggestions', async (req, res) => {
+  try {
+    const checked = validateListingSuggestionsQuery(req.query || {});
+    if (checked.error) return invalid(res, checked.error);
+    const suggestions = await deps.listPublicListingSuggestions(checked.value || {});
+    return res.json({ ok: true, suggestions });
+  } catch {
+    return res.status(500).json({ ok: false, error: 'Failed to load suggestions' });
   }
 });
 
@@ -544,7 +1078,7 @@ router.get('/listings/:slug', async (req, res) => {
   try {
     const slug = clean(req.params.slug, 180);
     if (!slug) return invalid(res, 'Invalid listing slug');
-    const listing = await deps.getPublicListingBySlug(slug);
+    const listing = sanitizePublicListingPayload(await deps.getPublicListingBySlug(slug));
     if (!listing) return res.status(404).json({ ok: false, error: 'Listing not found' });
     return res.json({ ok: true, listing });
   } catch {
@@ -570,7 +1104,7 @@ router.post('/geocode', async (req, res) => {
           lat: Number(cached.latitude),
           lng: Number(cached.longitude),
           city: cached.city,
-          state: cached.state,
+          state: normalizeUsStateCode(cached.state) || cached.state,
           postal_code: cached.postalCode,
         },
       });
@@ -586,7 +1120,7 @@ router.post('/geocode', async (req, res) => {
         lat: Number(saved.latitude),
         lng: Number(saved.longitude),
         city: saved.city,
-        state: saved.state,
+        state: normalizeUsStateCode(saved.state) || saved.state,
         postal_code: saved.postalCode,
       },
     });
@@ -595,14 +1129,31 @@ router.post('/geocode', async (req, res) => {
   }
 });
 
-router.post('/listings/:id/leads', async (req, res) => {
+router.post('/nominations', optionalNetworkAuth, async (req, res) => {
+  try {
+    if (limited(req, 'network-nomination', 6, 60_000)) {
+      return res.status(429).json({ ok: false, error: 'Too many requests' });
+    }
+    const checked = validateNominationPayload(req.body || {});
+    if (checked.error) return invalid(res, checked.error);
+    const nomination = await deps.createNetworkNomination({
+      ...checked.value,
+      userId: req.dbUser?.id || null,
+    });
+    return res.status(201).json({ ok: true, nomination });
+  } catch {
+    return res.status(500).json({ ok: false, error: 'Failed to submit nomination' });
+  }
+});
+
+router.post('/listings/:id/leads', optionalNetworkAuth, async (req, res) => {
   try {
     const id = clean(req.params.id, 80);
     if (!id || !isValidId(id)) return invalid(res, 'Invalid listing id');
     if (limited(req, `lead:${req.params.id}`, 12, 60_000)) {
       return res.status(429).json({ ok: false, error: 'Too many requests' });
     }
-    const listing = await deps.getPublicListingById(id);
+    const listing = await deps.getInternalListingById(id);
     if (!listing) return res.status(404).json({ ok: false, error: 'Listing not found' });
     if (!listing.features.enable_lead_form) return res.status(403).json({ ok: false, error: 'Lead form not enabled' });
 
@@ -634,11 +1185,11 @@ router.post('/listings/:id/leads', async (req, res) => {
   }
 });
 
-router.post('/listings/:id/outbound-click', async (req, res) => {
+router.post('/listings/:id/outbound-click', optionalNetworkAuth, async (req, res) => {
   try {
     const id = clean(req.params.id, 80);
     if (!id || !isValidId(id)) return invalid(res, 'Invalid listing id');
-    const listing = await deps.getPublicListingById(id);
+    const listing = await deps.getInternalListingById(id);
     if (!listing) return res.status(404).json({ ok: false, error: 'Listing not found' });
     const href = clean(req.body?.href, 2048);
     if (href) {
@@ -667,18 +1218,28 @@ router.post('/listings/:id/outbound-click', async (req, res) => {
 router.post('/listings/:id/claim', networkAuth, requireDbUser, claimUploadMiddleware, async (req, res) => {
   try {
     const id = clean(req.params.id, 80);
-    if (!id || !isValidId(id)) return invalid(res, 'Invalid listing id');
+    if (!id || !isValidId(id)) {
+      cleanupClaimUpload(req);
+      return invalid(res, 'Invalid listing id');
+    }
     if (limited(req, `claim:${req.params.id}`, 5, 60_000)) {
+      cleanupClaimUpload(req);
       return res.status(429).json({ ok: false, error: 'Too many requests' });
     }
-    const listing = await deps.getPublicListingById(id);
-    if (!listing) return res.status(404).json({ ok: false, error: 'Listing not found' });
+    const listing = await deps.getInternalListingById(id);
+    if (!listing) {
+      cleanupClaimUpload(req);
+      return res.status(404).json({ ok: false, error: 'Listing not found' });
+    }
 
     const checked = validateClaimPayload(req.body || {}, !!req.file);
-    if (checked.error) return invalid(res, checked.error);
+    if (checked.error) {
+      cleanupClaimUpload(req);
+      return invalid(res, checked.error);
+    }
     const { businessEmail, phone, businessIdentityDocUrl } = checked.value;
 
-    const filePath = req.file ? `/uploads/network/claims/${req.file.filename}` : null;
+    const filePath = req.file ? storedClaimProofPath(req.file.filename) : null;
     const created = await deps.createClaimRequest({
       listingId: listing.id,
       userId: req.dbUser.id,
@@ -689,6 +1250,7 @@ router.post('/listings/:id/claim', networkAuth, requireDbUser, claimUploadMiddle
     });
     return res.status(201).json({ ok: true, claim: created });
   } catch (err) {
+    cleanupClaimUpload(req);
     const code = String(err?.code || err?.message || '');
     if (code.includes('CLAIM_NOT_ALLOWED_STATUS')) {
       return res.status(409).json({ ok: false, error: 'Listing is not eligible for claim submission' });
@@ -786,9 +1348,26 @@ router.get('/partners-ops/claims', networkAuth, requireDbUser, requireOps(), asy
     const limit = req.query?.limit != null ? Number(req.query.limit) : 120;
     if (!Number.isInteger(limit) || limit < 1 || limit > 250) return invalid(res, 'Invalid limit');
     const claims = await deps.listClaims(status, limit);
-    return res.json({ ok: true, claims });
+    return res.json({ ok: true, claims: claims.map(exposeOpsClaim) });
   } catch {
     return res.status(500).json({ ok: false, error: 'Failed to load claims' });
+  }
+});
+
+router.get('/partners-ops/claims/:id/proof', networkAuth, requireDbUser, requireOps(), async (req, res) => {
+  try {
+    const id = clean(req.params.id, 80);
+    if (!id || !isValidId(id)) return invalid(res, 'Invalid claim id');
+    const claim = await deps.getClaimProofById(id);
+    if (!claim) return res.status(404).json({ ok: false, error: 'Claim not found' });
+    const diskPath = resolveClaimProofDiskPath(claim.businessIdentityDocPath);
+    if (!diskPath || !fs.existsSync(diskPath)) {
+      return res.status(404).json({ ok: false, error: 'Uploaded proof file not found' });
+    }
+    res.set('Cache-Control', 'no-store');
+    return res.download(diskPath, path.basename(diskPath));
+  } catch {
+    return res.status(500).json({ ok: false, error: 'Failed to load claim proof' });
   }
 });
 
@@ -821,6 +1400,137 @@ router.post('/partners-ops/claims/:id/reject', networkAuth, requireDbUser, requi
       return res.status(409).json({ ok: false, error: 'Claim is not in pending status' });
     }
     return res.status(500).json({ ok: false, error: 'Failed to reject claim' });
+  }
+});
+
+router.get('/partners-ops/nominations', networkAuth, requireDbUser, requireOps(), async (req, res) => {
+  try {
+    const status = cleanLower(req.query?.status, 24) || 'pending';
+    if (!VALID_NOMINATION_STATUS.has(status)) return invalid(res, 'Invalid nomination status filter');
+    const limit = req.query?.limit != null ? Number(req.query.limit) : 120;
+    if (!Number.isInteger(limit) || limit < 1 || limit > 250) return invalid(res, 'Invalid limit');
+    const nominations = await deps.listNetworkNominations({ status, limit });
+    return res.json({ ok: true, nominations });
+  } catch {
+    return res.status(500).json({ ok: false, error: 'Failed to load nominations' });
+  }
+});
+
+router.patch('/partners-ops/nominations/:id', networkAuth, requireDbUser, requireOps(), async (req, res) => {
+  try {
+    const id = clean(req.params.id, 80);
+    if (!id || !isValidId(id)) return invalid(res, 'Invalid nomination id');
+    const checked = validateNominationOpsPatch(req.body || {});
+    if (checked.error) return invalid(res, checked.error);
+    const nomination = await deps.updateNetworkNomination(id, req.dbUser.id, checked.value);
+    if (!nomination) return res.status(404).json({ ok: false, error: 'Nomination not found' });
+    return res.json({ ok: true, nomination });
+  } catch (err) {
+    if (String(err?.code || err?.message || '').includes('INVALID_NOMINATION_STATUS')) {
+      return res.status(400).json({ ok: false, error: 'Invalid nomination status' });
+    }
+    return res.status(500).json({ ok: false, error: 'Failed to update nomination' });
+  }
+});
+
+router.get('/partners-ops/import-candidates', networkAuth, requireDbUser, requireOps(), async (req, res) => {
+  try {
+    const checked = validateCandidateQuery(req.query || {});
+    if (checked.error) return invalid(res, checked.error);
+    const candidates = await deps.listNetworkImportCandidates(checked.value);
+    return res.json({ ok: true, ...candidates });
+  } catch (err) {
+    if (String(err?.code || err?.message || '').includes('INVALID_IMPORT')) {
+      return res.status(400).json({ ok: false, error: 'Invalid import candidate filter' });
+    }
+    return res.status(500).json({ ok: false, error: 'Failed to load import candidates' });
+  }
+});
+
+router.get('/partners-ops/import-candidates/summary', networkAuth, requireDbUser, requireOps(), async (req, res) => {
+  try {
+    const checked = validateCandidateQuery({ ...(req.query || {}), status: req.query?.status || 'all', limit: '1', offset: '0' });
+    if (checked.error) return invalid(res, checked.error);
+    const summary = await deps.summarizeNetworkImportCandidates(checked.value);
+    return res.json({ ok: true, summary });
+  } catch (err) {
+    if (String(err?.code || err?.message || '').includes('INVALID_IMPORT')) {
+      return res.status(400).json({ ok: false, error: 'Invalid import candidate summary filter' });
+    }
+    return res.status(500).json({ ok: false, error: 'Failed to summarize import candidates' });
+  }
+});
+
+router.post('/partners-ops/import-candidates', networkAuth, requireDbUser, requireOps(), async (req, res) => {
+  try {
+    const checked = validateCandidateImportPayload(req.body || {});
+    if (checked.error) return invalid(res, checked.error);
+    const results = [];
+    for (const item of checked.value) {
+      const out = await deps.upsertNetworkImportCandidate(item);
+      results.push(out?.id || null);
+    }
+    return res.json({ ok: true, imported: results.filter(Boolean).length });
+  } catch {
+    return res.status(500).json({ ok: false, error: 'Failed to import candidates' });
+  }
+});
+
+router.patch('/partners-ops/import-candidates/bulk', networkAuth, requireDbUser, requireOps(), async (req, res) => {
+  try {
+    const checked = validateCandidateBulkPatch(req.body || {});
+    if (checked.error) return invalid(res, checked.error);
+    const updated = [];
+    const missing = [];
+    for (const id of checked.value.ids) {
+      const candidate = await deps.updateNetworkImportCandidateStatus(id, req.dbUser.id, checked.value.patch);
+      if (candidate) updated.push(candidate);
+      else missing.push(id);
+    }
+    return res.json({ ok: true, updated: updated.length, missing, candidates: updated });
+  } catch (err) {
+    if (String(err?.code || err?.message || '').includes('INVALID_IMPORT')) {
+      return res.status(400).json({ ok: false, error: 'Invalid import candidate bulk update' });
+    }
+    return res.status(500).json({ ok: false, error: 'Failed to bulk update import candidates' });
+  }
+});
+
+router.patch('/partners-ops/import-candidates/:id', networkAuth, requireDbUser, requireOps(), async (req, res) => {
+  try {
+    const id = clean(req.params.id, 80);
+    if (!id || !isValidId(id)) return invalid(res, 'Invalid candidate id');
+    const checked = validateCandidatePatch(req.body || {});
+    if (checked.error) return invalid(res, checked.error);
+    const candidate = await deps.updateNetworkImportCandidateStatus(id, req.dbUser.id, checked.value);
+    if (!candidate) return res.status(404).json({ ok: false, error: 'Candidate not found' });
+    return res.json({ ok: true, candidate });
+  } catch (err) {
+    if (String(err?.code || err?.message || '').includes('INVALID_IMPORT')) {
+      return res.status(400).json({ ok: false, error: 'Invalid import candidate update' });
+    }
+    return res.status(500).json({ ok: false, error: 'Failed to update import candidate' });
+  }
+});
+
+router.post('/partners-ops/import-candidates/:id/promote', networkAuth, requireDbUser, requireOps(), async (req, res) => {
+  try {
+    const id = clean(req.params.id, 80);
+    if (!id || !isValidId(id)) return invalid(res, 'Invalid candidate id');
+    const checked = validateCandidatePromotePayload(req.body || {});
+    if (checked.error) return invalid(res, checked.error);
+    const result = await deps.promoteNetworkImportCandidate(id, req.dbUser.id, checked.value);
+    if (!result) return res.status(404).json({ ok: false, error: 'Candidate not found' });
+    return res.json({ ok: true, candidate: result.candidate, listing: result.listing });
+  } catch (err) {
+    const code = String(err?.code || err?.message || '');
+    if (code.includes('IMPORT_CANDIDATE_NOT_PROMOTABLE')) {
+      return res.status(409).json({ ok: false, error: 'Candidate is not promotable in its current status' });
+    }
+    if (code.includes('LAUNCH_LISTING_')) {
+      return res.status(400).json({ ok: false, error: err?.message || 'Candidate is not launch-ready' });
+    }
+    return res.status(500).json({ ok: false, error: 'Failed to promote import candidate' });
   }
 });
 
@@ -887,18 +1597,33 @@ router.get('/partners-ops/listings', networkAuth, requireDbUser, requireOps(), a
   }
 });
 
-router.post('/partners-ops/import-seed', networkAuth, requireDbUser, requireOps(), async (req, res) => {
+router.post('/partners-ops/import-launch-listings', networkAuth, requireDbUser, requireOps(), async (req, res) => {
   try {
-    const items = Array.isArray(req.body?.items) ? req.body.items : [];
-    if (items.length > 500) return invalid(res, 'Too many seed items');
+    const checked = validateLaunchImportPayload(req.body || {});
+    if (checked.error) return invalid(res, checked.error);
     const results = [];
-    for (const item of items) {
-      const out = await deps.upsertListingFromSeed(item);
+    for (const item of checked.value) {
+      const out = await deps.upsertApprovedLaunchListing(item);
       results.push(out?.id || null);
     }
-    return res.json({ ok: true, imported: results.length });
+    return res.json({ ok: true, imported: results.filter(Boolean).length, rejected: 0 });
   } catch {
-    return res.status(500).json({ ok: false, error: 'Failed to import seed' });
+    return res.status(500).json({ ok: false, error: 'Failed to import launch listings' });
+  }
+});
+
+router.post('/partners-ops/import-seed', networkAuth, requireDbUser, requireOps(), async (req, res) => {
+  try {
+    const checked = validateLaunchImportPayload(req.body || {});
+    if (checked.error) return invalid(res, checked.error);
+    const results = [];
+    for (const item of checked.value) {
+      const out = await deps.upsertApprovedLaunchListing(item);
+      results.push(out?.id || null);
+    }
+    return res.json({ ok: true, imported: results.filter(Boolean).length, rejected: 0, launchSafe: true });
+  } catch {
+    return res.status(500).json({ ok: false, error: 'Failed to import launch listings' });
   }
 });
 

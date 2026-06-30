@@ -3,11 +3,13 @@ import 'dotenv/config';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { upsertListingFromSeed, closeNetworkDbPool } from '../networkDB.pg.js';
+import { upsertApprovedLaunchListing, closeNetworkDbPool } from '../networkDB.pg.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const seedPath = path.resolve(__dirname, '..', 'public', 'data', 'pawket-network-seed.json');
+const seedPath = process.env.PAWKET_NETWORK_LAUNCH_DATA
+  ? path.resolve(process.env.PAWKET_NETWORK_LAUNCH_DATA)
+  : path.resolve(__dirname, '..', 'data', 'pawket-network-launch-listings.json');
 
 async function run() {
   const raw = await fs.readFile(seedPath, 'utf8');
@@ -19,11 +21,11 @@ async function run() {
 
   let count = 0;
   for (const item of items) {
-    const listing = await upsertListingFromSeed(item);
+    const listing = await upsertApprovedLaunchListing(item);
     if (listing?.id) count += 1;
   }
 
-  console.log(`[network-seed] upserted ${count} listings`);
+  console.log(`[network-seed] upserted ${count} launch-approved listings`);
 }
 
 run()
